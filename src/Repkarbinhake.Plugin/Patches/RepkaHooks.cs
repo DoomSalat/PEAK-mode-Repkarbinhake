@@ -22,6 +22,7 @@ namespace Repkarbinhake.Plugin.Patches
         public static Color? HeldRopeColor { get; set; } // Set: written by RepkaBack every frame, link color of the held rope or null
         public static float HeldRopeTint { get; set; } // Set: written by RepkaBack every frame, how strongly the rope gauge takes that color
         public static RopeGaugeTint GaugeTint { get; set; } // Set: assigned once by RepkaBack, driven by the rope gauge patch
+        public static PlayerConnectionLog ConnectionLog { get; set; } // Set: remembered by the connection log patch, the on-screen join/leave feed
         public static bool HookPlaced { get; set; } // Set: written by RepkaBack every frame, shows the hook indicator by the crosshair
         public static bool ConfigWindowOpen { get; set; } // Set: written by RepkaBack every frame, frees the cursor and blocks game input
         public static IReadOnlyDictionary<Character, RopeHoldPose> HoldPoses { get; set; } // Set: assigned once by RepkaBack, read by the hold pose patch

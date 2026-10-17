@@ -65,7 +65,7 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 │   ├── AnchorSync           — крюки через свойства комнаты rkb.anchor.<номер>: владелец пишет, все читают; хост удаляет крюк вышедшего; смена локации снимает свой крюк
 │   ├── PhotonRoomCallbacks  — база сетевых инструментов: пустые обработчики IInRoomCallbacks/IMatchmakingCallbacks, Enable/Disable (регистрация в Photon, при уже открытой комнате — сразу OnJoinedRoom); RoomLinkSync, AnchorSync, ModVersionCheck, RopePathSync переопределяют только нужное
 │   ├── RopePathSync         — синхронизация пути верёвки: хозяин (держащий, иначе меньший номер; RopePathAuthority) раз в 0,1 с рассылает точки касания и длины участков событием Photon 173, остальные ведут путь за ним (RopeWrapPath.Follow), смена хозяина — Lead, вошедшим — полный снимок
-│   ├── ModVersionCheck      — своя версия мода в свойства игрока Photon (rkb.ver), лог версий остальных, предупреждение при расхождении
+│   ├── ModVersionCheck      — своя версия мода в свойства игрока Photon (rkb.ver), лог версий остальных, предупреждение при расхождении; при расхождении — строка в ванильной ленте «вошёл / вышел» (PlayerConnectionLog, экземпляр — RepkaHooks.ConnectionLog из ConnectionLogPatches)
 │   └── RoomLinkSync         — колбэки комнаты Photon, снимок при входе, обязанности хоста
 ├── Links
 │   ├── CharacterDirectory   — actor ↔ Character
@@ -89,7 +89,7 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 │   ├── RopeHoldPoses        — кто держит верёвку (все игроки) + угол катушки по изменению Reel (200°/м); показываемый угол догоняет целевой (сглаживание чужих рывков сети)
 │   └── RopeHoldPose         — actor + угол вращения катушки
 ├── Visual
-│   ├── RopePresenterPool    — верёвки на сцене: создание, отрисовка, путь (span), наведение, материал; Tint — материал верёвки в цвете связки из ESC (RopeRecolor), доля RopeColor (Visual, 0,85)
+│   ├── RopePresenterPool    — верёвки на сцене: создание, отрисовка (невидимые и дальше 40 м от камеры — провис без столкновений точек), путь (span), наведение, материал; Tint — материал верёвки в цвете связки из ESC (RopeRecolor), доля RopeColor (Visual, 0,85)
 │   ├── RopeRecolor          — копия материала верёвки на цвет (кэш по цвету). Ванильный M_Rope (шейдер W/Peak_Standard): текстура rope_lmao серая, цвет даёт HDR _BaseColor (3,03; 1,83; 0,16) — ему ставятся оттенок и насыщенность цвета связки при исходной яркости; акценты _Color1/_Color2 — только оттенок
 │   ├── RopePresenter        — одна верёвка: RopeWrapPath + RopeSag + RopeLooseness + RopeTubeView + RopeInteractible; при пропаже конца путь сбрасывается
 │   ├── SpoolProps           — визуальная копия обычной катушки в руках каждого держащего: центр её Hand_R/Hand_L ставится между физическими кистями, источник точки выхода верёвки; материал катушки (M_RopeKnot, шейдер W/Peak_Rope) перекрашивается в цвет удерживаемой связки через свой RopeRecolor (RopeColor > 0)

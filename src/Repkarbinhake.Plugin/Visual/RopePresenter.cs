@@ -34,18 +34,20 @@ namespace Repkarbinhake.Plugin.Visual
         public int SegmentCount => _targets.Count;
         public int ContactCount => _path.ContactCount;
         public IReadOnlyList<System.Numerics.Vector3> Points => _loose.Positions;
+        public bool IsVisible => _renderer.isVisible;
 
         public void ChangeMaterial(Material material)
         {
             _view.ChangeMaterial(material);
         }
 
-        public void Tick(Vector3 start, Vector3 end, RopeLengthState length, int segments, float deltaTime, float radius, IRopeObstacles obstacles)
+        public void Tick(Vector3 start, Vector3 end, RopeLengthState length, int segments, float deltaTime, float radius, IRopeObstacles obstacles, bool detailed)
         {
             _renderer.enabled = true;
             _path.Update(start.ToNumerics(), end.ToNumerics(), length, radius, deltaTime, obstacles);
-            _sag.Build(_path, Physics.gravity.normalized.ToNumerics(), segments, radius, obstacles, _targets, _freedoms, _spacings);
-            _loose.Step(_targets, _freedoms, _spacings, Physics.gravity.ToNumerics(), deltaTime, radius, obstacles);
+            IRopeObstacles shapeObstacles = detailed ? obstacles : null;
+            _sag.Build(_path, Physics.gravity.normalized.ToNumerics(), segments, radius, shapeObstacles, _targets, _freedoms, _spacings);
+            _loose.Step(_targets, _freedoms, _spacings, Physics.gravity.ToNumerics(), deltaTime, radius, shapeObstacles);
         }
 
         public void Render(Vector3? startLead, Vector3? endLead)

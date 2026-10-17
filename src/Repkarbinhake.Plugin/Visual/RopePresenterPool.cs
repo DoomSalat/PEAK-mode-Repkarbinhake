@@ -20,6 +20,8 @@ namespace Repkarbinhake.Plugin.Visual
         private const string RopeCutoffProperty = "_RopeCutoff";
         private const float FullCutoff = 2f;
         private const string FallbackShader = "Universal Render Pipeline/Lit";
+        private const float DetailDistance = 40f;
+        private const float Midpoint = 0.5f;
 
         private static readonly Color FallbackColor = new Color(0.55f, 0.36f, 0.18f); // Static: constant rope color
         private static readonly Color HighlightEmission = new Color(0.55f, 0.4f, 0.1f); // Static: constant hover glow
@@ -106,7 +108,8 @@ namespace Repkarbinhake.Plugin.Visual
 
                 float length = _reel.EffectiveLength(link);
                 RopeLengthState state = new RopeLengthState(length, link.First.HeldReel, link.Second.HeldReel);
-                presenter.Tick(start, end, state, _segmentation.Count(length, ropeCount), deltaTime, _config.Thickness.Value, _obstacles);
+                bool detailed = presenter.IsVisible || IsNearView((start + end) * Midpoint);
+                presenter.Tick(start, end, state, _segmentation.Count(length, ropeCount), deltaTime, _config.Thickness.Value, _obstacles, detailed);
                 presenter.Render(LeadOf(link.First), LeadOf(link.Second));
             }
         }
@@ -167,6 +170,11 @@ namespace Repkarbinhake.Plugin.Visual
         public int SegmentsOf(RopeLink link)
         {
             return _presenters.TryGetValue(link.Key, out RopePresenter presenter) ? presenter.SegmentCount : 0;
+        }
+
+        private bool IsNearView(Vector3 point)
+        {
+            return MainCamera.instance == null || (point - MainCamera.instance.transform.position).sqrMagnitude < DetailDistance * DetailDistance;
         }
 
         private Vector3? LeadOf(RopeEnd end)

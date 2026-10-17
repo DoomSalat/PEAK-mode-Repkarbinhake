@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using BepInEx.Logging;
 using ExitGames.Client.Photon;
 using Photon.Pun;
+using Repkarbinhake.Plugin.Patches;
 using Photon.Realtime;
 using PhotonPlayer = Photon.Realtime.Player;
 
@@ -64,7 +65,16 @@ namespace Repkarbinhake.Plugin.Network
             if (version == _version)
                 _log.LogInfo($"{nameof(ModVersionCheck)}: {player.NickName} has Repkarbinhake {version}");
             else
-                _log.LogWarning($"{nameof(ModVersionCheck)}: {player.NickName} has Repkarbinhake {version}, you have {_version} — ropes may behave differently");
+                Warn(player, version);
+        }
+
+        private void Warn(PhotonPlayer player, string version)
+        {
+            _log.LogWarning($"{nameof(ModVersionCheck)}: {player.NickName} has Repkarbinhake {version}, you have {_version} — ropes may behave differently");
+            PlayerConnectionLog feed = RepkaHooks.ConnectionLog;
+
+            if (feed != null)
+                feed.AddMessage($"Repkarbinhake: {feed.GetColorTag(feed.userColor)}{player.NickName}</color> {version} ≠ {_version}");
         }
     }
 }
