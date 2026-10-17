@@ -83,6 +83,24 @@ namespace Repkarbinhake.Plugin.Handling
                 Belay(local);
         }
 
+        public void ApplyToDummy(TestDummy dummy)
+        {
+            if (!dummy.IsPlaced)
+                return;
+
+            float stability = _stability.Resolve(TestDummy.Actor, _registry.Links);
+            Vector3 total = Vector3.zero;
+
+            foreach (RopeLink link in _registry.Links)
+            {
+                if (link.Contains(TestDummy.Actor))
+                    total += _tension.Solve(_ropes.SpanFor(link, TestDummy.Actor), dummy.Velocity.ToNumerics(), _reel.EffectiveLength(link), stability).ToUnity();
+            }
+
+            if (total.sqrMagnitude > 0f)
+                dummy.Push(total);
+        }
+
         private void KeepHangingLight(Character local, Vector3 pull)
         {
             if (!local.data.isGrounded && pull.y >= _config.SupportLoadThreshold.Value)

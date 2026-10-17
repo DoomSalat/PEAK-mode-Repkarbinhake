@@ -8,11 +8,13 @@ namespace Repkarbinhake.Plugin.Input
     {
         private readonly RepkaConfig _config;
         private readonly CharacterDirectory _characters;
+        private readonly TestDummy _dummy;
 
-        public LinkTargetPicker(RepkaConfig config, CharacterDirectory characters)
+        public LinkTargetPicker(RepkaConfig config, CharacterDirectory characters, TestDummy dummy)
         {
             _config = config;
             _characters = characters;
+            _dummy = dummy;
         }
 
         public bool TryPick(Character self, Transform view, out int target)
@@ -29,7 +31,19 @@ namespace Repkarbinhake.Plugin.Input
                     target = _characters.ActorOf(candidate);
             }
 
+            if (_dummy.IsPlaced && IsDummyAimed(view, ref bestAngle))
+                target = TestDummy.Actor;
+
             return target != 0;
+        }
+
+        private bool IsDummyAimed(Transform view, ref float bestAngle)
+        {
+            if (!_dummy.IsHitBy(new Ray(view.position, view.forward), global::Interaction.instance.distance))
+                return IsBetter(view, _dummy.Center, ref bestAngle);
+
+            bestAngle = 0f;
+            return true;
         }
 
         private bool IsBetter(Transform view, Vector3 center, ref float bestAngle)

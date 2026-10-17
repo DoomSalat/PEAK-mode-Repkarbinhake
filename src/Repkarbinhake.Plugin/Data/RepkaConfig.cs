@@ -93,6 +93,7 @@ namespace Repkarbinhake.Plugin.Data
             _segmentLength = file.Bind(PerformanceSection, "SegmentLength", 0.3f, "Preferred bone spacing (meters). Short ropes never get more bones than they need.");
 
             ShowDebugOverlay = file.Bind(DebugSection, "ShowDebugOverlay", false, "Show rope numbers on screen.");
+            TestDummyKey = file.Bind(DebugSection, "TestDummyKey", "<Keyboard>/f9", "Press to place a local test capsule where you look, then tie to it with the link key and pull it; press again to remove it.");
             ConfigEditorKey = file.Bind(DebugSection, "ConfigEditorKey", "<Keyboard>/f7", "Opens an in-game window to edit and apply these settings while playing.");
             DropRemovedSettings(file);
         }
@@ -119,6 +120,7 @@ namespace Repkarbinhake.Plugin.Data
         public ConfigFile File { get; }
         public ConfigEntry<bool> ShowDebugOverlay { get; }
         public ConfigEntry<string> ConfigEditorKey { get; }
+        public ConfigEntry<string> TestDummyKey { get; }
         public ConfigEntry<float> MaxLengthEntry => _maxLength;
         public float MinLength => _minLength.Value;
         public float MaxLength => _maxLength.Value;

@@ -69,10 +69,12 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 ├── Links
 │   ├── CharacterDirectory   — actor ↔ Character
 │   ├── ActorStates          — IFootingSource + IActorLifeSource + точки крепления верёвки (бедро / катушка в руках)
+│   ├── TestDummy            — отладочная капсула (Rigidbody 60 кг), актёр −1 000 000: не крюк (AnchorActors — только −1…−9999), локальная (ключи с «-» не публикуются); ActorStates — опора/точка верёвки, LinkTargetPicker — прицел G, RopeForces.ApplyToDummy — тяга, RoomLinkSync — не считается ушедшей
 │   ├── AnchorBoard          — крюки игроков (владелец → место): связка игрок ↔ крюк (крюк = актёр −номер, верёвка локальная у каждого клиента), точка верёвки на крюке, EnsureLinks; Remove сначала развязывает, потом убирает крюк — чтобы звук отстёгивания нашёл точку
 │   └── LinkColors           — цвет каждой связки из палитры RepkaColors (первый свободный при появлении, свой у каждого клиента); TryGetColor — цвет верёвки (у крюков нет)
 ├── Input
 │   ├── LinkHoldInput        — G: цель по взгляду, удержание, связать / отцепить
+│   ├── TestDummyInput       — F9 (TestDummyKey): поставить капсулу по лучу до 30 м / убрать; пропала — связка развязывается
 │   ├── AnchorInput          — T: удержание на земле (Footing.Grounded; оторвался — прицел сброшен) — призрак крюка в точке прицела (до 10 м, ставится до 5 м, как у ванильной катушки), отпустил — крюк; нажатие при стоящем — снять; снимается при смерти и дальше SnapDistance
 │   ├── LinkTargetPicker     — на кого смотрит игрок для G, отдаёт actor
 │   └── KeyBinding           — InputAction из строки конфига, пересоздаётся при смене
@@ -94,7 +96,7 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 │   ├── CarabinerSounds / LinkSoundFeedback — SFX_Instance → SFX_Player игры; звук в середине верёвки
 │   ├── PassThroughColliderFilter — верёвка проходит сквозь сундуки (Luggage, в т.ч. LuggageCursed, RespawnChest, и MirageLuggage), тонкие генерируемые мосты (BreakableBridge) и пушку скаута (ScoutCannon), результат кэшируется по коллайдеру
 │   ├── AnchorVisuals        — модель крюка из ванильной катушки: при наведении — полупрозрачный RopeTier.anchorPreview, у поставленных — в превью вместо прозрачных частей непрозрачный normalPart из RopeTier.anchorPrefab (сам сетевой префаб не создаётся); точка верёвки — центр узла (SphereCollider ребёнка Knot; у ванили AnchorPoint ниже, на уровне кольца), коллайдеры копии удаляются
-│   ├── CarabinerHud         — прицел-карабин (материал ванильного прицела) и подсказка «Привязать / Отцепить» с иконкой клавиши (копия UI_interactPrompt_E; текст пишется в первый активный TMP, не в скрытый PromptHold под иконкой); под ванильной подсказкой E при наведении на верёвку — ник партнёра цветом верёвки (копия interactNameText, HudPatches берёт currentInteractable)
+│   ├── CarabinerHud         — прицел-карабин (материал ванильного прицела) и подсказка «Привязать / Отцепить» с иконкой клавиши, а пока держишь верёвку и не целишься G — «[E] Отпустить верёвку» (клавиша из CharacterInput.action_interact; прячется, если ванильная подсказка уже показывает нашу верёвку) (копия UI_interactPrompt_E; текст пишется в первый активный TMP, не в скрытый PromptHold под иконкой); индикатор крюка слева снизу от прицела (Assets/hook_indicator.png, 22 px, смещение −26/−26), виден, пока твой крюк стоит (RepkaHooks.HookPlaced из RepkaHookFeed); под ванильной подсказкой E при наведении на верёвку — ник партнёра цветом верёвки (копия interactNameText, HudPatches берёт currentInteractable)
 │   ├── PlayerListBadges     — ряды цветных карабинов в списке игроков (ESC), проверка наложения на громкость / кик
 │   ├── LinkBadgeRow         — ряд цветных карабинов под аватаркой в списке игроков (ESC), материал прицела, проверка наложения на громкость / кик
 │   ├── RopeDebugReport      — строки отладки
@@ -104,9 +106,9 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
     ├── RepkaHooks           — статический мост Back → патчи
     ├── RepkaHookFeed        — каждый кадр пишет в RepkaHooks данные для патчей (цель G, подсказка, держимая / наведённая верёвка, длина), Clear при выходе
     ├── InteractionPatches   — Interaction.DoInteractableRaycasts: верёвка под прицелом — только если игра ничего не нашла и вызов обычный (минимальный приоритет, порядок — в PLAN.md); при цели G верёвка не наводится
-    ├── HudPatches           — тонкий патч: GUIManager.Start / UpdateReticle → CarabinerHud, кольцо удержания G (UI_UseItemProgress), UpdateWindowStatus — курсор и блок ввода при открытом окне настроек
+    ├── HudPatches           — тонкий патч: GUIManager.Start / UpdateReticle → CarabinerHud, кольцо удержания G (UI_UseItemProgress); если текст ванильной подсказки E по нашей верёвке устарел (игра обновляет его только при смене объекта) — RefreshInteractablePrompt, UpdateWindowStatus — курсор и блок ввода при открытом окне настроек
     ├── PlayerListPatches    — тонкий патч: AudioLevels.Update → PlayerListBadges
-    ├── RopeGaugePatches     — GUIManager.UpdateRope: пока держишь нашу верёвку — ванильный UI_Rope как есть, текущая длина (HeldRopeLength от Back)
+    ├── RopeGaugePatches     — GUIManager.UpdateRope: пока держишь нашу верёвку — ванильный UI_Rope, текущая длина (HeldRopeLength от Back), цвет всех картинок индикатора с шейдером Scouts/UI_Rope (верёвка и её конец) смешивается с цветом связки по RopeColor (RopeGaugeTint, у каждой картинки свой исходный цвет; спрайты серые, Update меняет только альфу), иначе исходные цвета возвращаются
     └── HoldPosePatches      — Idle «с предметом», IK рук на Hand_R/Hand_L катушки; CharacterRagdoll.SaveAdditionalTransformPositions — точка хвата animationItemTransform следует за взглядом (игра обновляет её только при предмете в руках)
 ```
 

@@ -20,7 +20,12 @@ namespace Repkarbinhake.Plugin.Patches
         {
             RopeInteractible rope = __instance.currentInteractable as RopeInteractible;
             bool aimsRope = rope != null;
-            RepkaHooks.Hud?.Show(__instance, RepkaHooks.ShowCarabinerReticle, RepkaHooks.LinkPrompt, RepkaHooks.LinkKeyPath, aimsRope ? rope.PartnerName : null, aimsRope ? rope.Color : Color.white);
+            if (aimsRope && __instance.interactPromptText.text != rope.GetInteractionText())
+                __instance.RefreshInteractablePrompt();
+
+            bool vanillaShowsRope = aimsRope && __instance.interactPromptPrimary.activeSelf;
+            string prompt = RepkaHooks.ReleasePrompt && vanillaShowsRope ? null : RepkaHooks.LinkPrompt;
+            RepkaHooks.Hud?.Show(__instance, RepkaHooks.ShowCarabinerReticle, prompt, RepkaHooks.LinkKeyPath, aimsRope ? rope.PartnerName : null, aimsRope ? rope.Color : Color.white, RepkaHooks.HookPlaced);
         }
 
         [HarmonyPostfix]

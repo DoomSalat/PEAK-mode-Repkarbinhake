@@ -32,6 +32,9 @@ namespace Repkarbinhake.Plugin
         private KeyBinding _linkKey;
         private KeyBinding _anchorKey;
         private KeyBinding _configEditorKey;
+        private KeyBinding _dummyKey;
+        private TestDummy _dummy;
+        private TestDummyInput _dummyInput;
         private LinkHoldInput _linkHold;
         private AnchorInput _anchorInput;
         private AnchorSync _anchorSync;
@@ -88,6 +91,7 @@ namespace Repkarbinhake.Plugin
             _linkKey?.Dispose();
             _anchorKey?.Dispose();
             _configEditorKey?.Dispose();
+            _dummyKey?.Dispose();
         }
 
         private void Update()
@@ -122,6 +126,7 @@ namespace Repkarbinhake.Plugin
             else
             {
                 _anchorInput.Tick(local, actor, footing, view);
+                _dummyInput.Tick(actor, view);
                 _linkHold.Tick(local, actor, footing, view, Time.deltaTime);
             }
 
@@ -149,6 +154,7 @@ namespace Repkarbinhake.Plugin
                 return;
 
             _forces.Apply(local, _registry.LocalActor);
+            _forces.ApplyToDummy(_dummy);
         }
 
         private void LateUpdate()
@@ -169,8 +175,9 @@ namespace Repkarbinhake.Plugin
             _registry = new LinkRegistry(transport);
             _colors = new LinkColors(_registry);
             RepkaHooks.Badges = new PlayerListBadges(_colors, assets.ReticleSprite, log);
-            RepkaHooks.Hud = new CarabinerHud(assets.ReticleSprite, log);
+            RepkaHooks.Hud = new CarabinerHud(assets.ReticleSprite, assets.HookIndicatorSprite, log);
             _characters = new CharacterDirectory();
+            _dummy = new TestDummy();
             VanillaRopeSpool spool = new VanillaRopeSpool();
             RepkaHooks.Spool = spool;
             AnchorVisuals anchorVisuals = new AnchorVisuals(spool);
@@ -178,7 +185,7 @@ namespace Repkarbinhake.Plugin
             _poses = new RopeHoldPoses(_registry, _characters);
             RepkaHooks.HoldPoses = _poses.Poses;
             _spools = new SpoolProps(transform, spool, _poses, _registry, _colors, config);
-            _actors = new ActorStates(_characters, anchors, _spools);
+            _actors = new ActorStates(_characters, anchors, _spools, _dummy);
             _deathRule = new DeathUntieRule(_actors);
             StabilityResolver stability = new StabilityResolver(settings, _policy, _actors);
             TensionSolver tension = new TensionSolver(settings);
@@ -191,7 +198,7 @@ namespace Repkarbinhake.Plugin
 
             _linkKey = new KeyBinding(config.LinkKey);
             _anchorKey = new KeyBinding(config.AnchorKey);
-            _linkHold = new LinkHoldInput(_registry, new LinkTargetPicker(config, _characters), _linkKey, settings);
+            _linkHold = new LinkHoldInput(_registry, new LinkTargetPicker(config, _characters, _dummy), _linkKey, settings);
             _anchorSync = new AnchorSync(anchors);
             _anchorInput = new AnchorInput(anchors, _anchorSync, anchorVisuals, spool, _anchorKey, settings);
             _anchorRopes = new AnchorRopes(_registry, anchors, _ropes, settings);
@@ -201,14 +208,17 @@ namespace Repkarbinhake.Plugin
             LedgeAssist ledge = new LedgeAssist();
             _forces = new RopeForces(_registry, stability, tension, anchorTension, reel, _actors, _ropes, config, obstacles, ledge);
             _knockdown = new RopeKnockdown(_registry, reel, _ropes, config);
-            _sync = new RoomLinkSync(transport, _registry, new UntiedKeySweeper(), new DepartedUntieRule(), settings, config);
+            _sync = new RoomLinkSync(transport, _registry, new UntiedKeySweeper(), new DepartedUntieRule(), settings, config, _dummy);
             _versionCheck = new ModVersionCheck(RepkaPlugin.Version, log);
             _pathSync = new RopePathSync(_registry, _ropes);
             _sounds = new LinkSoundFeedback(new CarabinerSounds(assets, config), _actors);
             _report = new RopeDebugReport(_registry, _actors, stability, tension, reel, team, ledge, _ropes, settings, anchorSettings);
-            _hookFeed = new RepkaHookFeed(_registry, reel, _policy, _ropes, _linkHold, config.LinkKey);
+            _hookFeed = new RepkaHookFeed(_registry, reel, _policy, _ropes, _linkHold, anchors, _colors, config.RopeColor, config.LinkKey);
+            RepkaHooks.GaugeTint = new RopeGaugeTint();
             _overlay = gameObject.AddComponent<RopeDebugOverlay>();
             _configEditorKey = new KeyBinding(config.ConfigEditorKey);
+            _dummyKey = new KeyBinding(config.TestDummyKey);
+            _dummyInput = new TestDummyInput(_registry, _dummy, _dummyKey, log);
             _configEditor = gameObject.AddComponent<ConfigEditorWindow>();
             _configEditor.Initialize(config.File);
         }

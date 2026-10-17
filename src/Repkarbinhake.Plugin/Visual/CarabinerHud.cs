@@ -12,10 +12,14 @@ namespace Repkarbinhake.Plugin.Visual
         private const string ReticleName = "Repkarbinhake Carabiner Reticle";
         private const string PromptName = "Repkarbinhake Link Prompt";
         private const string PartnerName = "Repkarbinhake Rope Partner";
+        private const string HookIndicatorName = "Repkarbinhake Hook Indicator";
+        private const float HookIndicatorSize = 22f;
+        private const float HookIndicatorOffset = 26f;
         private const float ReticleSize = 48f;
         private const string KeyFallbackFormat = "[{0}]";
 
         private readonly Sprite _sprite;
+        private readonly Sprite _hookSprite;
         private readonly ManualLogSource _log;
         private GameObject _reticle;
         private GameObject _prompt;
@@ -23,13 +27,15 @@ namespace Repkarbinhake.Plugin.Visual
         private TMP_Text _promptKey;
         private GameObject _vanillaPrompt;
         private TMP_Text _partner;
+        private GameObject _hookIndicator;
         private Vector2 _promptHome;
         private string _keyPath;
         private string _keyTag;
 
-        public CarabinerHud(Sprite sprite, ManualLogSource log)
+        public CarabinerHud(Sprite sprite, Sprite hookSprite, ManualLogSource log)
         {
             _sprite = sprite;
+            _hookSprite = hookSprite;
             _log = log;
         }
 
@@ -38,12 +44,16 @@ namespace Repkarbinhake.Plugin.Visual
             CreateReticle(gui);
             CreatePrompt(gui);
             CreatePartner(gui);
+            CreateHookIndicator(gui);
         }
 
-        public void Show(GUIManager gui, bool showReticle, string prompt, string keyPath, string partner, Color partnerColor)
+        public void Show(GUIManager gui, bool showReticle, string prompt, string keyPath, string partner, Color partnerColor, bool hookPlaced)
         {
-            if (_reticle == null || _prompt == null || _partner == null)
+            if (_reticle == null || _prompt == null || _partner == null || _hookIndicator == null)
                 return;
+
+            if (hookPlaced != _hookIndicator.activeSelf)
+                _hookIndicator.SetActive(hookPlaced);
 
             if (showReticle)
                 gui.SetReticle(_reticle);
@@ -107,6 +117,26 @@ namespace Repkarbinhake.Plugin.Visual
 
             if (_promptKey == null || _promptText == null)
                 _log.LogWarning($"{nameof(CarabinerHud)}: interact prompt layout changed (key {_promptKey != null}, text {_promptText != null}), link prompt disabled");
+        }
+
+        private void CreateHookIndicator(GUIManager gui)
+        {
+            RectTransform source = (RectTransform)gui.reticleDefault.transform;
+            _hookIndicator = new GameObject(HookIndicatorName, typeof(RectTransform));
+            RectTransform rect = (RectTransform)_hookIndicator.transform;
+            rect.SetParent(source.parent, false);
+            rect.anchorMin = source.anchorMin;
+            rect.anchorMax = source.anchorMax;
+            rect.pivot = source.pivot;
+            rect.anchoredPosition = source.anchoredPosition + new Vector2(-HookIndicatorOffset, -HookIndicatorOffset);
+            rect.sizeDelta = new Vector2(HookIndicatorSize, HookIndicatorSize);
+            Image icon = _hookIndicator.AddComponent<Image>();
+            icon.sprite = _hookSprite;
+            icon.material = gui.reticleDefaultImage.material;
+            icon.color = gui.reticleColorDefault;
+            icon.preserveAspect = true;
+            icon.raycastTarget = false;
+            _hookIndicator.SetActive(false);
         }
 
         private void CreatePartner(GUIManager gui)

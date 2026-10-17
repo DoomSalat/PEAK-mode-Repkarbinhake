@@ -26,6 +26,14 @@ namespace Repkarbinhake.Core.Tests
         }
 
         [Fact]
+        public void NumbersBeyondOwnerRange_AreNotAnchors()
+        {
+            Assert.True(AnchorActors.IsAnchor(-AnchorActors.MaxOwner));
+            Assert.False(AnchorActors.IsAnchor(-AnchorActors.MaxOwner - 1));
+            Assert.False(AnchorActors.IsAnchor(-1000000));
+        }
+
+        [Fact]
         public void Supported_RopePaysOutWithTheClimber()
         {
             _length.Next(3f, true, false, MinLength, MaxLength);

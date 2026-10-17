@@ -14,6 +14,7 @@ namespace Repkarbinhake.Plugin.Visual
     {
         private const float Percent = 100f;
         private const string AnchorName = "крюк";
+        private const string DummyName = "капсула";
         private const string UnknownName = "?";
 
         private readonly LinkRegistry _registry;
@@ -100,6 +101,9 @@ namespace Repkarbinhake.Plugin.Visual
         {
             if (AnchorActors.IsAnchor(actor))
                 return AnchorName;
+
+            if (actor == TestDummy.Actor)
+                return DummyName;
 
             Photon.Realtime.Player player = PhotonNetwork.CurrentRoom?.GetPlayer(actor);
             return player == null ? UnknownName : player.NickName;
