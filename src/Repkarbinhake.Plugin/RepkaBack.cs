@@ -109,7 +109,7 @@ namespace Repkarbinhake.Plugin
             else
                 _reelDriver.Stop();
 
-            _poses.Refresh();
+            _poses.Refresh(Time.deltaTime);
             UntieDead(actor);
             _hookFeed.Publish(actor, footing, view);
             UpdateOverlay(actor);
@@ -143,7 +143,8 @@ namespace Repkarbinhake.Plugin
             PhotonLinkTransport transport = new PhotonLinkTransport();
             _registry = new LinkRegistry(transport);
             _colors = new LinkColors(_registry);
-            RepkaHooks.LinkColors = _colors;
+            RepkaHooks.Badges = new PlayerListBadges(_colors, assets.ReticleSprite, log);
+            RepkaHooks.Hud = new CarabinerHud(assets.ReticleSprite, log);
             _characters = new CharacterDirectory();
             TestAnchor anchor = new TestAnchor();
             _dummy = new TestDummy();

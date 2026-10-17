@@ -9,10 +9,13 @@ namespace Repkarbinhake.Plugin.Handling
     {
         private const float SpoolDegreesPerMeter = 200f;
         private const float FullTurn = 360f;
+        private const float HalfTurn = 180f;
+        private const float SpinFollowRate = 10f;
 
         private readonly LinkRegistry _registry;
         private readonly CharacterDirectory _characters;
         private readonly Dictionary<int, float> _angles = new Dictionary<int, float>();
+        private readonly Dictionary<int, float> _shownAngles = new Dictionary<int, float>();
         private readonly Dictionary<Character, RopeHoldPose> _poses = new Dictionary<Character, RopeHoldPose>();
         private Dictionary<int, float> _heldReels = new Dictionary<int, float>();
         private Dictionary<int, float> _previousReels = new Dictionary<int, float>();
@@ -25,7 +28,7 @@ namespace Repkarbinhake.Plugin.Handling
 
         public IReadOnlyDictionary<Character, RopeHoldPose> Poses => _poses;
 
-        public void Refresh()
+        public void Refresh(float deltaTime)
         {
             _poses.Clear();
             _heldReels.Clear();
@@ -44,9 +47,10 @@ namespace Repkarbinhake.Plugin.Handling
                     angle = (angle + (held.Value - previous) * SpoolDegreesPerMeter) % FullTurn;
 
                 _angles[held.Key] = angle;
+                float shown = Follow(held.Key, angle, deltaTime);
 
                 if (_characters.TryFind(held.Key, out Character character))
-                    _poses[character] = new RopeHoldPose(held.Key, angle);
+                    _poses[character] = new RopeHoldPose(held.Key, shown);
             }
 
             Dictionary<int, float> swap = _previousReels;
@@ -59,6 +63,18 @@ namespace Repkarbinhake.Plugin.Handling
             _poses.Clear();
             _heldReels.Clear();
             _previousReels.Clear();
+            _shownAngles.Clear();
+        }
+
+        private float Follow(int actor, float angle, float deltaTime)
+        {
+            if (!_shownAngles.TryGetValue(actor, out float shown))
+                shown = angle;
+
+            float gap = ((angle - shown + HalfTurn) % FullTurn + FullTurn) % FullTurn - HalfTurn;
+            shown = (shown + gap * System.Math.Min(SpinFollowRate * deltaTime, 1f)) % FullTurn;
+            _shownAngles[actor] = shown;
+            return shown;
         }
 
         private void CollectHeld(RopeEnd end)

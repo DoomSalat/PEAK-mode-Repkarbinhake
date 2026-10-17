@@ -20,8 +20,6 @@ namespace Repkarbinhake.Plugin
         {
             RepkaConfig config = new RepkaConfig(Config);
             RepkaAssets assets = new RepkaAssets(Path.GetDirectoryName(Info.Location));
-            RepkaHooks.CarabinerSprite = assets.ReticleSprite;
-            RepkaHooks.Log = Logger;
 
             _harmony = new Harmony(Guid);
             _harmony.PatchAll(typeof(RepkaPlugin).Assembly);

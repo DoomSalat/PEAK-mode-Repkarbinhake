@@ -43,7 +43,7 @@ namespace Repkarbinhake.Core.Tests
         {
             Build(Left, Right, 4.5f, _open);
 
-            Assert.InRange(Length(), 4.5f * 0.9f, 4.5f * 1.1f);
+            Assert.InRange(Length(), 4.5f * 0.97f, 4.5f * 1.03f);
         }
 
         [Fact]
@@ -80,14 +80,16 @@ namespace Repkarbinhake.Core.Tests
         }
 
         [Fact]
-        public void RopeLyingOnFloor_DoesNotWanderSideways()
+        public void RopeLyingOnFloor_WavesWithinLimits()
         {
             BoxObstacles floor = new BoxObstacles().Add(new Vector3(-10f, -5f, -10f), new Vector3(10f, 0f, 10f));
             RopeLengthState length = new RopeLengthState(8f, 0f, 0f);
             Vector3 start = new Vector3(0f, 0.3f, 0f);
             Vector3 end = new Vector3(3f, 0.3f, 0f);
+            float limit = RopeSag.MaxWave + RopeSag.GroundSwing + 0.05f;
+            float widest = 0f;
 
-            for (int i = 0; i < 60; i++)
+            for (int i = 0; i < 120; i++)
             {
                 Vector3 jiggle = new Vector3(0f, 0f, (i % 2) * 0.05f);
                 _path.Update(start, end + jiggle, length, Radius, DeltaTime, floor);
@@ -95,7 +97,22 @@ namespace Repkarbinhake.Core.Tests
             }
 
             foreach (Vector3 point in _output)
-                Assert.InRange(point.Z, -0.1f, 0.15f);
+            {
+                Assert.InRange(point.Z, -limit, limit);
+                Assert.True(point.Y >= Radius - 0.001f);
+                widest = System.MathF.Max(widest, System.MathF.Abs(point.Z));
+            }
+
+            Assert.True(widest > 0.1f);
+        }
+
+        [Theory]
+        [InlineData(4f, 4.2f)]
+        [InlineData(4f, 6f)]
+        [InlineData(2f, 12f)]
+        public void SagDepth_MatchesRopeLength(float chord, float material)
+        {
+            Assert.Equal(material, RopeSag.ParabolaLength(chord, RopeSag.SagDepth(chord, material)), 2);
         }
 
         private void Build(Vector3 start, Vector3 end, float ropeLength, BoxObstacles obstacles)
