@@ -29,7 +29,7 @@ namespace Repkarbinhake.Plugin.Input
             _settings = settings;
         }
 
-        public void Tick(Character local, int actor, Transform view)
+        public void Tick(Character local, int actor, Footing footing, Transform view)
         {
             bool placed = _board.Has(actor);
 
@@ -53,7 +53,7 @@ namespace Repkarbinhake.Plugin.Input
                 return;
             }
 
-            if (!placed && _key.IsPressed && local.CanDoInput() && !local.data.dead)
+            if (!placed && _key.IsPressed && footing == Footing.Grounded && local.CanDoInput() && !local.data.dead)
                 Aim(local, view);
             else
                 Cancel();

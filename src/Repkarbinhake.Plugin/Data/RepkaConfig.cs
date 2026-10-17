@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using BepInEx.Configuration;
+using HarmonyLib;
 using Repkarbinhake.Core.Data;
 using Repkarbinhake.Core.Visual;
 
@@ -16,6 +18,7 @@ namespace Repkarbinhake.Plugin.Data
         private const string DebugSection = "Debug";
         private const int SegmentLimit = 64;
         private const int BudgetLimit = 1024;
+        private const string OrphanedEntriesProperty = "OrphanedEntries";
 
         private readonly ConfigEntry<float> _minLength;
         private readonly ConfigEntry<float> _maxLength;
@@ -83,6 +86,7 @@ namespace Repkarbinhake.Plugin.Data
             _segmentLength = file.Bind(PerformanceSection, "SegmentLength", 0.3f, "Preferred bone spacing (meters). Short ropes never get more bones than they need.");
 
             ShowDebugOverlay = file.Bind(DebugSection, "ShowDebugOverlay", false, "Show rope numbers on screen.");
+            DropRemovedSettings(file);
         }
 
         public ConfigEntry<string> LinkKey { get; }
@@ -122,5 +126,16 @@ namespace Repkarbinhake.Plugin.Data
         public int SegmentBudget => _segmentBudget.Value;
         public int AutoMaxSegments => _autoMaxSegments.Value;
         public float SegmentLength => _segmentLength.Value;
+
+        private void DropRemovedSettings(ConfigFile file)
+        {
+            Dictionary<ConfigDefinition, string> orphaned = (Dictionary<ConfigDefinition, string>)AccessTools.Property(typeof(ConfigFile), OrphanedEntriesProperty).GetValue(file);
+
+            if (orphaned.Count == 0)
+                return;
+
+            orphaned.Clear();
+            file.Save();
+        }
     }
 }

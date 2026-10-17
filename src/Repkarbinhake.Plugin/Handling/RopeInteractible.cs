@@ -12,17 +12,20 @@ namespace Repkarbinhake.Plugin.Handling
         private RopeTubeView _view;
         private Func<RopeLink, bool> _canInteract;
         private Func<RopeLink, bool> _isHeldLocally;
+        private Func<RopeLink, string> _partnerName;
 
         public event Action<RopeLink> Interacted;
 
         public Vector3 AimPoint { get; private set; }
+        public string PartnerName => _partnerName(_link);
 
-        public void Initialize(RopeLink link, RopeTubeView view, Func<RopeLink, bool> canInteract, Func<RopeLink, bool> isHeldLocally)
+        public void Initialize(RopeLink link, RopeTubeView view, Func<RopeLink, bool> canInteract, Func<RopeLink, bool> isHeldLocally, Func<RopeLink, string> partnerName)
         {
             _link = link;
             _view = view;
             _canInteract = canInteract;
             _isHeldLocally = isHeldLocally;
+            _partnerName = partnerName;
         }
 
         public void Aim(Vector3 point)

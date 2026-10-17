@@ -1,4 +1,5 @@
 using HarmonyLib;
+using Repkarbinhake.Plugin.Handling;
 
 namespace Repkarbinhake.Plugin.Patches
 {
@@ -16,7 +17,8 @@ namespace Repkarbinhake.Plugin.Patches
         [HarmonyPatch(typeof(GUIManager), "UpdateReticle")]
         public static void UpdateWidgets(GUIManager __instance)
         {
-            RepkaHooks.Hud?.Show(__instance, RepkaHooks.ShowCarabinerReticle, RepkaHooks.LinkPrompt, RepkaHooks.LinkKeyPath);
+            string partner = __instance.currentInteractable is RopeInteractible rope && rope != null ? rope.PartnerName : null;
+            RepkaHooks.Hud?.Show(__instance, RepkaHooks.ShowCarabinerReticle, RepkaHooks.LinkPrompt, RepkaHooks.LinkKeyPath, partner);
         }
 
         [HarmonyPostfix]

@@ -11,6 +11,7 @@ namespace Repkarbinhake.Plugin.Visual
     {
         private const string ReticleName = "Repkarbinhake Carabiner Reticle";
         private const string PromptName = "Repkarbinhake Link Prompt";
+        private const string PartnerName = "Repkarbinhake Rope Partner";
         private const float ReticleSize = 48f;
         private const string KeyFallbackFormat = "[{0}]";
 
@@ -21,6 +22,7 @@ namespace Repkarbinhake.Plugin.Visual
         private TMP_Text _promptText;
         private TMP_Text _promptKey;
         private GameObject _vanillaPrompt;
+        private TMP_Text _partner;
         private Vector2 _promptHome;
         private string _keyPath;
         private string _keyTag;
@@ -35,17 +37,19 @@ namespace Repkarbinhake.Plugin.Visual
         {
             CreateReticle(gui);
             CreatePrompt(gui);
+            CreatePartner(gui);
         }
 
-        public void Show(GUIManager gui, bool showReticle, string prompt, string keyPath)
+        public void Show(GUIManager gui, bool showReticle, string prompt, string keyPath, string partner)
         {
-            if (_reticle == null || _prompt == null)
+            if (_reticle == null || _prompt == null || _partner == null)
                 return;
 
             if (showReticle)
                 gui.SetReticle(_reticle);
 
             ShowPrompt(prompt, keyPath);
+            ShowPartner(partner);
         }
 
         private void CreateReticle(GUIManager gui)
@@ -103,6 +107,38 @@ namespace Repkarbinhake.Plugin.Visual
 
             if (_promptKey == null || _promptText == null)
                 _log.LogWarning($"{nameof(CarabinerHud)}: interact prompt layout changed (key {_promptKey != null}, text {_promptText != null}), link prompt disabled");
+        }
+
+        private void CreatePartner(GUIManager gui)
+        {
+            _partner = Object.Instantiate(gui.interactNameText, _vanillaPrompt.transform.parent);
+            _partner.name = PartnerName;
+
+            foreach (LocalizedText localized in _partner.GetComponentsInChildren<LocalizedText>(true))
+                Object.DestroyImmediate(localized);
+
+            RectTransform source = (RectTransform)_vanillaPrompt.transform;
+            RectTransform rect = _partner.rectTransform;
+            rect.anchorMin = source.anchorMin;
+            rect.anchorMax = source.anchorMax;
+            rect.pivot = source.pivot;
+            _partner.alignment = TextAlignmentOptions.Center;
+            _partner.raycastTarget = false;
+            _partner.gameObject.SetActive(false);
+        }
+
+        private void ShowPartner(string partner)
+        {
+            if (string.IsNullOrEmpty(partner) || !_vanillaPrompt.activeSelf)
+            {
+                _partner.gameObject.SetActive(false);
+                return;
+            }
+
+            RectTransform source = (RectTransform)_vanillaPrompt.transform;
+            _partner.rectTransform.anchoredPosition = source.anchoredPosition + Vector2.down * source.rect.height;
+            _partner.text = partner;
+            _partner.gameObject.SetActive(true);
         }
 
         private void ShowPrompt(string text, string keyPath)

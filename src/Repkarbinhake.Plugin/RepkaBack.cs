@@ -47,7 +47,7 @@ namespace Repkarbinhake.Plugin
         private RoomLinkSync _sync;
         private ModVersionCheck _versionCheck;
         private RopePathSync _pathSync;
-        private ChestColliderFilter _chests;
+        private PassThroughColliderFilter _passThrough;
         private LinkSoundFeedback _sounds;
         private RopeDebugReport _report;
         private RopeDebugOverlay _overlay;
@@ -98,7 +98,7 @@ namespace Repkarbinhake.Plugin
                 _poses.Clear();
                 _anchorInput.Cancel();
                 _knockdown.Clear();
-                _chests.Clear();
+                _passThrough.Clear();
                 _spools.Clear();
                 _hookFeed.Clear();
                 _overlay.Hide();
@@ -110,7 +110,7 @@ namespace Repkarbinhake.Plugin
             Footing footing = _actors.FootingOf(actor);
             Transform view = MainCamera.instance.transform;
 
-            _anchorInput.Tick(local, actor, view);
+            _anchorInput.Tick(local, actor, footing, view);
             _linkHold.Tick(local, actor, footing, view, Time.deltaTime);
             _hands.Enforce(local, actor, footing, Time.deltaTime);
             _anchorRopes.Tick(local, actor, footing);
@@ -170,8 +170,8 @@ namespace Repkarbinhake.Plugin
             StabilityResolver stability = new StabilityResolver(settings, _policy, _actors);
             TensionSolver tension = new TensionSolver(settings);
             RopeReel reel = new RopeReel(settings, _policy);
-            _chests = new ChestColliderFilter();
-            PhysicsRopeObstacles obstacles = new PhysicsRopeObstacles(HelperFunctions.GetMask(HelperFunctions.LayerType.TerrainMap), transform, _chests);
+            _passThrough = new PassThroughColliderFilter();
+            PhysicsRopeObstacles obstacles = new PhysicsRopeObstacles(HelperFunctions.GetMask(HelperFunctions.LayerType.TerrainMap), transform, _passThrough);
             _ropes = new RopePresenterPool(transform, config, reel, new RopeSegmentation(config), _actors, _registry, _policy, obstacles, spool);
 
             _linkKey = new KeyBinding(config.LinkKey);

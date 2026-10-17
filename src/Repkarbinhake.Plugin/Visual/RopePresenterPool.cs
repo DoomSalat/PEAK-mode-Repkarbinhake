@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Photon.Pun;
 using Repkarbinhake.Core.Data;
 using Repkarbinhake.Core.Interaction;
 using Repkarbinhake.Core.Links;
@@ -61,7 +62,7 @@ namespace Repkarbinhake.Plugin.Visual
             RopeTubeView view = ropeObject.AddComponent<RopeTubeView>();
             RopeInteractible interactible = ropeObject.AddComponent<RopeInteractible>();
             view.Initialize(filter, meshRenderer, RopeMaterial(), _config.Thickness.Value, HighlightEmission);
-            interactible.Initialize(link, view, CanInteract, IsHeldLocally);
+            interactible.Initialize(link, view, CanInteract, IsHeldLocally, PartnerNameOf);
             interactible.Interacted += OnInteracted;
             _presenters.Add(link.Key, new RopePresenter(link, view, meshRenderer, interactible));
         }
@@ -180,6 +181,12 @@ namespace Repkarbinhake.Plugin.Visual
         private bool IsHeldLocally(RopeLink link)
         {
             return link.IsHeldBy(_registry.LocalActor);
+        }
+
+        private string PartnerNameOf(RopeLink link)
+        {
+            Photon.Realtime.Player partner = PhotonNetwork.CurrentRoom?.GetPlayer(link.Partner(_registry.LocalActor));
+            return partner?.NickName;
         }
 
         private void OnInteracted(RopeLink link)
