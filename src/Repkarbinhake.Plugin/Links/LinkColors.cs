@@ -40,6 +40,17 @@ namespace Repkarbinhake.Plugin.Links
             _slots.Remove(link.Key);
         }
 
+        public bool TryGetColor(RopeLink link, out Color color)
+        {
+            color = Color.white;
+
+            if (AnchorActors.IsAnchor(link.FirstActor) || !_slots.TryGetValue(link.Key, out int slot))
+                return false;
+
+            color = RepkaColors.LinkPalette[slot];
+            return true;
+        }
+
         public void CollectFor(int actor, List<Color> colors)
         {
             colors.Clear();

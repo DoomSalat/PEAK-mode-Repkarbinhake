@@ -73,6 +73,7 @@ namespace Repkarbinhake.Plugin.Data
 
             Thickness = file.Bind(VisualSection, "Thickness", 0.045f, "Visual rope radius.");
             UseVanillaRopeMaterial = file.Bind(VisualSection, "UseVanillaRopeMaterial", true, "Use the game rope material. Turn off if the rope renders wrong.");
+            RopeTint = file.Bind(VisualSection, "RopeTint", 0.35f, new ConfigDescription("How strongly a rope is tinted with its color from the ESC player list (0 = plain rope, 1 = full color).", new AcceptableValueRange<float>(0f, 1f)));
             SoundVolume = file.Bind(VisualSection, "SoundVolume", 0.6f, new ConfigDescription("Carabiner sound volume.", new AcceptableValueRange<float>(0f, 1f)));
 
             _segmentMode = file.Bind(PerformanceSection, "SegmentMode", SegmentMode.Auto, "Auto: bone budget is shared between all ropes, fewer ropes look smoother. Fixed: every rope gets at most FixedSegments bones.");
@@ -97,6 +98,7 @@ namespace Repkarbinhake.Plugin.Data
         public ConfigEntry<float> KnockdownSeconds { get; }
         public ConfigEntry<float> Thickness { get; }
         public ConfigEntry<bool> UseVanillaRopeMaterial { get; }
+        public ConfigEntry<float> RopeTint { get; }
         public ConfigEntry<float> SoundVolume { get; }
         public ConfigEntry<bool> ShowDebugOverlay { get; }
         public ConfigEntry<float> MaxLengthEntry => _maxLength;

@@ -35,14 +35,14 @@ Repkarbinhake.Core (netstandard2.1, без Unity/Photon/BepInEx — тестир
 └── Visual
     ├── RopeSegmentation   — сколько костей у верёвки (Auto: общий бюджет делится на все верёвки)
     ├── IRopeObstacles     — Resolve (свип со скольжением + выталкивание) и TryHit (свип сферы по рельефу)
-    ├── RopeWrapPath       — путь «конец → липкие контакты → конец» с длиной верёвки по участкам: контакт ставится на ребре (бинарный поиск между прошлым и текущим положением), снимается при видимости соседей; смотка конца меняет участок у ПРОТИВОПОЛОЖНОГО конца (контакты неподвижны); при натяжении с обеих сторон контакт держит длину, иначе запас перетекает; TrySpan — физика по пути
+    ├── RopeWrapPath       — путь «конец → липкие контакты → конец» с длиной верёвки по участкам: контакт ставится на ребре (бинарный поиск между прошлым и текущим положением), снимается при видимости соседей; смотка конца меняет участок у ПРОТИВОПОЛОЖНОГО конца (контакты неподвижны); при натяжении с обеих сторон контакт держит длину, иначе запас перетекает; натянутый контакт ползёт вверх по склону (Climb: раз в кадр пробует одно направление из набора «вперёд/вверх/вбок», шаг принимается, если не опускает контакт, укорачивает путь сильнее трения μ = 0,36 — склоны положе ~70° — и соседние участки не входят в камень); TrySpan — физика по пути
     ├── RopeSag            — спокойная опорная форма: провис каждого участка по точной длине дуги параболы, точка останавливается на рельефе; на каждую точку — свобода (натянутый участок ~0,03 м, провисший до 0,45 м, концы и контакты 0) и длина верёвки между соседями
     ├── RopeLooseness      — физика точек вокруг опорной формы: инерция, гравитация, верёвка не растягивается больше своей длины, точка держится в радиусе свободы, коллизия свипом от опорной точки (сквозь рельеф не проходит)
     ├── RopeLengthState    — полная длина + смотка первого и второго конца
     └── AnchorActors / AnchorPlacement / AnchorPayloadCodec — номер крюка (−владелец), место и ориентация, строка свойства комнаты
 
 Repkarbinhake.Unity (netstandard2.1, только UnityEngine — общий для мода и песочницы)
-├── RopeTubeView           — View: меш-трубка по точкам, подсветка (_Interactable / _EmissionColor)
+├── RopeTubeView           — View: меш-трубка по точкам, подсветка (_Interactable / _EmissionColor), оттенок Tint(property, color) через MaterialPropertyBlock
 ├── PhysicsRopeObstacles   — IRopeObstacles через Physics.SphereCast / ComputePenetration, сам создаёт пробный коллайдер вдали от сцены; пропускает коллайдеры по IColliderFilter (NoColliderFilter в песочнице)
 └── VectorConversion       — UnityEngine ↔ System.Numerics
 
@@ -68,7 +68,7 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 │   ├── CharacterDirectory   — actor ↔ Character
 │   ├── ActorStates          — IFootingSource + IActorLifeSource + точки крепления верёвки (бедро / катушка в руках)
 │   ├── AnchorBoard          — крюки игроков (владелец → место): связка игрок ↔ крюк (крюк = актёр −номер, верёвка локальная у каждого клиента), точка верёвки на крюке, EnsureLinks
-│   └── LinkColors           — цвет каждой связки из палитры RepkaColors (первый свободный при появлении, свой у каждого клиента)
+│   └── LinkColors           — цвет каждой связки из палитры RepkaColors (первый свободный при появлении, свой у каждого клиента); TryGetColor — цвет верёвки (у крюков нет)
 ├── Input
 │   ├── LinkHoldInput        — G: цель по взгляду, удержание, связать / отцепить
 │   ├── AnchorInput          — T: удержание — призрак крюка в точке прицела (до 10 м, ставится до 5 м, как у ванильной катушки), отпустил — крюк; нажатие при стоящем — снять; снимается при смерти и дальше SnapDistance
@@ -84,7 +84,7 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 │   ├── RopeHoldPoses        — кто держит верёвку (все игроки) + угол катушки по изменению Reel (200°/м); показываемый угол догоняет целевой (сглаживание чужих рывков сети)
 │   └── RopeHoldPose         — actor + угол вращения катушки
 ├── Visual
-│   ├── RopePresenterPool    — верёвки на сцене: создание, отрисовка, путь (span), наведение, материал
+│   ├── RopePresenterPool    — верёвки на сцене: создание, отрисовка, путь (span), наведение, материал; Tint — основной цвет материала (_BaseColor / _Color) умножается на цвет связки из ESC, сила RopeTint (Visual, 0,35)
 │   ├── RopePresenter        — одна верёвка: RopeWrapPath + RopeSag + RopeLooseness + RopeTubeView + RopeInteractible; при пропаже конца путь сбрасывается
 │   ├── SpoolProps           — визуальная копия обычной катушки в руках каждого держащего: центр её Hand_R/Hand_L ставится между физическими кистями, источник точки выхода верёвки
 │   ├── SpoolProp            — MonoBehaviour на корне копии (ссылки на колесо и точки выхода переносятся при Instantiate из шаблона, собранного один раз): колесо (ropeSpoolTf) вращается при смотке, верёвка как у ванильной: видимый путь ropeStart → ropeBase → физическая часть (ActorStates: ropeBase — точка физики, TryGetRopeLead — ropeStart для отрисовки)
@@ -136,7 +136,7 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 | `HoldAction` | `src/Repkarbinhake.Core/Interaction/HoldAction.cs` | Удержание клавиши на цели (отцеп) | `Begin(target, duration)`, `Advance(isHeld, currentTarget, dt)`, `Cancel`, `Progress`, `IsActive` |
 | `UntiedKeySweeper` | `src/Repkarbinhake.Core/Links/UntiedKeySweeper.cs` | Учёт развязанных ключей; наблюдают все, собирает хост | `Observe(update, now)`, `Collect(now, maxAge, result)`, `Forget`, `Clear` |
 | `RopeRayPicker` | `src/Repkarbinhake.Core/Visual/RopeRayPicker.cs` | Попадание луча взгляда в верёвку (ближайшее сближение луча с отрезками) | `TryPick(origin, direction, maxDistance, tolerance, points, out distance)` |
-| `RopeTubeView` | `src/Repkarbinhake.Unity/RopeTubeView.cs` | View верёвки | `Initialize(filter, renderer, material, radius, highlightEmission)`, `Render(points)`, `Highlight`, `Unhighlight` |
+| `RopeTubeView` | `src/Repkarbinhake.Unity/RopeTubeView.cs` | View верёвки | `Initialize(filter, renderer, material, radius, highlightEmission)`, `Render(points)`, `Highlight`, `Unhighlight`, `Tint(property, color)` |
 | `PhysicsRopeObstacles` | `src/Repkarbinhake.Unity/PhysicsRopeObstacles.cs` | Обход рельефа точками верёвки: проверка по ходу движения + выталкивание из геометрии | ctor `(layerMask, probe SphereCollider)`; `Resolve(from, to, radius)` |
 | `RopeSegmentation` | `src/Repkarbinhake.Core/Visual/RopeSegmentation.cs` | Кол-во костей: `clamp(ceil(length / SegmentLength), 4, Cap)`; `Cap` = `FixedSegments` или `SegmentBudget / кол-во верёвок` в пределах `AutoMaxSegments` | `Count(length, ropeCount)`, `Cap(ropeCount)` |
 

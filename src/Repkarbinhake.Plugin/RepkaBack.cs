@@ -222,6 +222,9 @@ namespace Repkarbinhake.Plugin
             _colors.Assign(link);
             _ropes.Add(link);
 
+            if (_colors.TryGetColor(link, out Color color))
+                _ropes.Tint(link, color);
+
             if (!_sync.IsReadingSnapshot)
                 _sounds.Tied(link);
         }
