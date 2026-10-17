@@ -53,8 +53,6 @@ namespace Repkarbinhake.Plugin
         private RopeDebugReport _report;
         private RopeDebugOverlay _overlay;
         private ConfigEditorWindow _configEditor;
-        private ManualLogSource _log;
-        private LocalizedText.Language _loggedLanguage = (LocalizedText.Language)(-1);
 
         private void OnEnable()
         {
@@ -94,7 +92,6 @@ namespace Repkarbinhake.Plugin
 
         private void Update()
         {
-            LogLanguage();
             UpdateConfigEditor();
             _sync.Tick(Time.deltaTime, Time.time);
             Character local = Character.localCharacter;
@@ -166,7 +163,6 @@ namespace Repkarbinhake.Plugin
         public void Initialize(RepkaConfig config, RepkaAssets assets, ManualLogSource log)
         {
             _config = config;
-            _log = log;
             LobbyRopeSettings settings = new LobbyRopeSettings(config);
             _policy = new RopeHandPolicy();
             PhotonLinkTransport transport = new PhotonLinkTransport();
@@ -226,15 +222,6 @@ namespace Repkarbinhake.Plugin
                 if (!AnchorActors.IsAnchor(link.FirstActor))
                     _registry.Untie(link);
             }
-        }
-
-        private void LogLanguage()
-        {
-            if (LocalizedText.CURRENT_LANGUAGE == _loggedLanguage)
-                return;
-
-            _loggedLanguage = LocalizedText.CURRENT_LANGUAGE;
-            _log.LogInfo($"Game language: {(int)_loggedLanguage} {_loggedLanguage}, prompt '{RepkaTexts.Grab}'");
         }
 
         private void UpdateConfigEditor()

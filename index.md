@@ -94,7 +94,7 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 │   ├── CarabinerSounds / LinkSoundFeedback — SFX_Instance → SFX_Player игры; звук в середине верёвки
 │   ├── PassThroughColliderFilter — верёвка проходит сквозь сундуки (Luggage, в т.ч. LuggageCursed, RespawnChest, и MirageLuggage), тонкие генерируемые мосты (BreakableBridge) и пушку скаута (ScoutCannon), результат кэшируется по коллайдеру
 │   ├── AnchorVisuals        — модель крюка из ванильной катушки: при наведении — полупрозрачный RopeTier.anchorPreview, у поставленных — в превью вместо прозрачных частей непрозрачный normalPart из RopeTier.anchorPrefab (сам сетевой префаб не создаётся); точка верёвки — центр узла (SphereCollider ребёнка Knot; у ванили AnchorPoint ниже, на уровне кольца), коллайдеры копии удаляются
-│   ├── CarabinerHud         — прицел-карабин (материал ванильного прицела) и подсказка «Привязать / Отцепить» с иконкой клавиши; под ванильной подсказкой E при наведении на верёвку — ник партнёра цветом верёвки (копия interactNameText, HudPatches берёт currentInteractable)
+│   ├── CarabinerHud         — прицел-карабин (материал ванильного прицела) и подсказка «Привязать / Отцепить» с иконкой клавиши (копия UI_interactPrompt_E; текст пишется в первый активный TMP, не в скрытый PromptHold под иконкой); под ванильной подсказкой E при наведении на верёвку — ник партнёра цветом верёвки (копия interactNameText, HudPatches берёт currentInteractable)
 │   ├── PlayerListBadges     — ряды цветных карабинов в списке игроков (ESC), проверка наложения на громкость / кик
 │   ├── LinkBadgeRow         — ряд цветных карабинов под аватаркой в списке игроков (ESC), материал прицела, проверка наложения на громкость / кик
 │   ├── RopeDebugReport      — строки отладки

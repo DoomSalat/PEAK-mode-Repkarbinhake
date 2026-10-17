@@ -96,7 +96,7 @@ namespace Repkarbinhake.Plugin.Visual
 
             foreach (TMP_Text text in _prompt.GetComponentsInChildren<TMP_Text>(true))
             {
-                if (text != _promptKey)
+                if (text != _promptKey && text.gameObject.activeSelf)
                 {
                     _promptText = text;
                     break;
