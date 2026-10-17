@@ -84,8 +84,8 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 │   ├── RopeHoldPoses        — кто держит верёвку (все игроки) + угол катушки по изменению Reel (200°/м); показываемый угол догоняет целевой (сглаживание чужих рывков сети)
 │   └── RopeHoldPose         — actor + угол вращения катушки
 ├── Visual
-│   ├── RopePresenterPool    — верёвки на сцене: создание, отрисовка, путь (span), наведение, материал; Tint — материал верёвки с перекрашенной текстурой (RopeRecolor) цвета связки из ESC, доля RopeColor (Visual, 0,85)
-│   ├── RopeRecolor          — копия материала верёвки на цвет: текстура читается через RenderTexture, оттенок каждого пикселя меняется на цвет связки с сохранением светлоты волокон (кэш по цвету; без текстуры — смешивается основной цвет)
+│   ├── RopePresenterPool    — верёвки на сцене: создание, отрисовка, путь (span), наведение, материал; Tint — материал верёвки в цвете связки из ESC (RopeRecolor), доля RopeColor (Visual, 0,85)
+│   ├── RopeRecolor          — копия материала верёвки на цвет (кэш по цвету). Ванильный M_Rope (шейдер W/Peak_Standard): текстура rope_lmao серая, цвет даёт HDR _BaseColor (3,03; 1,83; 0,16) — ему ставятся оттенок и насыщенность цвета связки при исходной яркости; акценты _Color1/_Color2 — только оттенок
 │   ├── RopePresenter        — одна верёвка: RopeWrapPath + RopeSag + RopeLooseness + RopeTubeView + RopeInteractible; при пропаже конца путь сбрасывается
 │   ├── SpoolProps           — визуальная копия обычной катушки в руках каждого держащего: центр её Hand_R/Hand_L ставится между физическими кистями, источник точки выхода верёвки
 │   ├── SpoolProp            — MonoBehaviour на корне копии (ссылки на колесо и точки выхода переносятся при Instantiate из шаблона, собранного один раз): колесо (ropeSpoolTf) вращается при смотке, верёвка как у ванильной: видимый путь ropeStart → ropeBase → физическая часть (ActorStates: ropeBase — точка физики, TryGetRopeLead — ropeStart для отрисовки)
@@ -96,12 +96,13 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 │   ├── PlayerListBadges     — ряды цветных карабинов в списке игроков (ESC), проверка наложения на громкость / кик
 │   ├── LinkBadgeRow         — ряд цветных карабинов под аватаркой в списке игроков (ESC), материал прицела, проверка наложения на громкость / кик
 │   ├── RopeDebugReport      — строки отладки
+│   ├── ConfigEditorWindow   — View (IMGUI): F7 (ConfigEditorKey) — окно всех записей конфига: bool — галочка, enum — кнопка-перебор, остальное — текст; «Применить» пишет SetSerializedValue и сохраняет .cfg, «Сбросить» возвращает текущие; пока открыто — курсор свободен, ввод игры и G/T заблокированы
 │   └── RopeDebugOverlay     — View: текст отладки
 └── Patches
     ├── RepkaHooks           — статический мост Back → патчи
     ├── RepkaHookFeed        — каждый кадр пишет в RepkaHooks данные для патчей (цель G, подсказка, держимая / наведённая верёвка, длина), Clear при выходе
     ├── InteractionPatches   — Interaction.DoInteractableRaycasts: верёвка под прицелом — только если игра ничего не нашла и вызов обычный (минимальный приоритет, порядок — в PLAN.md); при цели G верёвка не наводится
-    ├── HudPatches           — тонкий патч: GUIManager.Start / UpdateReticle → CarabinerHud, кольцо удержания G (UI_UseItemProgress)
+    ├── HudPatches           — тонкий патч: GUIManager.Start / UpdateReticle → CarabinerHud, кольцо удержания G (UI_UseItemProgress), UpdateWindowStatus — курсор и блок ввода при открытом окне настроек
     ├── PlayerListPatches    — тонкий патч: AudioLevels.Update → PlayerListBadges
     ├── RopeGaugePatches     — GUIManager.UpdateRope: пока держишь нашу верёвку — ванильный UI_Rope как есть, текущая длина (HeldRopeLength от Back)
     └── HoldPosePatches      — Idle «с предметом», IK рук на Hand_R/Hand_L катушки; CharacterRagdoll.SaveAdditionalTransformPositions — точка хвата animationItemTransform следует за взглядом (игра обновляет её только при предмете в руках)

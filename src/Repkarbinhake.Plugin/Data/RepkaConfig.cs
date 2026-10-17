@@ -43,6 +43,7 @@ namespace Repkarbinhake.Plugin.Data
 
         public RepkaConfig(ConfigFile file)
         {
+            File = file;
             LinkKey = file.Bind(InputSection, "LinkKey", "<Keyboard>/g", "Look at a player and hold to tie or untie.");
             AnchorKey = file.Bind(InputSection, "AnchorKey", "<Keyboard>/t", "Hold to aim a wall hook, release to set it (tied to you). Press again to take it back.");
             LinkAimAngle = file.Bind(InputSection, "LinkAimAngle", 12f, "Max angle between view direction and the player (degrees).");
@@ -76,7 +77,7 @@ namespace Repkarbinhake.Plugin.Data
 
             Thickness = file.Bind(VisualSection, "Thickness", 0.045f, "Visual rope radius.");
             UseVanillaRopeMaterial = file.Bind(VisualSection, "UseVanillaRopeMaterial", true, "Use the game rope material. Turn off if the rope renders wrong.");
-            RopeColor = file.Bind(VisualSection, "RopeColor", 0.85f, new ConfigDescription("How much of the brown rope texture is repainted into the rope color from the ESC player list (0 = plain brown rope, 1 = fully repainted). Applies to ropes tied after the change.", new AcceptableValueRange<float>(0f, 1f)));
+            RopeColor = file.Bind(VisualSection, "RopeColor", 0.85f, new ConfigDescription("How much the rope takes the hue of its color from the ESC player list (0 = plain brown rope, 1 = full color). Applies to ropes tied after the change.", new AcceptableValueRange<float>(0f, 1f)));
             SoundVolume = file.Bind(VisualSection, "SoundVolume", 0.6f, new ConfigDescription("Carabiner sound volume.", new AcceptableValueRange<float>(0f, 1f)));
 
             _segmentMode = file.Bind(PerformanceSection, "SegmentMode", SegmentMode.Auto, "Auto: bone budget is shared between all ropes, fewer ropes look smoother. Fixed: every rope gets at most FixedSegments bones.");
@@ -86,6 +87,7 @@ namespace Repkarbinhake.Plugin.Data
             _segmentLength = file.Bind(PerformanceSection, "SegmentLength", 0.3f, "Preferred bone spacing (meters). Short ropes never get more bones than they need.");
 
             ShowDebugOverlay = file.Bind(DebugSection, "ShowDebugOverlay", false, "Show rope numbers on screen.");
+            ConfigEditorKey = file.Bind(DebugSection, "ConfigEditorKey", "<Keyboard>/f7", "Opens an in-game window to edit and apply these settings while playing.");
             DropRemovedSettings(file);
         }
 
@@ -104,7 +106,9 @@ namespace Repkarbinhake.Plugin.Data
         public ConfigEntry<bool> UseVanillaRopeMaterial { get; }
         public ConfigEntry<float> RopeColor { get; }
         public ConfigEntry<float> SoundVolume { get; }
+        public ConfigFile File { get; }
         public ConfigEntry<bool> ShowDebugOverlay { get; }
+        public ConfigEntry<string> ConfigEditorKey { get; }
         public ConfigEntry<float> MaxLengthEntry => _maxLength;
         public float MinLength => _minLength.Value;
         public float MaxLength => _maxLength.Value;
