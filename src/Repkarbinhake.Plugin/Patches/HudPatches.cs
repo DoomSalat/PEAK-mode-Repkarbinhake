@@ -31,5 +31,16 @@ namespace Repkarbinhake.Plugin.Patches
             __instance.fill.fillAmount = RepkaHooks.LinkHoldProgress;
             __result = true;
         }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(GUIManager), "UpdateWindowStatus")]
+        public static void BlockInputForConfigWindow(GUIManager __instance)
+        {
+            if (!RepkaHooks.ConfigWindowOpen)
+                return;
+
+            __instance.windowShowingCursor = true;
+            __instance.windowBlockingInput = true;
+        }
     }
 }

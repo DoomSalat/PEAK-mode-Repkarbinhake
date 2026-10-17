@@ -31,6 +31,7 @@ namespace Repkarbinhake.Plugin
         private ActorStates _actors;
         private KeyBinding _linkKey;
         private KeyBinding _anchorKey;
+        private KeyBinding _configEditorKey;
         private LinkHoldInput _linkHold;
         private AnchorInput _anchorInput;
         private AnchorSync _anchorSync;
@@ -51,6 +52,7 @@ namespace Repkarbinhake.Plugin
         private LinkSoundFeedback _sounds;
         private RopeDebugReport _report;
         private RopeDebugOverlay _overlay;
+        private ConfigEditorWindow _configEditor;
 
         private void OnEnable()
         {
@@ -85,10 +87,12 @@ namespace Repkarbinhake.Plugin
         {
             _linkKey?.Dispose();
             _anchorKey?.Dispose();
+            _configEditorKey?.Dispose();
         }
 
         private void Update()
         {
+            UpdateConfigEditor();
             _sync.Tick(Time.deltaTime, Time.time);
             Character local = Character.localCharacter;
 
@@ -110,8 +114,17 @@ namespace Repkarbinhake.Plugin
             Footing footing = _actors.FootingOf(actor);
             Transform view = MainCamera.instance.transform;
 
-            _anchorInput.Tick(local, actor, footing, view);
-            _linkHold.Tick(local, actor, footing, view, Time.deltaTime);
+            if (_configEditor.IsOpen)
+            {
+                _anchorInput.Cancel();
+                _linkHold.Cancel();
+            }
+            else
+            {
+                _anchorInput.Tick(local, actor, footing, view);
+                _linkHold.Tick(local, actor, footing, view, Time.deltaTime);
+            }
+
             _hands.Enforce(local, actor, footing, Time.deltaTime);
             _anchorRopes.Tick(local, actor, footing);
 
@@ -191,6 +204,9 @@ namespace Repkarbinhake.Plugin
             _report = new RopeDebugReport(_registry, _actors, stability, tension, reel, _ropes, settings);
             _hookFeed = new RepkaHookFeed(_registry, reel, _policy, _ropes, _linkHold, config.LinkKey);
             _overlay = gameObject.AddComponent<RopeDebugOverlay>();
+            _configEditorKey = new KeyBinding(config.ConfigEditorKey);
+            _configEditor = gameObject.AddComponent<ConfigEditorWindow>();
+            _configEditor.Initialize(config.File);
         }
 
         private void UntieDead(int actor)
@@ -202,6 +218,14 @@ namespace Repkarbinhake.Plugin
                 if (!AnchorActors.IsAnchor(link.FirstActor))
                     _registry.Untie(link);
             }
+        }
+
+        private void UpdateConfigEditor()
+        {
+            if (_configEditorKey.WasPressed)
+                _configEditor.Toggle();
+
+            RepkaHooks.ConfigWindowOpen = _configEditor.IsOpen;
         }
 
         private void UpdateOverlay(int actor)

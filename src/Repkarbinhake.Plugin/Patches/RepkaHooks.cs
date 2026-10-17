@@ -18,6 +18,7 @@ namespace Repkarbinhake.Plugin.Patches
         public static VanillaRopeSpool Spool { get; set; } // Set: assigned once by RepkaBack, read by the hold pose patch
         public static CarabinerHud Hud { get; set; } // Set: assigned once by RepkaBack, driven by the HUD patch
         public static PlayerListBadges Badges { get; set; } // Set: assigned once by RepkaBack, driven by the player list patch
+        public static bool ConfigWindowOpen { get; set; } // Set: written by RepkaBack every frame, frees the cursor and blocks game input
         public static IReadOnlyDictionary<Character, RopeHoldPose> HoldPoses { get; set; } // Set: assigned once by RepkaBack, read by the hold pose patch
     }
 }
