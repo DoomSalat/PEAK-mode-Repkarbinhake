@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Repkarbinhake.Core.Data;
 using Repkarbinhake.Core.Links;
 using Repkarbinhake.Core.Physics;
+using Repkarbinhake.Core.Visual;
 using Repkarbinhake.Plugin.Data;
 using Repkarbinhake.Plugin.Links;
 using Repkarbinhake.Plugin.Visual;
@@ -19,9 +20,11 @@ namespace Repkarbinhake.Plugin.Handling
         private readonly ActorStates _actors;
         private readonly RopePresenterPool _ropes;
         private readonly RepkaConfig _config;
+        private readonly IRopeObstacles _obstacles;
+        private readonly LedgeAssist _ledge;
         private readonly List<RopeLink> _snapped = new List<RopeLink>();
 
-        public RopeForces(LinkRegistry registry, StabilityResolver stability, TensionSolver tension, RopeReel reel, ActorStates actors, RopePresenterPool ropes, RepkaConfig config)
+        public RopeForces(LinkRegistry registry, StabilityResolver stability, TensionSolver tension, RopeReel reel, ActorStates actors, RopePresenterPool ropes, RepkaConfig config, IRopeObstacles obstacles, LedgeAssist ledge)
         {
             _registry = registry;
             _stability = stability;
@@ -30,6 +33,8 @@ namespace Repkarbinhake.Plugin.Handling
             _actors = actors;
             _ropes = ropes;
             _config = config;
+            _obstacles = obstacles;
+            _ledge = ledge;
         }
 
         public void Apply(Character local, int actor)
@@ -61,6 +66,10 @@ namespace Repkarbinhake.Plugin.Handling
 
             foreach (RopeLink link in _snapped)
                 _registry.Untie(link);
+
+            Footing footing = _actors.FootingOf(actor);
+            bool canAssist = _config.LedgePush.Value > 0f && (footing == Footing.Airborne || footing == Footing.Unconscious);
+            total = _ledge.Adjust(total.ToNumerics(), local.Center.ToNumerics(), local.data.avarageVelocity.ToNumerics(), canAssist, _config.LedgePush.Value, Time.fixedDeltaTime, _obstacles).ToUnity();
 
             if (total.sqrMagnitude > 0f)
                 local.AddForce(total);

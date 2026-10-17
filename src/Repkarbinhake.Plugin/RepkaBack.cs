@@ -138,7 +138,7 @@ namespace Repkarbinhake.Plugin
             _poses.Refresh(Time.deltaTime);
             UntieDead(actor);
             _hookFeed.Publish(actor, footing, view);
-            UpdateOverlay(actor);
+            UpdateOverlay(local, actor);
         }
 
         private void FixedUpdate()
@@ -194,14 +194,16 @@ namespace Repkarbinhake.Plugin
             _anchorInput = new AnchorInput(anchors, _anchorSync, anchorVisuals, spool, _anchorKey, settings);
             _anchorRopes = new AnchorRopes(_registry, anchors, _ropes, settings);
             _hands = new RopeHands(_registry, _policy, _actors);
-            _reelDriver = new ReelDriver(_registry, reel, tension, _ropes, new TeamPull(_policy, _actors));
-            _forces = new RopeForces(_registry, stability, tension, reel, _actors, _ropes, config);
+            TeamPull team = new TeamPull(_policy, _actors);
+            _reelDriver = new ReelDriver(_registry, reel, tension, _ropes, team);
+            LedgeAssist ledge = new LedgeAssist();
+            _forces = new RopeForces(_registry, stability, tension, reel, _actors, _ropes, config, obstacles, ledge);
             _knockdown = new RopeKnockdown(_registry, reel, _ropes, config);
             _sync = new RoomLinkSync(transport, _registry, new UntiedKeySweeper(), new DepartedUntieRule(), settings, config);
             _versionCheck = new ModVersionCheck(RepkaPlugin.Version, log);
             _pathSync = new RopePathSync(_registry, _ropes);
             _sounds = new LinkSoundFeedback(new CarabinerSounds(assets, config), _actors);
-            _report = new RopeDebugReport(_registry, _actors, stability, tension, reel, _ropes, settings);
+            _report = new RopeDebugReport(_registry, _actors, stability, tension, reel, team, ledge, _ropes, settings);
             _hookFeed = new RepkaHookFeed(_registry, reel, _policy, _ropes, _linkHold, config.LinkKey);
             _overlay = gameObject.AddComponent<RopeDebugOverlay>();
             _configEditorKey = new KeyBinding(config.ConfigEditorKey);
@@ -228,10 +230,10 @@ namespace Repkarbinhake.Plugin
             RepkaHooks.ConfigWindowOpen = _configEditor.IsOpen;
         }
 
-        private void UpdateOverlay(int actor)
+        private void UpdateOverlay(Character local, int actor)
         {
             if (_config.ShowDebugOverlay.Value)
-                _overlay.Show(_report.Build(actor));
+                _overlay.Show(_report.Build(local, actor));
             else
                 _overlay.Hide();
         }

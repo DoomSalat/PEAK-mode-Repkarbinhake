@@ -69,6 +69,7 @@ namespace Repkarbinhake.Plugin.Data
 
             HangAirTimeCap = file.Bind(HangingSection, "HangAirTimeCap", 0.3f, "While a taut rope holds you up, PEAK air time (and its growing gravity) is capped to this many seconds.");
             SupportLoadThreshold = file.Bind(HangingSection, "SupportLoadThreshold", 3f, "Upward rope pull needed to count as hanging on the rope.");
+            LedgePush = file.Bind(HangingSection, "LedgePush", 10f, "When a pulled rope holds you stuck under a ledge (in the air, barely moving for 0.3 s), the pull stops pressing you into the wall and pushes you off it this hard, so you swing around the ledge. 0 = off.");
             BelaySlideCap = file.Bind(HangingSection, "BelaySlideCap", 2f, "Belay: while a partner holds your rope, out-of-stamina wall slide time is capped to this (seconds, 0 = no slide build-up).");
 
             EnableKnockdown = file.Bind(KnockdownSection, "EnableKnockdown", true, "A very hard yank of the rope knocks you down (ragdoll) unless you hold that rope.");
@@ -98,6 +99,7 @@ namespace Repkarbinhake.Plugin.Data
         public ConfigEntry<float> RopeAimTolerance { get; }
         public ConfigEntry<float> HangAirTimeCap { get; }
         public ConfigEntry<float> SupportLoadThreshold { get; }
+        public ConfigEntry<float> LedgePush { get; }
         public ConfigEntry<float> BelaySlideCap { get; }
         public ConfigEntry<bool> EnableKnockdown { get; }
         public ConfigEntry<float> KnockdownSpeed { get; }

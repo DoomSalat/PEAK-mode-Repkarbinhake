@@ -7,7 +7,7 @@ namespace Repkarbinhake.Plugin.Visual
     {
         private const float Margin = 12f;
         private const float LineHeight = 20f;
-        private const float PanelWidth = 560f;
+        private const float PanelWidth = 900f;
 
         private readonly List<string> _lines = new List<string>();
         private bool _visible;

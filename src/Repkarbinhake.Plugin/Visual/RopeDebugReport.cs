@@ -4,45 +4,96 @@ using Repkarbinhake.Core.Data;
 using Repkarbinhake.Core.Links;
 using Repkarbinhake.Core.Physics;
 using Repkarbinhake.Plugin.Links;
+using Repkarbinhake.Unity;
+using UnityEngine;
 
 namespace Repkarbinhake.Plugin.Visual
 {
     public sealed class RopeDebugReport
     {
         private const float Percent = 100f;
+        private const string AnchorName = "крюк";
+        private const string UnknownName = "?";
 
         private readonly LinkRegistry _registry;
         private readonly ActorStates _actors;
         private readonly StabilityResolver _stability;
         private readonly TensionSolver _tension;
         private readonly RopeReel _reel;
+        private readonly TeamPull _team;
+        private readonly LedgeAssist _ledge;
         private readonly RopePresenterPool _ropes;
         private readonly IRopeSettings _settings;
         private readonly List<string> _lines = new List<string>();
 
-        public RopeDebugReport(LinkRegistry registry, ActorStates actors, StabilityResolver stability, TensionSolver tension, RopeReel reel, RopePresenterPool ropes, IRopeSettings settings)
+        public RopeDebugReport(LinkRegistry registry, ActorStates actors, StabilityResolver stability, TensionSolver tension, RopeReel reel, TeamPull team, LedgeAssist ledge, RopePresenterPool ropes, IRopeSettings settings)
         {
             _registry = registry;
             _actors = actors;
             _stability = stability;
             _tension = tension;
             _reel = reel;
+            _team = team;
+            _ledge = ledge;
             _ropes = ropes;
             _settings = settings;
         }
 
-        public IReadOnlyList<string> Build(int actor)
+        public IReadOnlyList<string> Build(Character local, int actor)
         {
             _lines.Clear();
-            _lines.Add($"actor {actor}  footing {_actors.FootingOf(actor)}  stability {_stability.Resolve(actor, _registry.Links) * Percent:0}%  maxLength {_settings.MaxLength:0.0}  host {PhotonNetwork.IsMasterClient}");
+            float stability = _stability.Resolve(actor, _registry.Links);
+            Vector3 velocity = local.data.avarageVelocity;
+            _lines.Add($"ТЫ  actor {actor}  опора {_actors.FootingOf(actor)}  устойчивость {stability * Percent:0}%  скорость {velocity.magnitude:0.0} (верт {velocity.y:0.0})  в воздухе {local.data.sinceGrounded:0.00} с  выносливость {local.GetTotalStamina() * Percent:0}%");
+            _lines.Add($"уступ: застрял {_ledge.StuckFor:0.00} с{(_ledge.IsPushing ? "  ОТТАЛКИВАНИЕ" : string.Empty)}");
+            _lines.Add($"лобби  maxLength {_settings.MaxLength:0.0}  хост {PhotonNetwork.IsMasterClient}  твои силы: Stiffness {_settings.Stiffness:0}  Damping {_settings.Damping:0}  MaxPull {_settings.MaxPull:0}  ArmStrength {_settings.ArmStrength:0}");
 
             foreach (RopeLink link in _registry.Links)
             {
-                float load = link.Contains(actor) ? _tension.Load(_ropes.SpanFor(link, actor), _reel.EffectiveLength(link)) : 0f;
-                _lines.Add($"{link.Key}  length {_reel.EffectiveLength(link):0.00}  load {load:0.0}  held {link.First.IsHeld}/{link.Second.IsHeld}  bones {_ropes.SegmentsOf(link)}");
+                if (link.Contains(actor))
+                    AddOwnLink(link, actor, stability, velocity);
+                else
+                    _lines.Add($"{link.Key}  чужая  длина {_reel.EffectiveLength(link):0.00}  держат {link.First.IsHeld}/{link.Second.IsHeld}");
             }
 
             return _lines;
+        }
+
+        private void AddOwnLink(RopeLink link, int actor, float stability, Vector3 velocity)
+        {
+            int partner = link.Partner(actor);
+            float length = _reel.EffectiveLength(link);
+            RopeSpan span = _ropes.SpanFor(link, actor);
+            float stretch = span.PathLength - length;
+            float load = _tension.Load(span, length);
+            float pullOnYou = _tension.Solve(span, velocity.ToNumerics(), length, stability).Length();
+            bool capped = load >= _settings.MaxPull;
+            _lines.Add($"— {NameOf(partner)} ({link.Key})  держишь {link.IsHeldBy(actor)}  держит партнёр {link.IsHeldBy(partner)}  опора партнёра {_actors.FootingOf(partner)}");
+            _lines.Add($"   длина {length:0.00}  путь {span.PathLength:0.00}  растяжение {stretch:0.00}  смотано тобой {link.EndOf(actor).Reel:0.00} / партнёром {link.EndOf(partner).Reel:0.00}  точек {_ropes.SegmentsOf(link)}");
+            _lines.Add($"   на тебя: нагрузка {load:0.0}/{_settings.MaxPull:0}{(capped ? " ПОТОЛОК" : string.Empty)}  тяга с учётом устойчивости {pullOnYou:0.0}");
+
+            if (AnchorActors.IsAnchor(partner))
+                return;
+
+            float partnerStability = _stability.Resolve(partner, _registry.Links);
+            float pullOnPartner = load * (1f - partnerStability);
+            _lines.Add($"   на партнёра (оценка по твоим настройкам): устойчивость {partnerStability * Percent:0}%  тяга {pullOnPartner:0.0}  (решает его MaxPull)");
+
+            if (!link.IsHeldBy(actor))
+                return;
+
+            int helpers = _team.HelpersFor(link, actor, _registry.Links);
+            float shared = _team.SharedLoad(link, actor, _registry.Links, load);
+            _lines.Add($"   сматывание: скорость {_reel.ReelInFactor(shared) * Percent:0}%  помощников {helpers} (×{_team.Multiplier(helpers):0.00})  нагрузка на руки {shared:0.0}/{_settings.ArmStrength:0}  выносливость {_reel.StaminaPerMeter(shared):0.000}/м");
+        }
+
+        private string NameOf(int actor)
+        {
+            if (AnchorActors.IsAnchor(actor))
+                return AnchorName;
+
+            Photon.Realtime.Player player = PhotonNetwork.CurrentRoom?.GetPlayer(actor);
+            return player == null ? UnknownName : player.NickName;
         }
     }
 }

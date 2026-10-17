@@ -23,6 +23,7 @@ namespace Repkarbinhake.Plugin.Data
             { "HangAirTimeCap", OnYou },
             { "SupportLoadThreshold", OnYou },
             { "BelaySlideCap", OnYou },
+            { "LedgePush", OnYou },
             { "EnableKnockdown", OnYou },
             { "KnockdownSpeed", OnYou },
             { "KnockdownSeconds", OnYou },
