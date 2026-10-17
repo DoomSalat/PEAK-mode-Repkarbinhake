@@ -17,6 +17,11 @@
     <PluginsDirectory>$(GameDirectory)\BepInEx\plugins\Repkarbinhake</PluginsDirectory>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)' == 'Public'">
+    <DefineConstants>$(DefineConstants);REPKA_PUBLIC</DefineConstants>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="BepInEx.Core" Version="5.4.21" PrivateAssets="all" />
     <PackageReference Include="BepInEx.PluginInfoProps" Version="2.1.0" PrivateAssets="all" />
@@ -111,7 +116,7 @@
     <PluginAsset Include="Assets\*.*" />
   </ItemGroup>
 
-  <Target Name="CopyToPlugins" AfterTargets="Build" Condition="Exists('$(GameDirectory)\BepInEx\plugins')">
+  <Target Name="CopyToPlugins" AfterTargets="Build" Condition="Exists('$(GameDirectory)\BepInEx\plugins') And '$(Configuration)' != 'Public'">
     <Copy SourceFiles="$(TargetPath);$(TargetDir)Repkarbinhake.Core.dll;$(TargetDir)Repkarbinhake.Unity.dll" DestinationFolder="$(PluginsDirectory)" />
     <Copy SourceFiles="@(PluginAsset)" DestinationFolder="$(PluginsDirectory)\Assets" />
   </Target>

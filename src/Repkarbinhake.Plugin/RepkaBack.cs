@@ -7,6 +7,7 @@ using Repkarbinhake.Core.Links;
 using Repkarbinhake.Core.Physics;
 using Repkarbinhake.Core.Visual;
 using Repkarbinhake.Plugin.Data;
+using Repkarbinhake.Plugin.Debugging;
 using Repkarbinhake.Plugin.Handling;
 using Repkarbinhake.Plugin.Input;
 using Repkarbinhake.Plugin.Links;
@@ -31,10 +32,7 @@ namespace Repkarbinhake.Plugin
         private ActorStates _actors;
         private KeyBinding _linkKey;
         private KeyBinding _anchorKey;
-        private KeyBinding _configEditorKey;
-        private KeyBinding _dummyKey;
         private TestDummy _dummy;
-        private TestDummyInput _dummyInput;
         private LinkHoldInput _linkHold;
         private AnchorInput _anchorInput;
         private AnchorSync _anchorSync;
@@ -53,9 +51,7 @@ namespace Repkarbinhake.Plugin
         private RopePathSync _pathSync;
         private PassThroughColliderFilter _passThrough;
         private LinkSoundFeedback _sounds;
-        private RopeDebugReport _report;
-        private RopeDebugOverlay _overlay;
-        private ConfigEditorWindow _configEditor;
+        private IDebugTools _debug;
 
         private void OnEnable()
         {
@@ -90,13 +86,12 @@ namespace Repkarbinhake.Plugin
         {
             _linkKey?.Dispose();
             _anchorKey?.Dispose();
-            _configEditorKey?.Dispose();
-            _dummyKey?.Dispose();
+            _debug?.Dispose();
         }
 
         private void Update()
         {
-            UpdateConfigEditor();
+            _debug.TickWindow();
             _sync.Tick(Time.deltaTime, Time.time);
             Character local = Character.localCharacter;
 
@@ -109,7 +104,7 @@ namespace Repkarbinhake.Plugin
                 _passThrough.Clear();
                 _spools.Clear();
                 _hookFeed.Clear();
-                _overlay.Hide();
+                _debug.Hide();
                 return;
             }
 
@@ -118,7 +113,7 @@ namespace Repkarbinhake.Plugin
             Footing footing = _actors.FootingOf(actor);
             Transform view = MainCamera.instance.transform;
 
-            if (_configEditor.IsOpen)
+            if (_debug.BlocksInput)
             {
                 _anchorInput.Cancel();
                 _linkHold.Cancel();
@@ -126,7 +121,7 @@ namespace Repkarbinhake.Plugin
             else
             {
                 _anchorInput.Tick(local, actor, footing, view);
-                _dummyInput.Tick(actor, view);
+                _debug.TickInput(actor, view);
                 _linkHold.Tick(local, actor, footing, view, Time.deltaTime);
             }
 
@@ -143,7 +138,7 @@ namespace Repkarbinhake.Plugin
             _poses.Refresh(Time.deltaTime);
             UntieDead(actor);
             _hookFeed.Publish(actor, footing, view);
-            UpdateOverlay(local, actor);
+            _debug.ShowOverlay(local, actor);
         }
 
         private void FixedUpdate()
@@ -212,15 +207,9 @@ namespace Repkarbinhake.Plugin
             _versionCheck = new ModVersionCheck(RepkaPlugin.Version, log);
             _pathSync = new RopePathSync(_registry, _ropes);
             _sounds = new LinkSoundFeedback(new CarabinerSounds(assets, config), _actors);
-            _report = new RopeDebugReport(_registry, _actors, stability, tension, reel, team, ledge, _ropes, settings, anchorSettings);
             _hookFeed = new RepkaHookFeed(_registry, reel, _policy, _ropes, _linkHold, anchors, _colors, config.RopeColor, config.LinkKey);
             RepkaHooks.GaugeTint = new RopeGaugeTint();
-            _overlay = gameObject.AddComponent<RopeDebugOverlay>();
-            _configEditorKey = new KeyBinding(config.ConfigEditorKey);
-            _dummyKey = new KeyBinding(config.TestDummyKey);
-            _dummyInput = new TestDummyInput(_registry, _dummy, _dummyKey, log);
-            _configEditor = gameObject.AddComponent<ConfigEditorWindow>();
-            _configEditor.Initialize(config.File);
+            _debug = BuildFlavor.HasDebugTools ? CreateDebugTools(config, log, new RopeDebugReport(_registry, _actors, stability, tension, reel, team, ledge, _ropes, settings, anchorSettings)) : new NoDebugTools();
         }
 
         private void UntieDead(int actor)
@@ -234,20 +223,13 @@ namespace Repkarbinhake.Plugin
             }
         }
 
-        private void UpdateConfigEditor()
+        private IDebugTools CreateDebugTools(RepkaConfig config, ManualLogSource log, RopeDebugReport report)
         {
-            if (_configEditorKey.WasPressed)
-                _configEditor.Toggle();
-
-            RepkaHooks.ConfigWindowOpen = _configEditor.IsOpen;
-        }
-
-        private void UpdateOverlay(Character local, int actor)
-        {
-            if (_config.ShowDebugOverlay.Value)
-                _overlay.Show(_report.Build(local, actor));
-            else
-                _overlay.Hide();
+            ConfigEditorWindow window = gameObject.AddComponent<ConfigEditorWindow>();
+            window.Initialize(config.File);
+            KeyBinding dummyKey = new KeyBinding(config.TestDummyKey);
+            TestDummyInput dummyInput = new TestDummyInput(_registry, _dummy, dummyKey, log);
+            return new DebugTools(config, report, gameObject.AddComponent<RopeDebugOverlay>(), window, new KeyBinding(config.ConfigEditorKey), dummyKey, dummyInput);
         }
 
         private void OnRopeInteracted(RopeLink link)

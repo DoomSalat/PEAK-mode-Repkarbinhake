@@ -92,9 +92,13 @@ namespace Repkarbinhake.Plugin.Data
             _autoMaxSegments = file.Bind(PerformanceSection, "AutoMaxSegments", 40, new ConfigDescription("Max bones per rope in Auto mode, even with few ropes.", new AcceptableValueRange<int>(RopeSegmentation.MinSegments, SegmentLimit)));
             _segmentLength = file.Bind(PerformanceSection, "SegmentLength", 0.3f, "Preferred bone spacing (meters). Short ropes never get more bones than they need.");
 
-            ShowDebugOverlay = file.Bind(DebugSection, "ShowDebugOverlay", false, "Show rope numbers on screen.");
-            TestDummyKey = file.Bind(DebugSection, "TestDummyKey", "<Keyboard>/f9", "Press to place a local test capsule where you look, then tie to it with the link key and pull it; press again to remove it.");
-            ConfigEditorKey = file.Bind(DebugSection, "ConfigEditorKey", "<Keyboard>/f7", "Opens an in-game window to edit and apply these settings while playing.");
+            if (BuildFlavor.HasDebugTools)
+            {
+                ShowDebugOverlay = file.Bind(DebugSection, "ShowDebugOverlay", false, "Show rope numbers on screen.");
+                TestDummyKey = file.Bind(DebugSection, "TestDummyKey", "<Keyboard>/f9", "Press to place a local test capsule where you look, then tie to it with the link key and pull it; press again to remove it.");
+                ConfigEditorKey = file.Bind(DebugSection, "ConfigEditorKey", "<Keyboard>/f7", "Opens an in-game window to edit and apply these settings while playing.");
+            }
+
             DropRemovedSettings(file);
         }
 

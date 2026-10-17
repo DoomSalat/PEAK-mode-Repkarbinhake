@@ -42,9 +42,16 @@ dotnet test tests/Repkarbinhake.Core.Tests
 powershell -ExecutionPolicy Bypass -File tools/Pack-Release.ps1
 ```
 
-Скрипт собирает плагин в Release и кладёт в `dist/` два архива с версией из `RepkaPlugin.Version`:
+Скрипт собирает два варианта мода и кладёт в `dist/` по два архива на каждый, с версией из `RepkaPlugin.Version`:
 
-- `Repkarbinhake-<версия>-full.zip` — BepInEx 5.4.23.5 + мод, распаковать в папку игры (для тех, у кого модов нет);
-- `Repkarbinhake-<версия>-plugin.zip` — только `BepInEx/plugins/Repkarbinhake` (если BepInEx уже стоит).
+- **release** — конфигурация `Public` (символ `REPKA_PUBLIC`): без окна отладки, окна настроек F7 и тестовой капсулы F9, в конфиге нет их ключей. Для игроков. Эта сборка не копируется в игру;
+- **debug** — конфигурация `Release`: со всей отладкой, та же, что ставится в игру при обычной сборке.
 
-В оба архива входит `Repkarbinhake-INSTALL.txt` (установка, управление, что прислать при ошибке) из `tools/INSTALL.txt`. BepInEx берётся из `BepInEx/BepInEx_win_x64_5.4.23.5`, другой путь — параметр `-BepInExDirectory`. У всех игроков должна быть одна версия: мод пишет в лог версии остальных и предупреждает о расхождении.
+Для каждого варианта:
+
+- `Repkarbinhake-<версия>-<вариант>-full.zip` — BepInEx 5.4.23.5 + мод, распаковать в папку игры (для тех, у кого модов нет);
+- `Repkarbinhake-<версия>-<вариант>-plugin.zip` — только `BepInEx/plugins/Repkarbinhake` (если BepInEx уже стоит).
+
+Вручную релизную сборку можно собрать `dotnet build src/Repkarbinhake.Plugin -c Public`.
+
+Во все архивы входит `Repkarbinhake-INSTALL.txt` (установка, управление, что прислать при ошибке) из `tools/INSTALL.txt`. BepInEx берётся из `BepInEx/BepInEx_win_x64_5.4.23.5`, другой путь — параметр `-BepInExDirectory`. У всех игроков должна быть одна версия: мод пишет в лог версии остальных и предупреждает о расхождении.

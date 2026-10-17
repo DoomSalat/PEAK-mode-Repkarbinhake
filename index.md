@@ -100,6 +100,7 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 │   ├── PlayerListBadges     — ряды цветных карабинов в списке игроков (ESC), проверка наложения на громкость / кик
 │   ├── LinkBadgeRow         — ряд цветных карабинов под аватаркой в списке игроков (ESC), материал прицела, проверка наложения на громкость / кик
 │   ├── RopeDebugReport      — строки отладки
+│   ├── IDebugTools / DebugTools / NoDebugTools — вся отладка за одним инструментом: окно F7, окно отладки, капсула F9; RepkaBack берёт DebugTools, если BuildFlavor.HasDebugTools, иначе пустой NoDebugTools (релизная конфигурация Public, символ REPKA_PUBLIC; ключи [Debug] в конфиге тогда не создаются)
 │   ├── ConfigEditorWindow   — View (IMGUI): F7 (ConfigEditorKey) — окно всех записей конфига: bool — галочка, enum — кнопка-перебор, остальное — текст; рядом метка, на кого действует (SettingScopes: на тебя / когда тянешь / хост → всем / только у тебя); «Применить» пишет SetSerializedValue и сохраняет .cfg, «Сбросить» возвращает текущие; пока открыто — курсор свободен, ввод игры и G/T заблокированы
 │   └── RopeDebugOverlay     — View: текст отладки (ShowDebugOverlay; содержимое строит RopeDebugReport — ты, лобби, по каждой своей верёвке: растяжение, нагрузка/потолок MaxPull, тяга на тебя, оценка на партнёра, сматывание с помощниками; описание в DEBUG.md)
 └── Patches
