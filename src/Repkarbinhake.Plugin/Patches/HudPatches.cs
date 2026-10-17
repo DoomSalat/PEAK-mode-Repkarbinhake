@@ -1,5 +1,6 @@
 using HarmonyLib;
 using Repkarbinhake.Plugin.Handling;
+using UnityEngine;
 
 namespace Repkarbinhake.Plugin.Patches
 {
@@ -17,8 +18,9 @@ namespace Repkarbinhake.Plugin.Patches
         [HarmonyPatch(typeof(GUIManager), "UpdateReticle")]
         public static void UpdateWidgets(GUIManager __instance)
         {
-            string partner = __instance.currentInteractable is RopeInteractible rope && rope != null ? rope.PartnerName : null;
-            RepkaHooks.Hud?.Show(__instance, RepkaHooks.ShowCarabinerReticle, RepkaHooks.LinkPrompt, RepkaHooks.LinkKeyPath, partner);
+            RopeInteractible rope = __instance.currentInteractable as RopeInteractible;
+            bool aimsRope = rope != null;
+            RepkaHooks.Hud?.Show(__instance, RepkaHooks.ShowCarabinerReticle, RepkaHooks.LinkPrompt, RepkaHooks.LinkKeyPath, aimsRope ? rope.PartnerName : null, aimsRope ? rope.Color : Color.white);
         }
 
         [HarmonyPostfix]

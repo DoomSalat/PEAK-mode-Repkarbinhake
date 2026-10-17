@@ -18,6 +18,7 @@ namespace Repkarbinhake.Plugin.Handling
 
         public Vector3 AimPoint { get; private set; }
         public string PartnerName => _partnerName(_link);
+        public Color Color { get; private set; } = Color.white;
 
         public void Initialize(RopeLink link, RopeTubeView view, Func<RopeLink, bool> canInteract, Func<RopeLink, bool> isHeldLocally, Func<RopeLink, string> partnerName)
         {
@@ -26,6 +27,11 @@ namespace Repkarbinhake.Plugin.Handling
             _canInteract = canInteract;
             _isHeldLocally = isHeldLocally;
             _partnerName = partnerName;
+        }
+
+        public void Paint(Color color)
+        {
+            Color = color;
         }
 
         public void Aim(Vector3 point)

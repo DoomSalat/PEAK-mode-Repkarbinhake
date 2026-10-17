@@ -52,11 +52,12 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 ├── RepkaPlugin              — точка входа: конфиг, ассеты, Harmony, создаёт RepkaBack (DontDestroyOnLoad)
 ├── RepkaBack                — Back (~220 строк): собирает инструменты, порядок кадра, хуки для патчей, смерть
 ├── Data
+│   ├── SettingScopes        — static-таблица: ключ конфига → на кого действует (для окна F7; неизвестные — «только у тебя»)
 │   ├── RepkaConfig          — ConfigEntry (ModConfig) → IRopeSettings / ISegmentSettings; при запуске удаляет из .cfg записи, которых мод больше не читает (OrphanedEntries через AccessTools)
 │   ├── LobbyRopeSettings    — настройки с длиной верёвки от хоста
 │   ├── VanillaRopeSpool     — обычная (не анти) катушка из ItemDatabase: Item для поз рук, материал верёвки
 │   ├── RepkaAssets / WavReader — иконка PNG → Sprite, WAV → AudioClip
-│   ├── RepkaTexts           — строки подсказок
+│   ├── RepkaTexts           — строки подсказок на 15 языках игры (по LocalizedText.CURRENT_LANGUAGE, иначе английский); окно F7 — только по-русски
 │   └── RepkaColors          — палитра цветов связок
 ├── Network
 │   ├── PhotonLinkTransport  — ILinkTransport поверх room properties (LinkPayloadCodec), CAS-удаление
@@ -75,7 +76,7 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 │   ├── LinkTargetPicker     — на кого смотрит игрок для G, отдаёт actor
 │   └── KeyBinding           — InputAction из строки конфига, пересоздаётся при смене
 ├── Handling
-│   ├── RopeInteractible     — IInteractible игры на верёвке (ванильная E, подсказка, подсветка); PartnerName — ник игрока на другом конце (Photon NickName, у крюка нет)
+│   ├── RopeInteractible     — IInteractible игры на верёвке (ванильная E, подсказка, подсветка); PartnerName — ник игрока на другом конце (Photon NickName, у крюка нет); Color — цвет связки (Paint из RopePresenterPool.Tint)
 │   ├── RopeHands            — взять / отпустить, отпуск при предмете, стене, без сознания
 │   ├── ReelDriver           — колесо / кнопки → скорость смотки сглажена как у RopeSpool (Lerp ×4/с, −1…5), стамина, публикация ~10 Гц
 │   ├── AnchorRopes          — длина верёвки крюка: свой — AnchorLength (выдаётся следом, на срыве запирается), чужие — по пути (натянуты); конец крюка «держится», чтобы длина шла через смотку
@@ -90,13 +91,13 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 │   ├── SpoolProps           — визуальная копия обычной катушки в руках каждого держащего: центр её Hand_R/Hand_L ставится между физическими кистями, источник точки выхода верёвки
 │   ├── SpoolProp            — MonoBehaviour на корне копии (ссылки на колесо и точки выхода переносятся при Instantiate из шаблона, собранного один раз): колесо (ropeSpoolTf) вращается при смотке, верёвка как у ванильной: видимый путь ropeStart → ropeBase → физическая часть (ActorStates: ropeBase — точка физики, TryGetRopeLead — ropeStart для отрисовки)
 │   ├── CarabinerSounds / LinkSoundFeedback — SFX_Instance → SFX_Player игры; звук в середине верёвки
-│   ├── PassThroughColliderFilter — верёвка проходит сквозь сундуки (Luggage, в т.ч. LuggageCursed, RespawnChest, и MirageLuggage) и тонкие генерируемые мосты (BreakableBridge), результат кэшируется по коллайдеру
-│   ├── AnchorVisuals        — модель крюка из ванильной катушки: при наведении — полупрозрачный RopeTier.anchorPreview, у поставленных — в превью вместо прозрачных частей непрозрачный normalPart из RopeTier.anchorPrefab (сам сетевой префаб не создаётся); точка верёвки переносится на anchorPoint настоящего префаба (кончик крюка)
-│   ├── CarabinerHud         — прицел-карабин (материал ванильного прицела) и подсказка «Привязать / Отцепить» с иконкой клавиши; под ванильной подсказкой E при наведении на верёвку — ник партнёра (копия interactNameText, HudPatches берёт currentInteractable)
+│   ├── PassThroughColliderFilter — верёвка проходит сквозь сундуки (Luggage, в т.ч. LuggageCursed, RespawnChest, и MirageLuggage), тонкие генерируемые мосты (BreakableBridge) и пушку скаута (ScoutCannon), результат кэшируется по коллайдеру
+│   ├── AnchorVisuals        — модель крюка из ванильной катушки: при наведении — полупрозрачный RopeTier.anchorPreview, у поставленных — в превью вместо прозрачных частей непрозрачный normalPart из RopeTier.anchorPrefab (сам сетевой префаб не создаётся); точка верёвки — центр узла (SphereCollider ребёнка Knot; у ванили AnchorPoint ниже, на уровне кольца), коллайдеры копии удаляются
+│   ├── CarabinerHud         — прицел-карабин (материал ванильного прицела) и подсказка «Привязать / Отцепить» с иконкой клавиши; под ванильной подсказкой E при наведении на верёвку — ник партнёра цветом верёвки (копия interactNameText, HudPatches берёт currentInteractable)
 │   ├── PlayerListBadges     — ряды цветных карабинов в списке игроков (ESC), проверка наложения на громкость / кик
 │   ├── LinkBadgeRow         — ряд цветных карабинов под аватаркой в списке игроков (ESC), материал прицела, проверка наложения на громкость / кик
 │   ├── RopeDebugReport      — строки отладки
-│   ├── ConfigEditorWindow   — View (IMGUI): F7 (ConfigEditorKey) — окно всех записей конфига: bool — галочка, enum — кнопка-перебор, остальное — текст; «Применить» пишет SetSerializedValue и сохраняет .cfg, «Сбросить» возвращает текущие; пока открыто — курсор свободен, ввод игры и G/T заблокированы
+│   ├── ConfigEditorWindow   — View (IMGUI): F7 (ConfigEditorKey) — окно всех записей конфига: bool — галочка, enum — кнопка-перебор, остальное — текст; рядом метка, на кого действует (SettingScopes: на тебя / когда тянешь / хост → всем / только у тебя); «Применить» пишет SetSerializedValue и сохраняет .cfg, «Сбросить» возвращает текущие; пока открыто — курсор свободен, ввод игры и G/T заблокированы
 │   └── RopeDebugOverlay     — View: текст отладки
 └── Patches
     ├── RepkaHooks           — статический мост Back → патчи

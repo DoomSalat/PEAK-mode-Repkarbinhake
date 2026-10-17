@@ -99,7 +99,12 @@ namespace Repkarbinhake.Plugin.Visual
             Transform body = Object.Instantiate(solid.normalPart, anchor.transform).transform;
             body.SetLocalPositionAndRotation(root.InverseTransformPoint(part.position), Quaternion.Inverse(root.rotation) * part.rotation);
             body.gameObject.SetActive(true);
-            anchor.anchorPoint.position = anchor.transform.TransformPoint(root.InverseTransformPoint(solid.anchorPoint.position));
+            SphereCollider knot = body.GetComponentInChildren<SphereCollider>();
+            anchor.anchorPoint.position = knot.transform.TransformPoint(knot.center);
+
+            foreach (Collider collider in body.GetComponentsInChildren<Collider>())
+                Object.Destroy(collider);
+
             anchor.normalPart.SetActive(false);
             anchor.ghostPart.SetActive(false);
             return anchor;

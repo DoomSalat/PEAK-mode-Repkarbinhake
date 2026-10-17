@@ -40,7 +40,7 @@ namespace Repkarbinhake.Plugin.Visual
             CreatePartner(gui);
         }
 
-        public void Show(GUIManager gui, bool showReticle, string prompt, string keyPath, string partner)
+        public void Show(GUIManager gui, bool showReticle, string prompt, string keyPath, string partner, Color partnerColor)
         {
             if (_reticle == null || _prompt == null || _partner == null)
                 return;
@@ -49,7 +49,7 @@ namespace Repkarbinhake.Plugin.Visual
                 gui.SetReticle(_reticle);
 
             ShowPrompt(prompt, keyPath);
-            ShowPartner(partner);
+            ShowPartner(partner, partnerColor);
         }
 
         private void CreateReticle(GUIManager gui)
@@ -127,7 +127,7 @@ namespace Repkarbinhake.Plugin.Visual
             _partner.gameObject.SetActive(false);
         }
 
-        private void ShowPartner(string partner)
+        private void ShowPartner(string partner, Color color)
         {
             if (string.IsNullOrEmpty(partner) || !_vanillaPrompt.activeSelf)
             {
@@ -138,6 +138,7 @@ namespace Repkarbinhake.Plugin.Visual
             RectTransform source = (RectTransform)_vanillaPrompt.transform;
             _partner.rectTransform.anchoredPosition = source.anchoredPosition + Vector2.down * source.rect.height;
             _partner.text = partner;
+            _partner.color = color;
             _partner.gameObject.SetActive(true);
         }
 

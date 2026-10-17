@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BepInEx.Configuration;
+using Repkarbinhake.Plugin.Data;
 using UnityEngine;
 
 namespace Repkarbinhake.Plugin.Visual
@@ -9,15 +10,16 @@ namespace Repkarbinhake.Plugin.Visual
     public sealed class ConfigEditorWindow : MonoBehaviour
     {
         private const int WindowId = 0x5245504B;
-        private const float WindowWidth = 520f;
+        private const float WindowWidth = 680f;
         private const float WindowHeight = 640f;
-        private const float NameWidth = 210f;
+        private const float NameWidth = 200f;
+        private const float ScopeWidth = 150f;
         private const float HintHeight = 54f;
         private const string Title = "Repkarbinhake — настройки";
         private const string ApplyText = "Применить";
         private const string ResetText = "Сбросить";
         private const string CloseText = "Закрыть";
-        private const string Note = "Толщина и цвет — для новых верёвок. Наведи на имя — подсказка.";
+        private const string Note = "Толщина и цвет — для новых верёвок. «на тебя» — силы считает твоя игра для твоего персонажа. Наведи на имя — подсказка.";
         private const string TrueText = "true";
 
         private readonly List<ConfigRow> _rows = new List<ConfigRow>();
@@ -102,6 +104,7 @@ namespace Repkarbinhake.Plugin.Visual
             ConfigEntryBase entry = row.Entry;
             GUILayout.BeginHorizontal();
             GUILayout.Label(new GUIContent(entry.Definition.Key, entry.Description.Description), GUILayout.Width(NameWidth));
+            GUILayout.Label(SettingScopes.Of(entry.Definition.Key), GUILayout.Width(ScopeWidth));
 
             if (entry.SettingType == typeof(bool))
                 row.Draft = GUILayout.Toggle(row.Draft == TrueText, string.Empty) ? TrueText : bool.FalseString.ToLowerInvariant();

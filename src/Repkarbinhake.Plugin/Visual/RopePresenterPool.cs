@@ -72,6 +72,8 @@ namespace Repkarbinhake.Plugin.Visual
             if (!_presenters.TryGetValue(link.Key, out RopePresenter presenter))
                 return;
 
+            presenter.Interactible.Paint(color);
+
             if (_config.RopeColor.Value > 0f)
                 presenter.ChangeMaterial(_recolor.For(RopeMaterial(), color, _config.RopeColor.Value));
         }

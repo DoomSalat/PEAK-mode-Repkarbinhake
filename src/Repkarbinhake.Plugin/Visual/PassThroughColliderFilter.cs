@@ -15,7 +15,7 @@ namespace Repkarbinhake.Plugin.Visual
             if (_known.TryGetValue(id, out bool ignored))
                 return ignored;
 
-            ignored = IsChest(collider) || collider.GetComponentInParent<BreakableBridge>() != null;
+            ignored = IsChest(collider) || collider.GetComponentInParent<BreakableBridge>() != null || collider.GetComponentInParent<ScoutCannon>() != null;
             _known[id] = ignored;
             return ignored;
         }
