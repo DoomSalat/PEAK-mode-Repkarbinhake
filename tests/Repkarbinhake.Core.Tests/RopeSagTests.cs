@@ -19,15 +19,26 @@ namespace Repkarbinhake.Core.Tests
         private readonly RopeWrapPath _path = new RopeWrapPath();
         private readonly RopeSag _sag = new RopeSag();
         private readonly BoxObstacles _open = new BoxObstacles();
-        private readonly List<Vector3> _output = new List<Vector3>();
+        private readonly List<Vector3> _points = new List<Vector3>();
+        private readonly List<float> _freedoms = new List<float>();
+        private readonly List<float> _spacings = new List<float>();
 
         [Fact]
         public void TautRope_LiesOnThePath()
         {
             Build(Left, Right, 4f, _open);
 
-            foreach (Vector3 point in _output)
+            foreach (Vector3 point in _points)
                 Assert.Equal(2f, point.Y, 4);
+        }
+
+        [Fact]
+        public void TautRope_HasAlmostNoFreedom()
+        {
+            Build(Left, Right, 4f, _open);
+
+            foreach (float freedom in _freedoms)
+                Assert.True(freedom <= RopeSag.TautFreedom + 0.001f);
         }
 
         [Fact]
@@ -35,11 +46,11 @@ namespace Repkarbinhake.Core.Tests
         {
             Build(Left, Right, 4.5f, _open);
 
-            Assert.True(_output[_output.Count / 2].Y < 2f - 0.3f);
+            Assert.True(_points[_points.Count / 2].Y < 2f - 0.3f);
         }
 
         [Fact]
-        public void SlackRope_KeepsRoughlyItsLength()
+        public void SlackRope_KeepsItsLength()
         {
             Build(Left, Right, 4.5f, _open);
 
@@ -52,58 +63,19 @@ namespace Repkarbinhake.Core.Tests
             BoxObstacles floor = new BoxObstacles().Add(new Vector3(-10f, -5f, -10f), new Vector3(10f, 0f, 10f));
             Build(new Vector3(0f, 1f, 0f), new Vector3(4f, 1f, 0f), 12f, floor);
 
-            foreach (Vector3 point in _output)
+            foreach (Vector3 point in _points)
                 Assert.True(point.Y >= Radius - 0.001f);
         }
 
         [Fact]
-        public void PathPoints_StayInTheOutput()
+        public void Ends_ArePinned()
         {
             Build(Left, Right, 4.5f, _open);
 
-            Assert.Equal(Left, _output[0]);
-            Assert.Equal(Right, _output[_output.Count - 1]);
-        }
-
-        [Fact]
-        public void MovingEnd_SwingsAndCalmsDown()
-        {
-            RopeLengthState length = new RopeLengthState(5f, 0f, 0f);
-            Vector3 moved = Right + new Vector3(0f, 0f, 1.5f);
-            Step(Left, Right, length, 50);
-            Step(Left, moved, length, 1);
-            float justAfter = SidewaysOfMiddle();
-            Step(Left, moved, length, 400);
-            float settled = SidewaysOfMiddle();
-
-            Assert.True(justAfter > settled + 0.05f);
-        }
-
-        [Fact]
-        public void RopeLyingOnFloor_WavesWithinLimits()
-        {
-            BoxObstacles floor = new BoxObstacles().Add(new Vector3(-10f, -5f, -10f), new Vector3(10f, 0f, 10f));
-            RopeLengthState length = new RopeLengthState(8f, 0f, 0f);
-            Vector3 start = new Vector3(0f, 0.3f, 0f);
-            Vector3 end = new Vector3(3f, 0.3f, 0f);
-            float limit = RopeSag.MaxWave + RopeSag.GroundSwing + 0.05f;
-            float widest = 0f;
-
-            for (int i = 0; i < 120; i++)
-            {
-                Vector3 jiggle = new Vector3(0f, 0f, (i % 2) * 0.05f);
-                _path.Update(start, end + jiggle, length, Radius, DeltaTime, floor);
-                _sag.Build(_path, Down, Bones, Radius, DeltaTime, floor, _output);
-            }
-
-            foreach (Vector3 point in _output)
-            {
-                Assert.InRange(point.Z, -limit, limit);
-                Assert.True(point.Y >= Radius - 0.001f);
-                widest = System.MathF.Max(widest, System.MathF.Abs(point.Z));
-            }
-
-            Assert.True(widest > 0.1f);
+            Assert.Equal(Left, _points[0]);
+            Assert.Equal(Right, _points[_points.Count - 1]);
+            Assert.Equal(0f, _freedoms[0]);
+            Assert.Equal(0f, _freedoms[_freedoms.Count - 1]);
         }
 
         [Theory]
@@ -119,35 +91,15 @@ namespace Repkarbinhake.Core.Tests
         {
             RopeLengthState length = new RopeLengthState(ropeLength, 0f, 0f);
             _path.Update(start, end, length, Radius, DeltaTime, obstacles);
-            _sag.Build(_path, Down, Bones, Radius, DeltaTime, obstacles, _output);
-        }
-
-        private void Step(Vector3 start, Vector3 end, RopeLengthState length, int frames)
-        {
-            for (int i = 0; i < frames; i++)
-            {
-                _path.Update(start, end, length, Radius, DeltaTime, _open);
-                _sag.Build(_path, Down, Bones, Radius, DeltaTime, _open, _output);
-            }
-        }
-
-        private float SidewaysOfMiddle()
-        {
-            Vector3 middle = _output[_output.Count / 2];
-            Vector3 start = _output[0];
-            Vector3 end = _output[_output.Count - 1];
-            Vector3 chord = Vector3.Normalize(end - start);
-            Vector3 offset = middle - Vector3.Lerp(start, end, 0.5f);
-            Vector3 horizontal = Vector3.Normalize(Vector3.Cross(chord, Vector3.UnitY));
-            return System.MathF.Abs(Vector3.Dot(offset, horizontal));
+            _sag.Build(_path, Down, Bones, Radius, obstacles, _points, _freedoms, _spacings);
         }
 
         private float Length()
         {
             float total = 0f;
 
-            for (int i = 1; i < _output.Count; i++)
-                total += Vector3.Distance(_output[i - 1], _output[i]);
+            for (int i = 1; i < _points.Count; i++)
+                total += Vector3.Distance(_points[i - 1], _points[i]);
 
             return total;
         }

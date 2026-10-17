@@ -42,6 +42,7 @@ namespace Repkarbinhake.Plugin
         private LinkColors _colors;
         private SpoolProps _spools;
         private RopeForces _forces;
+        private RopeKnockdown _knockdown;
         private RepkaHookFeed _hookFeed;
         private RopePresenterPool _ropes;
         private RoomLinkSync _sync;
@@ -88,6 +89,7 @@ namespace Repkarbinhake.Plugin
             {
                 _linkHold.Cancel();
                 _poses.Clear();
+                _knockdown.Clear();
                 _spools.Clear();
                 _hookFeed.Clear();
                 _overlay.Hide();
@@ -109,6 +111,7 @@ namespace Repkarbinhake.Plugin
             else
                 _reelDriver.Stop();
 
+            _knockdown.Tick(local, actor, Time.deltaTime);
             _poses.Refresh(Time.deltaTime);
             UntieDead(actor);
             _hookFeed.Publish(actor, footing, view);
@@ -170,6 +173,7 @@ namespace Repkarbinhake.Plugin
             _hands = new RopeHands(_registry, _policy, _actors);
             _reelDriver = new ReelDriver(_registry, reel, tension, _ropes);
             _forces = new RopeForces(_registry, stability, tension, reel, _actors, _ropes, config);
+            _knockdown = new RopeKnockdown(_registry, reel, _ropes, config);
             _sync = new RoomLinkSync(transport, _registry, new UntiedKeySweeper(), new DepartedUntieRule(), settings, config, anchor, _dummy);
             _sounds = new LinkSoundFeedback(new CarabinerSounds(assets, config), _actors);
             _report = new RopeDebugReport(_registry, _actors, stability, tension, reel, _ropes, settings);
@@ -210,6 +214,7 @@ namespace Repkarbinhake.Plugin
 
         private void OnLinkRemoved(RopeLink link)
         {
+            _knockdown.Forget(link);
             _colors.Release(link);
             _sounds.Untied(link);
             _ropes.Remove(link);

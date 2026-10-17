@@ -10,6 +10,7 @@ namespace Repkarbinhake.Plugin.Data
         private const string RopeSection = "Rope";
         private const string StabilitySection = "Stability";
         private const string HangingSection = "Hanging";
+        private const string KnockdownSection = "Knockdown";
         private const string VisualSection = "Visual";
         private const string PerformanceSection = "Performance";
         private const string DebugSection = "Debug";
@@ -65,6 +66,10 @@ namespace Repkarbinhake.Plugin.Data
             SupportLoadThreshold = file.Bind(HangingSection, "SupportLoadThreshold", 3f, "Upward rope pull needed to count as hanging on the rope.");
             BelaySlideCap = file.Bind(HangingSection, "BelaySlideCap", 2f, "Belay: while a partner holds your rope, out-of-stamina wall slide time is capped to this (seconds, 0 = no slide build-up).");
 
+            EnableKnockdown = file.Bind(KnockdownSection, "EnableKnockdown", true, "A very hard yank of the rope knocks you down (ragdoll) unless you hold that rope.");
+            KnockdownSpeed = file.Bind(KnockdownSection, "KnockdownSpeed", 7f, "How fast the partner side must tighten the rope to knock you down (meters per second, about 0.7 s of free fall).");
+            KnockdownSeconds = file.Bind(KnockdownSection, "KnockdownSeconds", 2f, "How long you stay knocked down (seconds).");
+
             Thickness = file.Bind(VisualSection, "Thickness", 0.045f, "Visual rope radius.");
             UseVanillaRopeMaterial = file.Bind(VisualSection, "UseVanillaRopeMaterial", true, "Use the game rope material. Turn off if the rope renders wrong.");
             SoundVolume = file.Bind(VisualSection, "SoundVolume", 0.6f, new ConfigDescription("Carabiner sound volume.", new AcceptableValueRange<float>(0f, 1f)));
@@ -89,6 +94,9 @@ namespace Repkarbinhake.Plugin.Data
         public ConfigEntry<float> HangAirTimeCap { get; }
         public ConfigEntry<float> SupportLoadThreshold { get; }
         public ConfigEntry<float> BelaySlideCap { get; }
+        public ConfigEntry<bool> EnableKnockdown { get; }
+        public ConfigEntry<float> KnockdownSpeed { get; }
+        public ConfigEntry<float> KnockdownSeconds { get; }
         public ConfigEntry<float> Thickness { get; }
         public ConfigEntry<bool> UseVanillaRopeMaterial { get; }
         public ConfigEntry<float> SoundVolume { get; }

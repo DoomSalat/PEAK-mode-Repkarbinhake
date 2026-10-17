@@ -10,7 +10,10 @@ namespace Repkarbinhake.Sandbox
     {
         private readonly RopeWrapPath _path = new RopeWrapPath();
         private readonly RopeSag _sag = new RopeSag();
-        private readonly List<System.Numerics.Vector3> _points = new List<System.Numerics.Vector3>();
+        private readonly RopeLooseness _loose = new RopeLooseness();
+        private readonly List<System.Numerics.Vector3> _targets = new List<System.Numerics.Vector3>();
+        private readonly List<float> _freedoms = new List<float>();
+        private readonly List<float> _spacings = new List<float>();
         private readonly RopeTubeView _view;
         private int _lastContacts;
         private float _lastPathLength = -1f;
@@ -21,7 +24,7 @@ namespace Repkarbinhake.Sandbox
             _view = view;
         }
 
-        public int SegmentCount => _points.Count;
+        public int SegmentCount => _targets.Count;
         public int ContactCount => _path.ContactCount;
         public int ContactChanges { get; private set; }
         public float LengthTravel { get; private set; }
@@ -31,8 +34,9 @@ namespace Repkarbinhake.Sandbox
         {
             _path.Update(start.ToNumerics(), end.ToNumerics(), length, radius, deltaTime, obstacles);
             TrackStats();
-            _sag.Build(_path, Vector3.down.ToNumerics(), segments, radius, deltaTime, obstacles, _points);
-            _view.Render(_points);
+            _sag.Build(_path, Vector3.down.ToNumerics(), segments, radius, obstacles, _targets, _freedoms, _spacings);
+            _loose.Step(_targets, _freedoms, _spacings, Physics.gravity.ToNumerics(), deltaTime, radius, obstacles);
+            _view.Render(_loose.Positions);
         }
 
         public void ResetStats()
@@ -49,7 +53,7 @@ namespace Repkarbinhake.Sandbox
 
         public bool TryPick(RopeRayPicker picker, Vector3 origin, Vector3 direction, float reach, float tolerance, out float distance)
         {
-            return picker.TryPick(origin.ToNumerics(), direction.ToNumerics(), reach, tolerance, _points, out distance);
+            return picker.TryPick(origin.ToNumerics(), direction.ToNumerics(), reach, tolerance, _loose.Positions, out distance);
         }
 
         public void Highlight()

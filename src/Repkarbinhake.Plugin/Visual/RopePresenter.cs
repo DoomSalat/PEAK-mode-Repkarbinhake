@@ -12,7 +12,10 @@ namespace Repkarbinhake.Plugin.Visual
     {
         private readonly RopeWrapPath _path = new RopeWrapPath();
         private readonly RopeSag _sag = new RopeSag();
-        private readonly List<System.Numerics.Vector3> _points = new List<System.Numerics.Vector3>();
+        private readonly RopeLooseness _loose = new RopeLooseness();
+        private readonly List<System.Numerics.Vector3> _targets = new List<System.Numerics.Vector3>();
+        private readonly List<float> _freedoms = new List<float>();
+        private readonly List<float> _spacings = new List<float>();
         private readonly List<System.Numerics.Vector3> _renderPoints = new List<System.Numerics.Vector3>();
         private readonly RopeTubeView _view;
         private readonly MeshRenderer _renderer;
@@ -27,15 +30,16 @@ namespace Repkarbinhake.Plugin.Visual
 
         public RopeLink Link { get; }
         public RopeInteractible Interactible { get; }
-        public int SegmentCount => _points.Count;
+        public int SegmentCount => _targets.Count;
         public int ContactCount => _path.ContactCount;
-        public IReadOnlyList<System.Numerics.Vector3> Points => _points;
+        public IReadOnlyList<System.Numerics.Vector3> Points => _loose.Positions;
 
         public void Tick(Vector3 start, Vector3 end, RopeLengthState length, int segments, float deltaTime, float radius, IRopeObstacles obstacles)
         {
             _renderer.enabled = true;
             _path.Update(start.ToNumerics(), end.ToNumerics(), length, radius, deltaTime, obstacles);
-            _sag.Build(_path, Physics.gravity.normalized.ToNumerics(), segments, radius, deltaTime, obstacles, _points);
+            _sag.Build(_path, Physics.gravity.normalized.ToNumerics(), segments, radius, obstacles, _targets, _freedoms, _spacings);
+            _loose.Step(_targets, _freedoms, _spacings, Physics.gravity.ToNumerics(), deltaTime, radius, obstacles);
         }
 
         public void Render(Vector3? startLead, Vector3? endLead)
@@ -45,7 +49,7 @@ namespace Repkarbinhake.Plugin.Visual
             if (startLead.HasValue)
                 _renderPoints.Add(startLead.Value.ToNumerics());
 
-            _renderPoints.AddRange(_points);
+            _renderPoints.AddRange(_loose.Positions);
 
             if (endLead.HasValue)
                 _renderPoints.Add(endLead.Value.ToNumerics());
@@ -57,6 +61,7 @@ namespace Repkarbinhake.Plugin.Visual
         {
             _renderer.enabled = false;
             _path.Clear();
+            _loose.Clear();
         }
 
         public bool TrySpan(bool fromStart, out RopeSpan span)
@@ -66,7 +71,7 @@ namespace Repkarbinhake.Plugin.Visual
 
         public bool TryPick(RopeRayPicker picker, Ray ray, float reach, float tolerance, out float distance)
         {
-            return picker.TryPick(ray.origin.ToNumerics(), ray.direction.ToNumerics(), reach, tolerance, _points, out distance);
+            return picker.TryPick(ray.origin.ToNumerics(), ray.direction.ToNumerics(), reach, tolerance, _loose.Positions, out distance);
         }
 
         public void Destroy()
