@@ -21,10 +21,6 @@ namespace Repkarbinhake.Plugin
     public sealed class RepkaBack : MonoBehaviour
     {
         private const float MaxVisualDeltaTime = 1f / 30f;
-        private const string ProbeName = "Repkarbinhake Rope Probe";
-        private const string ProbeLayer = "Ignore Raycast";
-
-        private static readonly Vector3 ProbeParkingPosition = new Vector3(0f, -10000f, 0f); // Static: constant far-away spot for the collision probe
 
         private readonly List<RopeLink> _deadLinks = new List<RopeLink>();
         private RepkaConfig _config;
@@ -46,7 +42,7 @@ namespace Repkarbinhake.Plugin
         private LinkColors _colors;
         private SpoolProps _spools;
         private RopeForces _forces;
-        private RopeReel _reel;
+        private RepkaHookFeed _hookFeed;
         private RopePresenterPool _ropes;
         private RoomLinkSync _sync;
         private LinkSoundFeedback _sounds;
@@ -73,7 +69,7 @@ namespace Repkarbinhake.Plugin
                 _ropes.RopeInteracted -= OnRopeInteracted;
 
             _sync?.Disable();
-            ClearHooks();
+            _hookFeed.Clear();
         }
 
         private void OnDestroy()
@@ -93,7 +89,7 @@ namespace Repkarbinhake.Plugin
                 _linkHold.Cancel();
                 _poses.Clear();
                 _spools.Clear();
-                ClearHooks();
+                _hookFeed.Clear();
                 _overlay.Hide();
                 return;
             }
@@ -115,7 +111,7 @@ namespace Repkarbinhake.Plugin
 
             _poses.Refresh();
             UntieDead(actor);
-            PublishHooks(actor, footing, view);
+            _hookFeed.Publish(actor, footing, view);
             UpdateOverlay(actor);
         }
 
@@ -155,16 +151,14 @@ namespace Repkarbinhake.Plugin
             RepkaHooks.Spool = spool;
             _poses = new RopeHoldPoses(_registry, _characters);
             RepkaHooks.HoldPoses = _poses.Poses;
-            _spools = new SpoolProps(transform, spool, _poses, log);
+            _spools = new SpoolProps(transform, spool, _poses);
             _actors = new ActorStates(_characters, anchor, _dummy, _spools);
             _deathRule = new DeathUntieRule(_actors);
             StabilityResolver stability = new StabilityResolver(settings, _policy, _actors);
             TensionSolver tension = new TensionSolver(settings);
             RopeReel reel = new RopeReel(settings, _policy);
-            _reel = reel;
-            int ropeMask = HelperFunctions.GetMask(HelperFunctions.LayerType.TerrainMap);
-            PhysicsRopeCollider collider = new PhysicsRopeCollider(ropeMask, CreateCollisionProbe());
-            _ropes = new RopePresenterPool(transform, config, reel, new RopeSegmentation(config), _actors, _registry, _policy, collider, spool, new RopeWrapProbe(ropeMask, log));
+            PhysicsRopeObstacles obstacles = new PhysicsRopeObstacles(HelperFunctions.GetMask(HelperFunctions.LayerType.TerrainMap), transform);
+            _ropes = new RopePresenterPool(transform, config, reel, new RopeSegmentation(config), _actors, _registry, _policy, obstacles, spool);
 
             _linkKey = new KeyBinding(config.LinkKey);
             _anchorKey = new KeyBinding(config.TestAnchorKey);
@@ -178,6 +172,7 @@ namespace Repkarbinhake.Plugin
             _sync = new RoomLinkSync(transport, _registry, new UntiedKeySweeper(), new DepartedUntieRule(), settings, config, anchor, _dummy);
             _sounds = new LinkSoundFeedback(new CarabinerSounds(assets, config), _actors);
             _report = new RopeDebugReport(_registry, _actors, stability, tension, reel, _ropes, settings);
+            _hookFeed = new RepkaHookFeed(_registry, reel, _policy, _ropes, _linkHold, config.LinkKey);
             _overlay = gameObject.AddComponent<RopeDebugOverlay>();
         }
 
@@ -189,34 +184,6 @@ namespace Repkarbinhake.Plugin
                 _registry.Untie(link);
         }
 
-        private void PublishHooks(int actor, Footing footing, Transform view)
-        {
-            RepkaHooks.ShowCarabinerReticle = _linkHold.HasTarget;
-            RepkaHooks.LinkHoldProgress = _linkHold.Progress;
-            RepkaHooks.LinkPrompt = _linkHold.HasTarget ? (_linkHold.TargetIsLinked ? RepkaTexts.Untie : RepkaTexts.Tie) : null;
-            RepkaHooks.LinkKeyPath = _config.LinkKey.Value;
-            RepkaHooks.HeldRopeLength = HeldRopeLengthOf(actor);
-            RepkaHooks.HeldRope = _ropes.TryGetHeld(actor, out RopeInteractible held) ? held : null;
-
-            if (!_linkHold.HasTarget && _policy.CanHold(footing) && _ropes.TryAim(new Ray(view.position, view.forward), actor, out RopeInteractible aimed, out _))
-            {
-                RepkaHooks.AimedRope = aimed;
-                return;
-            }
-
-            RepkaHooks.AimedRope = null;
-        }
-
-        private float HeldRopeLengthOf(int actor)
-        {
-            foreach (RopeLink link in _registry.Links)
-            {
-                if (link.IsHeldBy(actor))
-                    return _reel.EffectiveLength(link);
-            }
-
-            return 0f;
-        }
 
         private void UpdateOverlay(int actor)
         {
@@ -245,27 +212,6 @@ namespace Repkarbinhake.Plugin
             _colors.Release(link);
             _sounds.Untied(link);
             _ropes.Remove(link);
-        }
-
-        private SphereCollider CreateCollisionProbe()
-        {
-            GameObject probeObject = new GameObject(ProbeName);
-            probeObject.transform.SetParent(transform, false);
-            probeObject.transform.position = ProbeParkingPosition;
-            probeObject.layer = LayerMask.NameToLayer(ProbeLayer);
-            SphereCollider probe = probeObject.AddComponent<SphereCollider>();
-            probe.isTrigger = true;
-            return probe;
-        }
-
-        private void ClearHooks()
-        {
-            RepkaHooks.HeldRope = null;
-            RepkaHooks.AimedRope = null;
-            RepkaHooks.ShowCarabinerReticle = false;
-            RepkaHooks.LinkHoldProgress = 0f;
-            RepkaHooks.LinkPrompt = null;
-            RepkaHooks.HeldRopeLength = 0f;
         }
     }
 }

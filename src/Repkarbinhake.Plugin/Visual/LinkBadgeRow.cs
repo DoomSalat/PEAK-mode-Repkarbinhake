@@ -28,8 +28,8 @@ namespace Repkarbinhake.Plugin.Visual
             _material = material;
             _volume = volume;
             _kick = kick;
-            GameObject row = new GameObject(RowName, typeof(RectTransform), typeof(LayoutElement));
-            row.GetComponent<LayoutElement>().ignoreLayout = true;
+            GameObject row = new GameObject(RowName, typeof(RectTransform));
+            row.AddComponent<LayoutElement>().ignoreLayout = true;
             _row = (RectTransform)row.transform;
             _row.SetParent(avatar, false);
             _row.anchorMin = Vector2.zero;
@@ -69,7 +69,7 @@ namespace Repkarbinhake.Plugin.Visual
 
         private Image CreateIcon(int index)
         {
-            GameObject iconObject = new GameObject(IconName, typeof(RectTransform), typeof(Image));
+            GameObject iconObject = new GameObject(IconName, typeof(RectTransform));
             RectTransform rect = (RectTransform)iconObject.transform;
             rect.SetParent(_row, false);
             rect.anchorMin = TopLeft;
@@ -77,7 +77,7 @@ namespace Repkarbinhake.Plugin.Visual
             rect.pivot = TopLeft;
             rect.anchoredPosition = new Vector2(index * (IconSize + Spacing), 0f);
             rect.sizeDelta = new Vector2(IconSize, IconSize);
-            Image icon = iconObject.GetComponent<Image>();
+            Image icon = iconObject.AddComponent<Image>();
             icon.sprite = _sprite;
             icon.material = _material;
             icon.preserveAspect = true;

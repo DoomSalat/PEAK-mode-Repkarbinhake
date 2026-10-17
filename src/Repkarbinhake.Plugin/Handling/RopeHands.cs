@@ -24,13 +24,7 @@ namespace Repkarbinhake.Plugin.Handling
 
         public bool IsHolding(int actor)
         {
-            foreach (RopeLink link in _registry.Links)
-            {
-                if (link.IsHeldBy(actor))
-                    return true;
-            }
-
-            return false;
+            return _registry.TryGetHeld(actor, out _);
         }
 
         public void Toggle(Character local, RopeLink link)

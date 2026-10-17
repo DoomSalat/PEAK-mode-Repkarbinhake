@@ -57,7 +57,7 @@ namespace Repkarbinhake.Plugin.Patches
         private static void CreateCarabinerReticle(GUIManager gui)
         {
             RectTransform source = (RectTransform)gui.reticleDefault.transform;
-            _reticle = new GameObject(ReticleName, typeof(RectTransform), typeof(Image));
+            _reticle = new GameObject(ReticleName, typeof(RectTransform));
             RectTransform rect = (RectTransform)_reticle.transform;
             rect.SetParent(source.parent, false);
             rect.anchorMin = source.anchorMin;
@@ -65,7 +65,7 @@ namespace Repkarbinhake.Plugin.Patches
             rect.pivot = source.pivot;
             rect.anchoredPosition = source.anchoredPosition;
             rect.sizeDelta = new Vector2(ReticleSize, ReticleSize);
-            Image icon = _reticle.GetComponent<Image>();
+            Image icon = _reticle.AddComponent<Image>();
             icon.sprite = RepkaHooks.CarabinerSprite;
             icon.material = gui.reticleDefaultImage.material;
             icon.color = gui.reticleColorDefault;

@@ -74,6 +74,19 @@ namespace Repkarbinhake.Core.Tests
         }
 
         [Fact]
+        public void TryGetHeld_FindsOnlyTheRopeTheActorHolds()
+        {
+            _registry.Tie(Local, Partner);
+            _registry.Tie(Local, Third);
+            _registry.TryGet(Local, Third, out RopeLink link);
+            _registry.Grab(link);
+
+            Assert.True(_registry.TryGetHeld(Local, out RopeLink held));
+            Assert.Same(link, held);
+            Assert.False(_registry.TryGetHeld(Partner, out _));
+        }
+
+        [Fact]
         public void BothCanHoldTheSameRope()
         {
             _registry.Tie(Local, Partner);

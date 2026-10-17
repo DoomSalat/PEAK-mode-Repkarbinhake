@@ -25,7 +25,7 @@ namespace Repkarbinhake.Plugin.Links
                 return Footing.Grounded;
 
             if (actor == TestDummy.Actor)
-                return _dummy.IsPlaced && _dummy.IsGrounded ? Footing.Grounded : Footing.Airborne;
+                return _dummy.IsGrounded ? Footing.Grounded : Footing.Airborne;
 
             if (!_characters.TryFind(actor, out Character character))
                 return Footing.Airborne;

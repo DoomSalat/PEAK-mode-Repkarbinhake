@@ -31,13 +31,12 @@ namespace Repkarbinhake.Plugin.Visual
         private readonly LinkRegistry _registry;
         private readonly RopeHandPolicy _policy;
         private readonly IRopeObstacles _obstacles;
-        private readonly RopeWrapProbe _wrapProbe;
         private readonly VanillaRopeSpool _spool;
         private readonly RopeRayPicker _picker = new RopeRayPicker();
         private readonly Dictionary<string, RopePresenter> _presenters = new Dictionary<string, RopePresenter>();
         private Material _material;
 
-        public RopePresenterPool(Transform root, RepkaConfig config, RopeReel reel, RopeSegmentation segmentation, ActorStates actors, LinkRegistry registry, RopeHandPolicy policy, IRopeObstacles obstacles, VanillaRopeSpool spool, RopeWrapProbe wrapProbe)
+        public RopePresenterPool(Transform root, RepkaConfig config, RopeReel reel, RopeSegmentation segmentation, ActorStates actors, LinkRegistry registry, RopeHandPolicy policy, IRopeObstacles obstacles, VanillaRopeSpool spool)
         {
             _root = root;
             _config = config;
@@ -47,7 +46,6 @@ namespace Repkarbinhake.Plugin.Visual
             _registry = registry;
             _policy = policy;
             _obstacles = obstacles;
-            _wrapProbe = wrapProbe;
             _spool = spool;
         }
 
@@ -97,7 +95,6 @@ namespace Repkarbinhake.Plugin.Visual
                 RopeLengthState state = new RopeLengthState(length, link.First.HeldReel, link.Second.HeldReel);
                 presenter.Tick(start, end, state, _segmentation.Count(length, ropeCount), deltaTime, _config.Thickness.Value, _obstacles);
                 presenter.Render(LeadOf(link.First), LeadOf(link.Second));
-                _wrapProbe.Check(link.Key, presenter.Points, Time.time);
             }
         }
 
@@ -137,18 +134,14 @@ namespace Repkarbinhake.Plugin.Visual
 
         public bool TryGetHeld(int actor, out RopeInteractible held)
         {
-            foreach (RopePresenter presenter in _presenters.Values)
-            {
-                if (!presenter.Link.IsHeldBy(actor) || presenter.Points.Count == 0)
-                    continue;
-
-                held = presenter.Interactible;
-                held.Aim(presenter.Link.FirstActor == actor ? presenter.Points[0].ToUnity() : presenter.Points[presenter.Points.Count - 1].ToUnity());
-                return true;
-            }
-
             held = null;
-            return false;
+
+            if (!_registry.TryGetHeld(actor, out RopeLink link) || !_presenters.TryGetValue(link.Key, out RopePresenter presenter) || presenter.Points.Count == 0)
+                return false;
+
+            held = presenter.Interactible;
+            held.Aim(link.FirstActor == actor ? presenter.Points[0].ToUnity() : presenter.Points[presenter.Points.Count - 1].ToUnity());
+            return true;
         }
 
         public int SegmentsOf(RopeLink link)

@@ -28,6 +28,11 @@ namespace Repkarbinhake.Plugin.Input
 
         public void Tick(int actor, Transform view)
         {
+            _dummy.Refresh();
+
+            if (!_dummy.IsPlaced && _registry.TryGet(actor, TestDummy.Actor, out RopeLink lost))
+                _registry.Untie(lost);
+
             if (!_enabled.Value || !_key.WasPressed)
                 return;
 

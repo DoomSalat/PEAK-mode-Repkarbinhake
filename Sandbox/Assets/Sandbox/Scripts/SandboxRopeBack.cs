@@ -18,8 +18,6 @@ namespace Repkarbinhake.Sandbox
         private const string Horizontal = "Horizontal";
         private const string Vertical = "Vertical";
 
-        private static readonly Vector3 ProbeParkingPosition = new Vector3(0f, -10000f, 0f); // Static: constant far-away spot for the collision probe
-
         [SerializeField] private SandboxRopeSettings _settings;
         [SerializeField] private SandboxClimber[] _climbers;
         [SerializeField] private SandboxCamera _camera;
@@ -61,7 +59,7 @@ namespace Repkarbinhake.Sandbox
             RopeSegmentation segmentation = new RopeSegmentation(_settings);
             _reel = new RopeReel(_settings, _policy);
             _aimPicker = new SandboxAimPicker(_groundMask);
-            _visuals = new SandboxRopeVisuals(_crew, _settings, _reel, segmentation, new PhysicsRopeCollider(_groundMask, CreateCollisionProbe()), _ropeMaterial, _highlightEmission);
+            _visuals = new SandboxRopeVisuals(_crew, _settings, _reel, segmentation, new PhysicsRopeObstacles(_groundMask, transform), _ropeMaterial, _highlightEmission);
             _forces = new SandboxRopeForces(_registry, stability, tension, _reel, _visuals, _settings);
             _rules = new SandboxLifeRules(_registry, _policy, tension, _crew);
             _report = new SandboxOverlayReport(_registry, stability, _reel, segmentation, _settings, _crew, _visuals, _forces, _rules);
@@ -341,15 +339,6 @@ namespace Repkarbinhake.Sandbox
         private Vector3 Midpoint(RopeLink link)
         {
             return (_crew.ClimberOf(link.FirstActor).RopePoint + _crew.ClimberOf(link.SecondActor).RopePoint) / 2f;
-        }
-
-        private SphereCollider CreateCollisionProbe()
-        {
-            GameObject probeObject = new GameObject(nameof(PhysicsRopeCollider) + " Probe");
-            probeObject.transform.position = ProbeParkingPosition;
-            SphereCollider probe = probeObject.AddComponent<SphereCollider>();
-            probe.isTrigger = true;
-            return probe;
         }
 
         private void LockCursor()

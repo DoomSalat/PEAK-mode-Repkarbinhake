@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using BepInEx.Logging;
 using Repkarbinhake.Plugin.Data;
 using Repkarbinhake.Plugin.Handling;
 using UnityEngine;
@@ -8,6 +7,7 @@ namespace Repkarbinhake.Plugin.Visual
 {
     public sealed class SpoolProps
     {
+        private const string TemplateName = "Repkarbinhake Spool Template";
         private const string PropName = "Repkarbinhake Spool";
         private const string RightHandPoint = "Hand_R";
         private const string LeftHandPoint = "Hand_L";
@@ -16,16 +16,15 @@ namespace Repkarbinhake.Plugin.Visual
         private readonly Transform _root;
         private readonly VanillaRopeSpool _spool;
         private readonly RopeHoldPoses _poses;
-        private readonly ManualLogSource _log;
         private readonly Dictionary<Character, SpoolProp> _props = new Dictionary<Character, SpoolProp>();
         private readonly List<Character> _released = new List<Character>();
+        private SpoolProp _template;
 
-        public SpoolProps(Transform root, VanillaRopeSpool spool, RopeHoldPoses poses, ManualLogSource log)
+        public SpoolProps(Transform root, VanillaRopeSpool spool, RopeHoldPoses poses)
         {
             _root = root;
             _spool = spool;
             _poses = poses;
-            _log = log;
         }
 
         public void Render()
@@ -42,7 +41,7 @@ namespace Repkarbinhake.Plugin.Visual
 
                 if (!_props.TryGetValue(character, out SpoolProp prop))
                 {
-                    prop = Build();
+                    prop = Spawn();
                     _props.Add(character, prop);
                 }
 
@@ -71,7 +70,7 @@ namespace Repkarbinhake.Plugin.Visual
         public void Clear()
         {
             foreach (SpoolProp prop in _props.Values)
-                prop.Destroy();
+                Object.Destroy(prop.gameObject);
 
             _props.Clear();
         }
@@ -88,20 +87,34 @@ namespace Repkarbinhake.Plugin.Visual
 
             foreach (Character character in _released)
             {
-                _props[character].Destroy();
+                Object.Destroy(_props[character].gameObject);
                 _props.Remove(character);
             }
         }
 
-        private SpoolProp Build()
+        private SpoolProp Spawn()
+        {
+            if (_template == null)
+                _template = BuildTemplate();
+
+            SpoolProp prop = Object.Instantiate(_template, _root);
+            prop.name = PropName;
+            prop.gameObject.SetActive(true);
+            return prop;
+        }
+
+        private SpoolProp BuildTemplate()
         {
             RopeSpool source = _spool.Spool;
             Transform wheel = null;
             Transform ropeStart = null;
             Transform ropeBase = null;
             GameObject root = CopyVisual(source.transform, _root, source, ref wheel, ref ropeStart, ref ropeBase);
-            root.name = PropName;
-            return new SpoolProp(root, wheel, ropeStart, ropeBase, GripCenter(source.transform));
+            root.name = TemplateName;
+            root.SetActive(false);
+            SpoolProp template = root.AddComponent<SpoolProp>();
+            template.Initialize(wheel, ropeStart, ropeBase, GripCenter(source.transform));
+            return template;
         }
 
         private Vector3 GripCenter(Transform spool)
@@ -135,7 +148,6 @@ namespace Repkarbinhake.Plugin.Visual
                 MeshRenderer copyRenderer = copy.AddComponent<MeshRenderer>();
                 copyRenderer.sharedMaterials = sourceRenderer.sharedMaterials;
                 copyRenderer.enabled = sourceRenderer.enabled;
-                _log.LogInfo($"{nameof(SpoolProps)}: copied mesh {source.name} (active {source.gameObject.activeSelf}, enabled {sourceRenderer.enabled})");
             }
 
             if (source == spool.ropeSpoolTf)

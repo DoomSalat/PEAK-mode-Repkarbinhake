@@ -4,19 +4,27 @@ using NumericsVector3 = System.Numerics.Vector3;
 
 namespace Repkarbinhake.Unity
 {
-    public sealed class PhysicsRopeCollider : IRopeObstacles
+    public sealed class PhysicsRopeObstacles : IRopeObstacles
     {
         private const float MinimumTravel = 0.0001f;
         private const int MaxOverlaps = 8;
+        private const string ProbeName = "Repkarbinhake Rope Probe";
+        private const string ProbeLayer = "Ignore Raycast";
+
+        private static readonly Vector3 ProbeParkingPosition = new Vector3(0f, -10000f, 0f); // Static: constant far-away spot for the collision probe
 
         private readonly int _layerMask;
         private readonly SphereCollider _probe;
         private readonly Collider[] _overlaps = new Collider[MaxOverlaps];
 
-        public PhysicsRopeCollider(int layerMask, SphereCollider probe)
+        public PhysicsRopeObstacles(int layerMask, Transform parent)
         {
             _layerMask = layerMask;
-            _probe = probe;
+            GameObject probeObject = new GameObject(ProbeName) { layer = LayerMask.NameToLayer(ProbeLayer) };
+            probeObject.transform.SetParent(parent, false);
+            probeObject.transform.position = ProbeParkingPosition;
+            _probe = probeObject.AddComponent<SphereCollider>();
+            _probe.isTrigger = true;
         }
 
         public NumericsVector3 Resolve(NumericsVector3 from, NumericsVector3 to, float radius)

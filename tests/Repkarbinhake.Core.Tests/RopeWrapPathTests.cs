@@ -145,6 +145,18 @@ namespace Repkarbinhake.Core.Tests
             Assert.True(_path.Materials[last] > _path.Chord(last) * 0.9f, Describe());
         }
 
+        [Fact]
+        public void EndTeleportedFar_StartsAFreshPath()
+        {
+            LowerOverWall();
+            int version = _path.Version;
+            _path.Update(Start, new Vector3(End.X, 3f, RopeWrapPath.MaxEndJump + 1f), _length, Radius, DeltaTime, _wall);
+
+            Assert.Equal(version + 1, _path.Version);
+            Assert.Equal(0, _path.ContactCount);
+            Assert.Equal(RopeLength, _path.Materials[0], 3);
+        }
+
         private void TautOverWall()
         {
             _length = new RopeLengthState(4.1f, 0f, 0f);

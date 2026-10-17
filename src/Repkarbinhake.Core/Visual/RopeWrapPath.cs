@@ -10,6 +10,7 @@ namespace Repkarbinhake.Core.Visual
         public const int MaxContacts = 24;
         public const float ContactLift = 2f;
         public const float TautTolerance = 0.01f;
+        public const float MaxEndJump = 3f;
 
         private const float MinGap = 2f;
         private const int EdgeSearchSteps = 10;
@@ -30,7 +31,7 @@ namespace Repkarbinhake.Core.Visual
 
         public void Update(Vector3 start, Vector3 end, RopeLengthState length, float radius, float deltaTime, IRopeObstacles obstacles)
         {
-            if (_points.Count < 2)
+            if (_points.Count < 2 || Vector3.Distance(start, _lastStart) > MaxEndJump || Vector3.Distance(end, _lastEnd) > MaxEndJump)
                 Begin(start, end, length);
 
             _points[0] = start;

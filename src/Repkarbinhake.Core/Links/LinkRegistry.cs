@@ -36,6 +36,21 @@ namespace Repkarbinhake.Core.Links
             return _links.TryGetValue(LinkKeys.Build(firstActor, secondActor), out link);
         }
 
+        public bool TryGetHeld(int actor, out RopeLink held)
+        {
+            foreach (RopeLink link in _links.Values)
+            {
+                if (link.IsHeldBy(actor))
+                {
+                    held = link;
+                    return true;
+                }
+            }
+
+            held = null;
+            return false;
+        }
+
         public void Receive(LinkUpdate update)
         {
             if (!LinkKeys.TryParse(update.Key, out int firstActor, out int secondActor))

@@ -24,8 +24,12 @@ namespace Repkarbinhake.Plugin.Links
         public Vector3 Center => _body.position;
         public Vector3 RopePoint => _body.position + _body.transform.up * RopePointHeight;
         public Vector3 Velocity => _body.linearVelocity;
+        public bool IsGrounded { get; private set; }
 
-        public bool IsGrounded => Physics.Raycast(_body.position, Vector3.down, HalfHeight + GroundProbe, HelperFunctions.GetMask(HelperFunctions.LayerType.TerrainMap));
+        public void Refresh()
+        {
+            IsGrounded = IsPlaced && Physics.Raycast(_body.position, Vector3.down, HalfHeight + GroundProbe, HelperFunctions.GetMask(HelperFunctions.LayerType.TerrainMap));
+        }
 
         public void Place(Vector3 groundPoint)
         {

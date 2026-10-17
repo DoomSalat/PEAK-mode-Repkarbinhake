@@ -17,7 +17,7 @@ Repkarbinhake.Core (netstandard2.1, без Unity/Photon/BepInEx — тестир
 │   └── SegmentMode        — Auto / Fixed
 ├── Links
 │   ├── ILinkTransport     — публикация связок и концов, удаление через CAS
-│   ├── LinkRegistry       — состояние всех связок, порядок записей, эхо
+│   ├── LinkRegistry       — состояние всех связок, порядок записей, эхо; TryGetHeld — какую верёвку держит игрок
 │   ├── UntiedKeySweeper   — какие развязанные ключи хосту пора удалить
 │   ├── DeathUntieRule     — какие связки развязать из-за смерти (свои — всегда, чужие — если хост)
 │   └── DepartedUntieRule  — какие связки развязать из-за выхода игрока (хост, по списку присутствующих)
@@ -30,18 +30,14 @@ Repkarbinhake.Core (netstandard2.1, без Unity/Photon/BepInEx — тестир
 │   └── RopeHandPolicy (Interaction) — что можно делать с верёвкой при опоре: Grounded / Airborne / Climbing
 └── Visual
     ├── RopeSegmentation   — сколько костей у верёвки (Auto: общий бюджет делится на все верёвки)
-    ├── HandOverHand       — цикл перехвата рук: фаза от смотанных метров, вылет правой / левой руки
-    ├── CoilShape          — точки витков смотанной верёвки (радиус, число витков от смотки)
-    ├── VerletRope         — (не используется с переходом на RopeWrapPath) симуляция точек верёвки (концы закреплены, провис, обход рельефа и после распрямления + проход по цепочке от закреплённого начала — точку, провалившуюся за оболочку меш-коллайдера, возвращает соседняя); TrySpan — путь от конца
-    ├── IRopeCollider      — как точка верёвки обходит рельеф
-    ├── IRopeObstacles     — IRopeCollider + TryHit (свип сферы по рельефу)
+    ├── IRopeObstacles     — Resolve (свип со скольжением + выталкивание) и TryHit (свип сферы по рельефу)
     ├── RopeWrapPath       — путь «конец → липкие контакты → конец» с длиной верёвки по участкам: контакт ставится на ребре (бинарный поиск между прошлым и текущим положением), снимается при видимости соседей; смотка конца меняет участок у ПРОТИВОПОЛОЖНОГО конца (контакты неподвижны); при натяжении с обеих сторон контакт держит длину, иначе запас перетекает; TrySpan — физика по пути
     ├── RopeSag            — отрисовка: провис каждого участка по его запасу (парабола), свип сферы от прямой — точка останавливается на рельефе без скольжения вбок; раскачка только у висящих участков (пружина, амплитуда ≤ min(провис, 0,6 м)), лежащий на земле участок не качается
     └── RopeLengthState    — полная длина + смотка первого и второго конца
 
 Repkarbinhake.Unity (netstandard2.1, только UnityEngine — общий для мода и песочницы)
 ├── RopeTubeView           — View: меш-трубка по точкам, подсветка (_Interactable / _EmissionColor)
-├── PhysicsRopeCollider    — IRopeCollider через Physics.SphereCast
+├── PhysicsRopeObstacles   — IRopeObstacles через Physics.SphereCast / ComputePenetration, сам создаёт пробный коллайдер вдали от сцены
 └── VectorConversion       — UnityEngine ↔ System.Numerics
 
 Sandbox (Unity 6000.3.12) — см. Sandbox/Assets/Sandbox/index.md
@@ -82,14 +78,14 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 │   ├── RopePresenterPool    — верёвки на сцене: создание, отрисовка, путь (span), наведение, материал
 │   ├── RopePresenter        — одна верёвка: RopeWrapPath + RopeSag + RopeTubeView + RopeInteractible; при пропаже конца путь сбрасывается
 │   ├── SpoolProps           — визуальная копия обычной катушки в руках каждого держащего: центр её Hand_R/Hand_L ставится между физическими кистями, источник точки выхода верёвки
-│   ├── SpoolProp            — одна копия: колесо (ropeSpoolTf) вращается при смотке, верёвка как у ванильной: видимый путь ropeStart → ropeBase → физическая часть (ActorStates: ropeBase — точка физики, TryGetRopeLead — ropeStart для отрисовки)
+│   ├── SpoolProp            — MonoBehaviour на корне копии (ссылки на колесо и точки выхода переносятся при Instantiate из шаблона, собранного один раз): колесо (ropeSpoolTf) вращается при смотке, верёвка как у ванильной: видимый путь ropeStart → ropeBase → физическая часть (ActorStates: ropeBase — точка физики, TryGetRopeLead — ropeStart для отрисовки)
 │   ├── CarabinerSounds / LinkSoundFeedback — SFX_Instance → SFX_Player игры; звук в середине верёвки
 │   ├── LinkBadgeRow         — ряд цветных карабинов под аватаркой в списке игроков (ESC), материал прицела, проверка наложения на громкость / кик
-│   ├── RopeWrapProbe        — ВРЕМЕННАЯ диагностика: раз в 2 с пишет в лог, если отрезок верёвки проходит сквозь геометрию (имя, слой, тип коллайдера, учитывает ли верёвка этот слой)
 │   ├── RopeDebugReport      — строки отладки
 │   └── RopeDebugOverlay     — View: текст отладки
 └── Patches
     ├── RepkaHooks           — статический мост Back → патчи
+    ├── RepkaHookFeed        — каждый кадр пишет в RepkaHooks данные для патчей (цель G, подсказка, держимая / наведённая верёвка, длина), Clear при выходе
     ├── InteractionPatches   — Interaction.DoInteractableRaycasts: верёвка под прицелом — только если игра ничего не нашла и вызов обычный (минимальный приоритет, порядок — в PLAN.md); при цели G верёвка не наводится
     ├── HudPatches           — прицел-карабин (материал и цвет ванильного прицела), подсказка «Привязать / Отцепить верёвку» — клон interactPromptPrimary с иконкой клавиши из InputSpriteData (как у E), над ванильной подсказкой, если она видна, кольцо удержания G (оригинальный UI_UseItemProgress)
     ├── PlayerListPatches    — AudioLevels.Update: для каждой строки списка игроков ряд карабинов цветами его связок; предупреждение в лог при наложении на иконку громкости или кнопку кика
@@ -127,9 +123,8 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 | `HoldAction` | `src/Repkarbinhake.Core/Interaction/HoldAction.cs` | Удержание клавиши на цели (отцеп) | `Begin(target, duration)`, `Advance(isHeld, currentTarget, dt)`, `Cancel`, `Progress`, `IsActive` |
 | `UntiedKeySweeper` | `src/Repkarbinhake.Core/Links/UntiedKeySweeper.cs` | Учёт развязанных ключей; наблюдают все, собирает хост | `Observe(update, now)`, `Collect(now, maxAge, result)`, `Forget`, `Clear` |
 | `RopeRayPicker` | `src/Repkarbinhake.Core/Visual/RopeRayPicker.cs` | Попадание луча взгляда в верёвку (ближайшее сближение луча с отрезками) | `TryPick(origin, direction, maxDistance, tolerance, points, out distance)` |
-| `VerletRope` | `src/Repkarbinhake.Core/Visual/VerletRope.cs` | Точки верёвки между двумя концами; столкновения проверяются и после распрямления — верёвка ложится на край, а не режет угол; в конце шага — свип каждой точки от соседней (оболочки меш-коллайдеров) | `Resize(count, start, end)`, `Step(start, end, length, gravity, dt, radius, collider)`, `TrySpan(fromStart, probeDistance, out span)`, `PathLength`, `Positions` |
 | `RopeTubeView` | `src/Repkarbinhake.Unity/RopeTubeView.cs` | View верёвки | `Initialize(filter, renderer, material, radius, highlightEmission)`, `Render(points)`, `Highlight`, `Unhighlight` |
-| `PhysicsRopeCollider` | `src/Repkarbinhake.Unity/PhysicsRopeCollider.cs` | Обход рельефа точками верёвки: проверка по ходу движения + выталкивание из геометрии | ctor `(layerMask, probe SphereCollider)`; `Resolve(from, to, radius)` |
+| `PhysicsRopeObstacles` | `src/Repkarbinhake.Unity/PhysicsRopeObstacles.cs` | Обход рельефа точками верёвки: проверка по ходу движения + выталкивание из геометрии | ctor `(layerMask, probe SphereCollider)`; `Resolve(from, to, radius)` |
 | `RopeSegmentation` | `src/Repkarbinhake.Core/Visual/RopeSegmentation.cs` | Кол-во костей: `clamp(ceil(length / SegmentLength), 4, Cap)`; `Cap` = `FixedSegments` или `SegmentBudget / кол-во верёвок` в пределах `AutoMaxSegments` | `Count(length, ropeCount)`, `Cap(ropeCount)` |
 
 ### Plugin
@@ -158,7 +153,7 @@ FixedUpdate: LinkRegistry.Links → StabilityResolver.Resolve(local) → Tension
 ## Entry Points
 | Trigger | Who fires | Who handles |
 |---|---|---|
-| `LinkKey` (G) по взгляду на игрока | `RepkaBack` | удержание `TieHoldSeconds` / `UntieHoldSeconds` (выбор при нажатии) → `HoldAction` → `LinkRegistry.Tie` / `Untie` |
+| `LinkKey` (G) по взгляду на игрока | `LinkHoldInput` (из `RepkaBack`) | удержание `TieHoldSeconds` / `UntieHoldSeconds` (выбор при нажатии) → `HoldAction` → `LinkRegistry.Tie` / `Untie` |
 | E по верёвке | `InteractionPatches` → `RopeInteractible` → `RepkaBack` | `LinkRegistry.Grab` / `Release` своего конца |
 | Колесо, пока держишь | `RepkaBack` | `TensionSolver.Load` → `RopeReel.StepReel` → `LinkRegistry.SetReel` (~10 Гц); отпустил → смотка конца 0 |
 | Room properties update | Photon | `LinkRegistry.Receive` / `ReceiveEnd` |
