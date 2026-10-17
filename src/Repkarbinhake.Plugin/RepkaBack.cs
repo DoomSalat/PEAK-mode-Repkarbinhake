@@ -46,6 +46,7 @@ namespace Repkarbinhake.Plugin
         private RepkaHookFeed _hookFeed;
         private RopePresenterPool _ropes;
         private RoomLinkSync _sync;
+        private ModVersionCheck _versionCheck;
         private LinkSoundFeedback _sounds;
         private RopeDebugReport _report;
         private RopeDebugOverlay _overlay;
@@ -56,6 +57,7 @@ namespace Repkarbinhake.Plugin
             _registry.LinkRemoved += OnLinkRemoved;
             _ropes.RopeInteracted += OnRopeInteracted;
             _sync.Enable();
+            _versionCheck.Enable();
         }
 
         private void OnDisable()
@@ -70,6 +72,7 @@ namespace Repkarbinhake.Plugin
                 _ropes.RopeInteracted -= OnRopeInteracted;
 
             _sync?.Disable();
+            _versionCheck?.Disable();
             _hookFeed.Clear();
         }
 
@@ -175,6 +178,7 @@ namespace Repkarbinhake.Plugin
             _forces = new RopeForces(_registry, stability, tension, reel, _actors, _ropes, config);
             _knockdown = new RopeKnockdown(_registry, reel, _ropes, config);
             _sync = new RoomLinkSync(transport, _registry, new UntiedKeySweeper(), new DepartedUntieRule(), settings, config, anchor, _dummy);
+            _versionCheck = new ModVersionCheck(RepkaPlugin.Version, log);
             _sounds = new LinkSoundFeedback(new CarabinerSounds(assets, config), _actors);
             _report = new RopeDebugReport(_registry, _actors, stability, tension, reel, _ropes, settings);
             _hookFeed = new RepkaHookFeed(_registry, reel, _policy, _ropes, _linkHold, config.LinkKey);

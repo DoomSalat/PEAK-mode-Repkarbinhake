@@ -35,3 +35,16 @@ dotnet test tests/Repkarbinhake.Core.Tests
 ## Песочница
 
 Открыть `Sandbox` в Unity 6000.3.12, сначала собрать `src/Repkarbinhake.Unity` (чтобы появились DLL), затем меню **Repkarbinhake → Build Sandbox Scene**.
+
+## Сборка для тестеров
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools/Pack-Release.ps1
+```
+
+Скрипт собирает плагин в Release и кладёт в `dist/` два архива с версией из `RepkaPlugin.Version`:
+
+- `Repkarbinhake-<версия>-full.zip` — BepInEx 5.4.23.5 + мод, распаковать в папку игры (для тех, у кого модов нет);
+- `Repkarbinhake-<версия>-plugin.zip` — только `BepInEx/plugins/Repkarbinhake` (если BepInEx уже стоит).
+
+В оба архива входит `Repkarbinhake-INSTALL.txt` (установка, управление, что прислать при ошибке) из `tools/INSTALL.txt`. BepInEx берётся из `BepInEx/BepInEx_win_x64_5.4.23.5`, другой путь — параметр `-BepInExDirectory`. У всех игроков должна быть одна версия: мод пишет в лог версии остальных и предупреждает о расхождении.

@@ -56,6 +56,7 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 │   └── RepkaColors          — палитра цветов связок
 ├── Network
 │   ├── PhotonLinkTransport  — ILinkTransport поверх room properties (LinkPayloadCodec), CAS-удаление
+│   ├── ModVersionCheck      — своя версия мода в свойства игрока Photon (rkb.ver), лог версий остальных, предупреждение при расхождении
 │   └── RoomLinkSync         — колбэки комнаты Photon, снимок при входе, обязанности хоста
 ├── Links
 │   ├── CharacterDirectory   — actor ↔ Character

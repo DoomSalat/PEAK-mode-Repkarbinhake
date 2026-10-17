@@ -27,3 +27,6 @@ BepInEx/
 # OS
 Thumbs.db
 .DS_Store
+
+# Release archives built by tools/Pack-Release.ps1
+dist/
