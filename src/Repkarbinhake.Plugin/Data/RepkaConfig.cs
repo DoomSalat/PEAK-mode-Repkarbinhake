@@ -12,6 +12,7 @@ namespace Repkarbinhake.Plugin.Data
         private const string RopeSection = "Rope";
         private const string StabilitySection = "Stability";
         private const string HangingSection = "Hanging";
+        private const string HookSection = "Hook";
         private const string KnockdownSection = "Knockdown";
         private const string VisualSection = "Visual";
         private const string PerformanceSection = "Performance";
@@ -52,14 +53,14 @@ namespace Repkarbinhake.Plugin.Data
             _tieHoldSeconds = file.Bind(InputSection, "TieHoldSeconds", 0.8f, "How long to hold LinkKey while looking at a player to tie.");
             _untieHoldSeconds = file.Bind(InputSection, "UntieHoldSeconds", 1.2f, "How long to hold LinkKey while looking at a tied player to untie.");
 
-            _minLength = file.Bind(RopeSection, "MinLength", 1.5f, "Shortest rope length after reeling in (meters).");
+            _minLength = file.Bind(RopeSection, "MinLength", 0.1f, "Shortest rope length after reeling in (meters).");
             _maxLength = file.Bind(RopeSection, "MaxLength", 14f, "Full rope length for everyone in the lobby (meters). A loose rope is always this long, reeling shortens it only while held. Host value is used.");
-            _reelSpeed = file.Bind(RopeSection, "ReelSpeed", 6f, "Reel speed in meters per second at full wheel speed (wheel speed is smoothed like the vanilla rope spool).");
-            _armStrength = file.Bind(RopeSection, "ArmStrength", 16f, "Arm strength: reeling in slows down as rope load grows; at this load and above it crawls at the minimum speed. Teammates holding ropes to the same player add to it (first +60%, each next two thirds of the previous).");
-            _reelStaminaPerMeter = file.Bind(RopeSection, "ReelStaminaPerMeter", 0.1f, "Stamina (full bar = 1) spent per meter reeled in at ArmStrength load. Slack rope is free, reeling out is free.");
-            _stiffness = file.Bind(RopeSection, "Stiffness", 30f, "Pull acceleration per meter of overstretch.");
+            _reelSpeed = file.Bind(RopeSection, "ReelSpeed", 10f, "Reel speed in meters per second at full wheel speed (wheel speed is smoothed like the vanilla rope spool).");
+            _armStrength = file.Bind(RopeSection, "ArmStrength", 85f, "Arm strength: reeling in slows down as rope load grows; at this load and above it crawls at the minimum speed. Teammates holding ropes to the same player add to it (first +60%, each next two thirds of the previous).");
+            _reelStaminaPerMeter = file.Bind(RopeSection, "ReelStaminaPerMeter", 0.05f, "Stamina (full bar = 1) spent per meter reeled in at ArmStrength load. Slack rope is free, reeling out is free.");
+            _stiffness = file.Bind(RopeSection, "Stiffness", 60f, "Pull acceleration per meter of overstretch.");
             _damping = file.Bind(RopeSection, "Damping", 6f, "Damping of the speed moving away from the partner.");
-            _maxPull = file.Bind(RopeSection, "MaxPull", 35f, "Max pull acceleration from one rope.");
+            _maxPull = file.Bind(RopeSection, "MaxPull", 80f, "Max pull acceleration from one rope.");
             _snapDistance = file.Bind(RopeSection, "SnapDistance", 60f, "Rope unties when partners are farther than this (teleports, respawns).");
 
             _braceResistance = file.Bind(StabilitySection, "BraceResistance", 0.8f, "Share of rope pull ignored while holding a rope on the ground (0..1).");
@@ -71,6 +72,10 @@ namespace Repkarbinhake.Plugin.Data
             SupportLoadThreshold = file.Bind(HangingSection, "SupportLoadThreshold", 3f, "Upward rope pull needed to count as hanging on the rope.");
             LedgePush = file.Bind(HangingSection, "LedgePush", 10f, "When a pulled rope holds you stuck under a ledge (in the air, barely moving for 0.3 s), the pull stops pressing you into the wall and pushes you off it this hard, so you swing around the ledge. 0 = off.");
             BelaySlideCap = file.Bind(HangingSection, "BelaySlideCap", 2f, "Belay: while a partner holds your rope, out-of-stamina wall slide time is capped to this (seconds, 0 = no slide build-up).");
+
+            AnchorStiffness = file.Bind(HookSection, "AnchorStiffness", 300f, "Wall hook rope (T): pull per meter of overstretch. Much stiffer than a rope between players, so a fall on the hook barely stretches it.");
+            AnchorDamping = file.Bind(HookSection, "AnchorDamping", 20f, "Wall hook rope: damping of the speed moving away from the hook, stops bouncing after a fall.");
+            AnchorMaxPull = file.Bind(HookSection, "AnchorMaxPull", 250f, "Wall hook rope: max pull, high enough to stop a hard fall.");
 
             EnableKnockdown = file.Bind(KnockdownSection, "EnableKnockdown", true, "A very hard yank of the rope knocks you down (ragdoll) unless you hold that rope.");
             KnockdownSpeed = file.Bind(KnockdownSection, "KnockdownSpeed", 7f, "How fast the partner side must tighten the rope to knock you down (meters per second, about 0.7 s of free fall).");
@@ -100,6 +105,9 @@ namespace Repkarbinhake.Plugin.Data
         public ConfigEntry<float> HangAirTimeCap { get; }
         public ConfigEntry<float> SupportLoadThreshold { get; }
         public ConfigEntry<float> LedgePush { get; }
+        public ConfigEntry<float> AnchorStiffness { get; }
+        public ConfigEntry<float> AnchorDamping { get; }
+        public ConfigEntry<float> AnchorMaxPull { get; }
         public ConfigEntry<float> BelaySlideCap { get; }
         public ConfigEntry<bool> EnableKnockdown { get; }
         public ConfigEntry<float> KnockdownSpeed { get; }

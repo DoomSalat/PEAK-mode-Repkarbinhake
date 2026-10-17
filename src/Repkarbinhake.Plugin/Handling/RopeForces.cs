@@ -16,6 +16,7 @@ namespace Repkarbinhake.Plugin.Handling
         private readonly LinkRegistry _registry;
         private readonly StabilityResolver _stability;
         private readonly TensionSolver _tension;
+        private readonly TensionSolver _anchorTension;
         private readonly RopeReel _reel;
         private readonly ActorStates _actors;
         private readonly RopePresenterPool _ropes;
@@ -24,11 +25,12 @@ namespace Repkarbinhake.Plugin.Handling
         private readonly LedgeAssist _ledge;
         private readonly List<RopeLink> _snapped = new List<RopeLink>();
 
-        public RopeForces(LinkRegistry registry, StabilityResolver stability, TensionSolver tension, RopeReel reel, ActorStates actors, RopePresenterPool ropes, RepkaConfig config, IRopeObstacles obstacles, LedgeAssist ledge)
+        public RopeForces(LinkRegistry registry, StabilityResolver stability, TensionSolver tension, TensionSolver anchorTension, RopeReel reel, ActorStates actors, RopePresenterPool ropes, RepkaConfig config, IRopeObstacles obstacles, LedgeAssist ledge)
         {
             _registry = registry;
             _stability = stability;
             _tension = tension;
+            _anchorTension = anchorTension;
             _reel = reel;
             _actors = actors;
             _ropes = ropes;
@@ -61,7 +63,8 @@ namespace Repkarbinhake.Plugin.Handling
                 }
 
                 partnerHolds |= link.IsHeldBy(partner);
-                total += _tension.Solve(_ropes.SpanFor(link, actor), local.data.avarageVelocity.ToNumerics(), _reel.EffectiveLength(link), stability).ToUnity();
+                TensionSolver tension = AnchorActors.IsAnchor(partner) ? _anchorTension : _tension;
+                total += tension.Solve(_ropes.SpanFor(link, actor), local.data.avarageVelocity.ToNumerics(), _reel.EffectiveLength(link), stability).ToUnity();
             }
 
             foreach (RopeLink link in _snapped)

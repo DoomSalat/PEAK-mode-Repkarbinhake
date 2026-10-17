@@ -53,6 +53,7 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 ├── RepkaBack                — Back (~220 строк): собирает инструменты, порядок кадра, хуки для патчей, смерть
 ├── Data
 │   ├── SettingScopes        — static-таблица: ключ конфига → на кого действует (для окна F7; неизвестные — «только у тебя»)
+│   ├── AnchorRopeSettings   — IRopeSettings верёвки крюка: Stiffness/Damping/MaxPull из [Hook] (AnchorStiffness 300, AnchorDamping 20, AnchorMaxPull 250), остальное — как у обычной; RopeForces и отладка берут для связок с крюком свой TensionSolver
 │   ├── RepkaConfig          — ConfigEntry (ModConfig) → IRopeSettings / ISegmentSettings; при запуске удаляет из .cfg записи, которых мод больше не читает (OrphanedEntries через AccessTools)
 │   ├── LobbyRopeSettings    — настройки с длиной верёвки от хоста
 │   ├── VanillaRopeSpool     — обычная (не анти) катушка из ItemDatabase: Item для поз рук, материал верёвки
@@ -88,8 +89,8 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 │   ├── RopePresenterPool    — верёвки на сцене: создание, отрисовка, путь (span), наведение, материал; Tint — материал верёвки в цвете связки из ESC (RopeRecolor), доля RopeColor (Visual, 0,85)
 │   ├── RopeRecolor          — копия материала верёвки на цвет (кэш по цвету). Ванильный M_Rope (шейдер W/Peak_Standard): текстура rope_lmao серая, цвет даёт HDR _BaseColor (3,03; 1,83; 0,16) — ему ставятся оттенок и насыщенность цвета связки при исходной яркости; акценты _Color1/_Color2 — только оттенок
 │   ├── RopePresenter        — одна верёвка: RopeWrapPath + RopeSag + RopeLooseness + RopeTubeView + RopeInteractible; при пропаже конца путь сбрасывается
-│   ├── SpoolProps           — визуальная копия обычной катушки в руках каждого держащего: центр её Hand_R/Hand_L ставится между физическими кистями, источник точки выхода верёвки
-│   ├── SpoolProp            — MonoBehaviour на корне копии (ссылки на колесо и точки выхода переносятся при Instantiate из шаблона, собранного один раз): колесо (ropeSpoolTf) вращается при смотке, верёвка как у ванильной: видимый путь ropeStart → ropeBase → физическая часть (ActorStates: ropeBase — точка физики, TryGetRopeLead — ropeStart для отрисовки)
+│   ├── SpoolProps           — визуальная копия обычной катушки в руках каждого держащего: центр её Hand_R/Hand_L ставится между физическими кистями, источник точки выхода верёвки; материал катушки (M_RopeKnot, шейдер W/Peak_Rope) перекрашивается в цвет удерживаемой связки через свой RopeRecolor (RopeColor > 0)
+│   ├── SpoolProp            — MonoBehaviour на корне копии (ссылки на колесо и точки выхода переносятся при Instantiate из шаблона, собранного один раз): колесо (ropeSpoolTf) вращается при смотке, Paint(color, material) / Unpaint — материал всех рендереров копии (исходный хранится в шаблоне); верёвка как у ванильной: видимый путь ropeStart → ropeBase → физическая часть (ActorStates: ropeBase — точка физики, TryGetRopeLead — ropeStart для отрисовки)
 │   ├── CarabinerSounds / LinkSoundFeedback — SFX_Instance → SFX_Player игры; звук в середине верёвки
 │   ├── PassThroughColliderFilter — верёвка проходит сквозь сундуки (Luggage, в т.ч. LuggageCursed, RespawnChest, и MirageLuggage), тонкие генерируемые мосты (BreakableBridge) и пушку скаута (ScoutCannon), результат кэшируется по коллайдеру
 │   ├── AnchorVisuals        — модель крюка из ванильной катушки: при наведении — полупрозрачный RopeTier.anchorPreview, у поставленных — в превью вместо прозрачных частей непрозрачный normalPart из RopeTier.anchorPrefab (сам сетевой префаб не создаётся); точка верёвки — центр узла (SphereCollider ребёнка Knot; у ванили AnchorPoint ниже, на уровне кольца), коллайдеры копии удаляются

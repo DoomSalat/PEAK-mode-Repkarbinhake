@@ -53,6 +53,8 @@ namespace Repkarbinhake.Plugin
         private RopeDebugReport _report;
         private RopeDebugOverlay _overlay;
         private ConfigEditorWindow _configEditor;
+        private ManualLogSource _log;
+        private LocalizedText.Language _loggedLanguage = (LocalizedText.Language)(-1);
 
         private void OnEnable()
         {
@@ -92,6 +94,7 @@ namespace Repkarbinhake.Plugin
 
         private void Update()
         {
+            LogLanguage();
             UpdateConfigEditor();
             _sync.Tick(Time.deltaTime, Time.time);
             Character local = Character.localCharacter;
@@ -163,6 +166,7 @@ namespace Repkarbinhake.Plugin
         public void Initialize(RepkaConfig config, RepkaAssets assets, ManualLogSource log)
         {
             _config = config;
+            _log = log;
             LobbyRopeSettings settings = new LobbyRopeSettings(config);
             _policy = new RopeHandPolicy();
             PhotonLinkTransport transport = new PhotonLinkTransport();
@@ -177,11 +181,13 @@ namespace Repkarbinhake.Plugin
             AnchorBoard anchors = new AnchorBoard(_registry, anchorVisuals);
             _poses = new RopeHoldPoses(_registry, _characters);
             RepkaHooks.HoldPoses = _poses.Poses;
-            _spools = new SpoolProps(transform, spool, _poses);
+            _spools = new SpoolProps(transform, spool, _poses, _registry, _colors, config);
             _actors = new ActorStates(_characters, anchors, _spools);
             _deathRule = new DeathUntieRule(_actors);
             StabilityResolver stability = new StabilityResolver(settings, _policy, _actors);
             TensionSolver tension = new TensionSolver(settings);
+            AnchorRopeSettings anchorSettings = new AnchorRopeSettings(settings, config);
+            TensionSolver anchorTension = new TensionSolver(anchorSettings);
             RopeReel reel = new RopeReel(settings, _policy);
             _passThrough = new PassThroughColliderFilter();
             PhysicsRopeObstacles obstacles = new PhysicsRopeObstacles(HelperFunctions.GetMask(HelperFunctions.LayerType.TerrainMap), transform, _passThrough);
@@ -197,13 +203,13 @@ namespace Repkarbinhake.Plugin
             TeamPull team = new TeamPull(_policy, _actors);
             _reelDriver = new ReelDriver(_registry, reel, tension, _ropes, team);
             LedgeAssist ledge = new LedgeAssist();
-            _forces = new RopeForces(_registry, stability, tension, reel, _actors, _ropes, config, obstacles, ledge);
+            _forces = new RopeForces(_registry, stability, tension, anchorTension, reel, _actors, _ropes, config, obstacles, ledge);
             _knockdown = new RopeKnockdown(_registry, reel, _ropes, config);
             _sync = new RoomLinkSync(transport, _registry, new UntiedKeySweeper(), new DepartedUntieRule(), settings, config);
             _versionCheck = new ModVersionCheck(RepkaPlugin.Version, log);
             _pathSync = new RopePathSync(_registry, _ropes);
             _sounds = new LinkSoundFeedback(new CarabinerSounds(assets, config), _actors);
-            _report = new RopeDebugReport(_registry, _actors, stability, tension, reel, team, ledge, _ropes, settings);
+            _report = new RopeDebugReport(_registry, _actors, stability, tension, reel, team, ledge, _ropes, settings, anchorSettings);
             _hookFeed = new RepkaHookFeed(_registry, reel, _policy, _ropes, _linkHold, config.LinkKey);
             _overlay = gameObject.AddComponent<RopeDebugOverlay>();
             _configEditorKey = new KeyBinding(config.ConfigEditorKey);
@@ -220,6 +226,15 @@ namespace Repkarbinhake.Plugin
                 if (!AnchorActors.IsAnchor(link.FirstActor))
                     _registry.Untie(link);
             }
+        }
+
+        private void LogLanguage()
+        {
+            if (LocalizedText.CURRENT_LANGUAGE == _loggedLanguage)
+                return;
+
+            _loggedLanguage = LocalizedText.CURRENT_LANGUAGE;
+            _log.LogInfo($"Game language: {(int)_loggedLanguage} {_loggedLanguage}, prompt '{RepkaTexts.Grab}'");
         }
 
         private void UpdateConfigEditor()
