@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2de0ade932b81349a54c0de60a3803b, type: 3}
+  m_Name: SandboxRopeSettings
+  m_EditorClassIdentifier: Assembly-CSharp::Repkarbinhake.Sandbox.SandboxRopeSettings
+  _minLength: 1.5
+  _maxLength: 14
+  _armStrength: 10
+  _reelStaminaPerMeter: 0.1
+  _reelSpeed: 6
+  _stiffness: 30
+  _damping: 6
+  _maxPull: 35
+  _snapDistance: 60
+  _thickness: 0.045
+  _braceResistance: 0.8
+  _groupBonus: 0.25
+  _chainSupport: 0.6
+  _maxStability: 0.97
+  _segmentMode: 0
+  _fixedSegments: 24
+  _segmentBudget: 240
+  _autoMaxSegments: 40
+  _segmentLength: 0.3
+  _linkDistance: 6
+  _linkAimAngle: 12
+  _secondsPerScrollNotch: 0.08
+  _tieHoldSeconds: 0.8
+  _untieHoldSeconds: 1.2
+  _ropeSupportCapsAirTime: 1
+  _hangAirTimeCap: 0.3
+  _supportLoadThreshold: 3
+  _cliffRopeLength: 5
+  _pushSpeed: 5
+  _pushUpward: 1.5
+  _pushDelay: 0.75

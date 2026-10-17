@@ -1,0 +1,29 @@
+# .NET build output
+bin/
+obj/
+*.user
+.vs/
+.idea/
+*.DotSettings.user
+
+# Unity sandbox: generated and per-machine folders
+Sandbox/[Ll]ibrary/
+Sandbox/[Tt]emp/
+Sandbox/[Ll]ogs/
+Sandbox/[Uu]ser[Ss]ettings/
+Sandbox/[Oo]bj/
+Sandbox/[Bb]uild/
+Sandbox/*.csproj
+Sandbox/*.sln
+Sandbox/.vs/
+
+# Mod DLLs copied into the sandbox by the build (metas stay tracked)
+Sandbox/Assets/Plugins/Repkarbinhake/*.dll
+Sandbox/Assets/Plugins/Repkarbinhake/*.pdb
+
+# Local BepInEx download and game backups
+BepInEx/
+
+# OS
+Thumbs.db
+.DS_Store
