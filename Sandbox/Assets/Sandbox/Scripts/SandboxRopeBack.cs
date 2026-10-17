@@ -59,7 +59,7 @@ namespace Repkarbinhake.Sandbox
             RopeSegmentation segmentation = new RopeSegmentation(_settings);
             _reel = new RopeReel(_settings, _policy);
             _aimPicker = new SandboxAimPicker(_groundMask);
-            _visuals = new SandboxRopeVisuals(_crew, _settings, _reel, segmentation, new PhysicsRopeObstacles(_groundMask, transform), _ropeMaterial, _highlightEmission);
+            _visuals = new SandboxRopeVisuals(_crew, _settings, _reel, segmentation, new PhysicsRopeObstacles(_groundMask, transform, new NoColliderFilter()), _ropeMaterial, _highlightEmission);
             _forces = new SandboxRopeForces(_registry, stability, tension, _reel, _visuals, _settings);
             _rules = new SandboxLifeRules(_registry, _policy, tension, _crew);
             _report = new SandboxOverlayReport(_registry, stability, _reel, segmentation, _settings, _crew, _visuals, _forces, _rules);

@@ -50,7 +50,7 @@ namespace Repkarbinhake.Plugin.Data
             _minLength = file.Bind(RopeSection, "MinLength", 1.5f, "Shortest rope length after reeling in (meters).");
             _maxLength = file.Bind(RopeSection, "MaxLength", 14f, "Full rope length for everyone in the lobby (meters). A loose rope is always this long, reeling shortens it only while held. Host value is used.");
             _reelSpeed = file.Bind(RopeSection, "ReelSpeed", 6f, "Reel speed in meters per second at full wheel speed (wheel speed is smoothed like the vanilla rope spool).");
-            _armStrength = file.Bind(RopeSection, "ArmStrength", 12f, "Arm strength: reeling in slows down as rope load grows; at this load and above it crawls at the minimum speed. Only slightly above a hanging player weight, so lifting someone is really hard.");
+            _armStrength = file.Bind(RopeSection, "ArmStrength", 16f, "Arm strength: reeling in slows down as rope load grows; at this load and above it crawls at the minimum speed. Teammates holding ropes to the same player add to it (first +60%, each next two thirds of the previous).");
             _reelStaminaPerMeter = file.Bind(RopeSection, "ReelStaminaPerMeter", 0.1f, "Stamina (full bar = 1) spent per meter reeled in at ArmStrength load. Slack rope is free, reeling out is free.");
             _stiffness = file.Bind(RopeSection, "Stiffness", 30f, "Pull acceleration per meter of overstretch.");
             _damping = file.Bind(RopeSection, "Damping", 6f, "Damping of the speed moving away from the partner.");
@@ -82,8 +82,6 @@ namespace Repkarbinhake.Plugin.Data
 
             EnableTestAnchor = file.Bind(DebugSection, "EnableTestAnchor", true, "Allow tying yourself to a test anchor (local only, for solo testing).");
             TestAnchorKey = file.Bind(DebugSection, "TestAnchorKey", "<Keyboard>/f8", "Press to place a test anchor where you look and tie to it; press again to remove it.");
-            EnableTestDummy = file.Bind(DebugSection, "EnableTestDummy", true, "Allow spawning a local test dummy to tie to and drag (solo testing).");
-            TestDummyKey = file.Bind(DebugSection, "TestDummyKey", "<Keyboard>/f9", "Press to place a test dummy where you look, then tie to it with the link key; press again to remove it.");
             ShowDebugOverlay = file.Bind(DebugSection, "ShowDebugOverlay", false, "Show rope numbers on screen.");
         }
 
@@ -102,8 +100,6 @@ namespace Repkarbinhake.Plugin.Data
         public ConfigEntry<float> SoundVolume { get; }
         public ConfigEntry<bool> EnableTestAnchor { get; }
         public ConfigEntry<string> TestAnchorKey { get; }
-        public ConfigEntry<bool> EnableTestDummy { get; }
-        public ConfigEntry<string> TestDummyKey { get; }
         public ConfigEntry<bool> ShowDebugOverlay { get; }
         public ConfigEntry<float> MaxLengthEntry => _maxLength;
         public float MinLength => _minLength.Value;

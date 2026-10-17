@@ -23,14 +23,13 @@ namespace Repkarbinhake.Plugin.Network
         private readonly LobbyRopeSettings _settings;
         private readonly RepkaConfig _config;
         private readonly TestAnchor _anchor;
-        private readonly TestDummy _dummy;
         private readonly HashSet<int> _present = new HashSet<int>();
         private readonly List<RopeLink> _departed = new List<RopeLink>();
         private readonly List<LinkUpdate> _stale = new List<LinkUpdate>();
         private float _hostTimer;
         private float _now;
 
-        public RoomLinkSync(PhotonLinkTransport transport, LinkRegistry registry, UntiedKeySweeper sweeper, DepartedUntieRule departedRule, LobbyRopeSettings settings, RepkaConfig config, TestAnchor anchor, TestDummy dummy)
+        public RoomLinkSync(PhotonLinkTransport transport, LinkRegistry registry, UntiedKeySweeper sweeper, DepartedUntieRule departedRule, LobbyRopeSettings settings, RepkaConfig config, TestAnchor anchor)
         {
             _transport = transport;
             _registry = registry;
@@ -39,7 +38,6 @@ namespace Repkarbinhake.Plugin.Network
             _settings = settings;
             _config = config;
             _anchor = anchor;
-            _dummy = dummy;
         }
 
         public event Action JoinedRoom;
@@ -100,9 +98,6 @@ namespace Repkarbinhake.Plugin.Network
         public void OnLeftRoom()
         {
             _anchor.Remove();
-
-            if (_dummy.IsPlaced)
-                _dummy.Remove();
 
             _registry.Clear();
             _sweeper.Clear();
@@ -187,9 +182,6 @@ namespace Repkarbinhake.Plugin.Network
 
             if (_anchor.IsPlaced)
                 _present.Add(TestAnchor.Actor);
-
-            if (_dummy.IsPlaced)
-                _present.Add(TestDummy.Actor);
 
             _departedRule.Collect(_registry.Links, _present, _departed);
 

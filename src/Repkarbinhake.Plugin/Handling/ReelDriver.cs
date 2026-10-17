@@ -19,16 +19,18 @@ namespace Repkarbinhake.Plugin.Handling
         private readonly RopeReel _reel;
         private readonly TensionSolver _tension;
         private readonly RopePresenterPool _ropes;
+        private readonly TeamPull _team;
         private float _publishTimer;
         private float _velocity;
         private bool _changed;
 
-        public ReelDriver(LinkRegistry registry, RopeReel reel, TensionSolver tension, RopePresenterPool ropes)
+        public ReelDriver(LinkRegistry registry, RopeReel reel, TensionSolver tension, RopePresenterPool ropes, TeamPull team)
         {
             _registry = registry;
             _reel = reel;
             _tension = tension;
             _ropes = ropes;
+            _team = team;
         }
 
         public void Tick(Character local, int actor, Footing footing, float deltaTime)
@@ -64,7 +66,7 @@ namespace Repkarbinhake.Plugin.Handling
                 if (!link.IsHeldBy(actor))
                     continue;
 
-                float load = _tension.Load(_ropes.SpanFor(link, actor), _reel.EffectiveLength(link));
+                float load = _team.SharedLoad(link, actor, _registry.Links, _tension.Load(_ropes.SpanFor(link, actor), _reel.EffectiveLength(link)));
                 ReelStep step = _reel.StepReel(link, actor, velocity, deltaTime, load, footing, local.GetTotalStamina());
 
                 if (step.StaminaCost > 0f)

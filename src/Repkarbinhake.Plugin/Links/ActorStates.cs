@@ -8,14 +8,12 @@ namespace Repkarbinhake.Plugin.Links
     {
         private readonly CharacterDirectory _characters;
         private readonly TestAnchor _anchor;
-        private readonly TestDummy _dummy;
         private readonly SpoolProps _spools;
 
-        public ActorStates(CharacterDirectory characters, TestAnchor anchor, TestDummy dummy, SpoolProps spools)
+        public ActorStates(CharacterDirectory characters, TestAnchor anchor, SpoolProps spools)
         {
             _characters = characters;
             _anchor = anchor;
-            _dummy = dummy;
             _spools = spools;
         }
 
@@ -23,9 +21,6 @@ namespace Repkarbinhake.Plugin.Links
         {
             if (actor == TestAnchor.Actor)
                 return Footing.Grounded;
-
-            if (actor == TestDummy.Actor)
-                return _dummy.IsGrounded ? Footing.Grounded : Footing.Airborne;
 
             if (!_characters.TryFind(actor, out Character character))
                 return Footing.Airborne;
@@ -54,12 +49,6 @@ namespace Repkarbinhake.Plugin.Links
                 return _anchor.IsPlaced;
             }
 
-            if (actor == TestDummy.Actor)
-            {
-                point = _dummy.IsPlaced ? _dummy.RopePoint : Vector3.zero;
-                return _dummy.IsPlaced;
-            }
-
             if (!_characters.TryFind(actor, out Character character))
             {
                 point = Vector3.zero;
@@ -84,7 +73,7 @@ namespace Repkarbinhake.Plugin.Links
             if (actor == TestAnchor.Actor)
                 return _anchor.IsPlaced;
 
-            return actor == TestDummy.Actor ? _dummy.IsPlaced : _characters.TryFind(actor, out _);
+            return _characters.TryFind(actor, out _);
         }
     }
 }

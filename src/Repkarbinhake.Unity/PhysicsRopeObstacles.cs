@@ -8,18 +8,22 @@ namespace Repkarbinhake.Unity
     {
         private const float MinimumTravel = 0.0001f;
         private const int MaxOverlaps = 8;
+        private const int MaxHits = 16;
         private const string ProbeName = "Repkarbinhake Rope Probe";
         private const string ProbeLayer = "Ignore Raycast";
 
         private static readonly Vector3 ProbeParkingPosition = new Vector3(0f, -10000f, 0f); // Static: constant far-away spot for the collision probe
 
         private readonly int _layerMask;
+        private readonly IColliderFilter _filter;
         private readonly SphereCollider _probe;
         private readonly Collider[] _overlaps = new Collider[MaxOverlaps];
+        private readonly RaycastHit[] _hits = new RaycastHit[MaxHits];
 
-        public PhysicsRopeObstacles(int layerMask, Transform parent)
+        public PhysicsRopeObstacles(int layerMask, Transform parent, IColliderFilter filter)
         {
             _layerMask = layerMask;
+            _filter = filter;
             GameObject probeObject = new GameObject(ProbeName) { layer = LayerMask.NameToLayer(ProbeLayer) };
             probeObject.transform.SetParent(parent, false);
             probeObject.transform.position = ProbeParkingPosition;
@@ -37,11 +41,8 @@ namespace Repkarbinhake.Unity
         {
             point = NumericsVector3.Zero;
             normal = NumericsVector3.Zero;
-            Vector3 start = from.ToUnity();
-            Vector3 travel = to.ToUnity() - start;
-            float distance = travel.magnitude;
 
-            if (distance < MinimumTravel || !Physics.SphereCast(start, radius, travel / distance, out RaycastHit hit, distance, _layerMask, QueryTriggerInteraction.Ignore))
+            if (!TryCast(from.ToUnity(), to.ToUnity(), radius, out RaycastHit hit))
                 return false;
 
             point = hit.point.ToNumerics();
@@ -49,15 +50,36 @@ namespace Repkarbinhake.Unity
             return true;
         }
 
-        private Vector3 Sweep(Vector3 start, Vector3 end, float radius)
+        private bool TryCast(Vector3 start, Vector3 end, float radius, out RaycastHit nearest)
         {
+            nearest = default;
             Vector3 travel = end - start;
             float distance = travel.magnitude;
 
             if (distance < MinimumTravel)
-                return end;
+                return false;
 
-            if (!Physics.SphereCast(start, radius, travel / distance, out RaycastHit hit, distance, _layerMask, QueryTriggerInteraction.Ignore))
+            int count = Physics.SphereCastNonAlloc(start, radius, travel / distance, _hits, distance, _layerMask, QueryTriggerInteraction.Ignore);
+            bool found = false;
+
+            for (int i = 0; i < count; i++)
+            {
+                RaycastHit hit = _hits[i];
+                bool startedInside = hit.distance <= 0f && hit.point == Vector3.zero;
+
+                if (startedInside || (found && hit.distance >= nearest.distance) || _filter.Ignores(hit.collider))
+                    continue;
+
+                nearest = hit;
+                found = true;
+            }
+
+            return found;
+        }
+
+        private Vector3 Sweep(Vector3 start, Vector3 end, float radius)
+        {
+            if (!TryCast(start, end, radius, out RaycastHit hit))
                 return end;
 
             Vector3 resting = hit.point + hit.normal * radius;
@@ -71,9 +93,12 @@ namespace Repkarbinhake.Unity
 
             for (int i = 0; i < count; i++)
             {
-                Transform other = _overlaps[i].transform;
+                Collider other = _overlaps[i];
 
-                if (Physics.ComputePenetration(_probe, point, Quaternion.identity, _overlaps[i], other.position, other.rotation, out Vector3 direction, out float depth))
+                if (_filter.Ignores(other))
+                    continue;
+
+                if (Physics.ComputePenetration(_probe, point, Quaternion.identity, other, other.transform.position, other.transform.rotation, out Vector3 direction, out float depth))
                     point += direction * depth;
             }
 

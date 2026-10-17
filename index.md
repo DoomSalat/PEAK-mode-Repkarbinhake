@@ -19,7 +19,6 @@ Repkarbinhake.Core (netstandard2.1, без Unity/Photon/BepInEx — тестир
 │   ├── ILinkTransport     — публикация связок и концов, удаление через CAS
 │   ├── LinkRegistry       — состояние всех связок, порядок записей, эхо; TryGetHeld — какую верёвку держит игрок
 │   ├── RopePathAuthority  — кто считает путь верёвки: держащий, если держит один; иначе меньший номер; верёвки к манекену / якорю — локально
-│   ├── RopePathAuthority  — кто считает путь верёвки: держащий, если держит один; иначе меньший номер; верёвки к манекену / якорю — локально
 │   ├── UntiedKeySweeper   — какие развязанные ключи хосту пора удалить
 │   ├── DeathUntieRule     — какие связки развязать из-за смерти (свои — всегда, чужие — если хост)
 │   └── DepartedUntieRule  — какие связки развязать из-за выхода игрока (хост, по списку присутствующих)
@@ -27,6 +26,7 @@ Repkarbinhake.Core (netstandard2.1, без Unity/Photon/BepInEx — тестир
 │   ├── StabilityResolver  — устойчивость актёра (бронирование, группа, цепочка)
 │   ├── TensionSolver      — ускорение натяжения вдоль пути верёвки (RopeSpan); Load — нагрузка на верёвку
 │   ├── RopeSpan           — направление от своего конца вдоль верёвки + длина пути (через края)
+│   ├── TeamPull           — командное усилие: помощники (держат верёвку к тому же игроку, стоят на опоре) повышают силу рук: +60%, дальше каждый следующий 2/3 предыдущего (×1,6 / ×2,0 / ×2,27 / ×2,45), нагрузка делится на множитель
 │   ├── RopeSnatch         — скорость рывка: насколько быстро натягивается верёвка со стороны партнёра (минус своя скорость от него), скачок > 2 м за кадр (телепорт) игнорируется
 │   ├── RopeReel           — длина = полная − смотки держащих концов; смотка своего конца с торможением от нагрузки, но не медленнее MinReelInFactor (15%)
 │   ├── HoldAction (Interaction) — удержание клавиши на цели (связать / отцепить)
@@ -41,7 +41,7 @@ Repkarbinhake.Core (netstandard2.1, без Unity/Photon/BepInEx — тестир
 
 Repkarbinhake.Unity (netstandard2.1, только UnityEngine — общий для мода и песочницы)
 ├── RopeTubeView           — View: меш-трубка по точкам, подсветка (_Interactable / _EmissionColor)
-├── PhysicsRopeObstacles   — IRopeObstacles через Physics.SphereCast / ComputePenetration, сам создаёт пробный коллайдер вдали от сцены
+├── PhysicsRopeObstacles   — IRopeObstacles через Physics.SphereCast / ComputePenetration, сам создаёт пробный коллайдер вдали от сцены; пропускает коллайдеры по IColliderFilter (NoColliderFilter в песочнице)
 └── VectorConversion       — UnityEngine ↔ System.Numerics
 
 Sandbox (Unity 6000.3.12) — см. Sandbox/Assets/Sandbox/index.md
@@ -65,20 +65,18 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 │   ├── CharacterDirectory   — actor ↔ Character
 │   ├── ActorStates          — IFootingSource + IActorLifeSource + точки крепления верёвки (бедро / катушка в руках)
 │   ├── TestAnchor           — локальный якорь для соло-теста (actor −1)
-│   ├── LinkColors           — цвет каждой связки из палитры RepkaColors (первый свободный при появлении, свой у каждого клиента)
-│   └── TestDummy            — локальный манекен-капсула с Rigidbody для соло-теста (actor −2): привязать G, таскать, отцепить
+│   └── LinkColors           — цвет каждой связки из палитры RepkaColors (первый свободный при появлении, свой у каждого клиента)
 ├── Input
 │   ├── LinkHoldInput        — G: цель по взгляду, удержание, связать / отцепить
 │   ├── TestAnchorInput      — F8: поставить / убрать тестовый якорь
-│   ├── TestDummyInput       — F9: поставить манекен туда, куда смотришь / убрать (без автопривязки)
-│   ├── LinkTargetPicker     — на кого смотрит игрок для G (игроки + манекен), отдаёт actor
+│   ├── LinkTargetPicker     — на кого смотрит игрок для G, отдаёт actor
 │   └── KeyBinding           — InputAction из строки конфига, пересоздаётся при смене
 ├── Handling
 │   ├── RopeInteractible     — IInteractible игры на верёвке (ванильная E, подсказка, подсветка)
 │   ├── RopeHands            — взять / отпустить, отпуск при предмете, стене, без сознания
 │   ├── ReelDriver           — колесо / кнопки → скорость смотки сглажена как у RopeSpool (Lerp ×4/с, −1…5), стамина, публикация ~10 Гц
 │   ├── RopeKnockdown        — сильный рывок (RopeSnatch ≥ KnockdownSpeed) по верёвке, которую ты НЕ держишь, роняет тебя в регдолл ванильным Character.Fall (по сети)
-│   ├── RopeForces           — силы своему персонажу и манекену, обрыв, висящий без нарастающей гравитации, страховка
+│   ├── RopeForces           — силы своему персонажу, обрыв, висящий без нарастающей гравитации, страховка
 │   ├── RopeHoldPoses        — кто держит верёвку (все игроки) + угол катушки по изменению Reel (200°/м); показываемый угол догоняет целевой (сглаживание чужих рывков сети)
 │   └── RopeHoldPose         — actor + угол вращения катушки
 ├── Visual
@@ -87,6 +85,7 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 │   ├── SpoolProps           — визуальная копия обычной катушки в руках каждого держащего: центр её Hand_R/Hand_L ставится между физическими кистями, источник точки выхода верёвки
 │   ├── SpoolProp            — MonoBehaviour на корне копии (ссылки на колесо и точки выхода переносятся при Instantiate из шаблона, собранного один раз): колесо (ropeSpoolTf) вращается при смотке, верёвка как у ванильной: видимый путь ropeStart → ropeBase → физическая часть (ActorStates: ropeBase — точка физики, TryGetRopeLead — ropeStart для отрисовки)
 │   ├── CarabinerSounds / LinkSoundFeedback — SFX_Instance → SFX_Player игры; звук в середине верёвки
+│   ├── ChestColliderFilter  — верёвка проходит сквозь сундуки: Luggage (в т.ч. LuggageCursed, RespawnChest) и MirageLuggage, результат кэшируется по коллайдеру
 │   ├── CarabinerHud         — прицел-карабин (материал ванильного прицела) и подсказка «Привязать / Отцепить» с иконкой клавиши
 │   ├── PlayerListBadges     — ряды цветных карабинов в списке игроков (ESC), проверка наложения на громкость / кик
 │   ├── LinkBadgeRow         — ряд цветных карабинов под аватаркой в списке игроков (ESC), материал прицела, проверка наложения на громкость / кик
@@ -141,7 +140,7 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 |---|---|---|---|
 | `RepkaConfig` | `src/Repkarbinhake.Plugin/Data/RepkaConfig.cs` | BepInEx config, редактируется ModConfig | `LinkKey`, `LinkAimAngle`, `Thickness` + `IRopeSettings` + `ISegmentSettings` (секция `Performance`) |
 | `CharacterDirectory` | `src/Repkarbinhake.Plugin/Links/CharacterDirectory.cs` | Поиск персонажа по Photon actor (кэш, обновляется раз в кадр) | `Refresh`, `LocalActor`, `TryFind`, `ActorOf`, `IsActive` |
-| `LinkTargetPicker` | `src/Repkarbinhake.Plugin/Input/LinkTargetPicker.cs` | Ближайший к прицелу игрок / манекен в радиусе взаимодействия игры (`Interaction.distance`, как подобрать нокнутого); манекен — также по попаданию луча в тело | `TryPick(self, view, out int targetActor)` |
+| `LinkTargetPicker` | `src/Repkarbinhake.Plugin/Input/LinkTargetPicker.cs` | Ближайший к прицелу игрок в радиусе взаимодействия игры (`Interaction.distance`, как подобрать нокнутого) | `TryPick(self, view, out int targetActor)` |
 
 ## Data Flow
 ```
