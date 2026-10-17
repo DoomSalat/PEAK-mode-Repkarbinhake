@@ -11,15 +11,17 @@ namespace Repkarbinhake.Core.Visual
         private const float PeakFactor = 4f;
         private const float SwingStiffness = 20f;
         private const float SwingDamping = 2.5f;
+        private const float MaxSwing = 0.6f;
 
         private static readonly Vector3 Unset = new Vector3(float.NaN); // Static: marker for a segment without a previous rest position
 
         private readonly List<Vector3> _restPeaks = new List<Vector3>();
         private readonly List<Vector3> _swings = new List<Vector3>();
         private readonly List<Vector3> _swingSpeeds = new List<Vector3>();
+        private readonly List<bool> _grounded = new List<bool>();
         private int _pathVersion = -1;
 
-        public void Build(RopeWrapPath path, Vector3 down, int bones, float radius, float deltaTime, IRopeCollider collider, List<Vector3> output)
+        public void Build(RopeWrapPath path, Vector3 down, int bones, float radius, float deltaTime, IRopeObstacles obstacles, List<Vector3> output)
         {
             output.Clear();
             IReadOnlyList<Vector3> points = path.Points;
@@ -37,11 +39,11 @@ namespace Repkarbinhake.Core.Visual
                 float share = pathLength < float.Epsilon ? 1f : chord / pathLength;
                 int count = Math.Max(1, (int)MathF.Round(bones * share));
                 float slack = MathF.Max(path.Materials[k] - chord, 0f);
-                AddSegment(k, points[k], points[k + 1], slack, down, count, radius, deltaTime, collider, output);
+                AddSegment(k, points[k], points[k + 1], slack, down, count, radius, deltaTime, obstacles, output);
             }
         }
 
-        private void AddSegment(int segment, Vector3 from, Vector3 to, float slack, Vector3 down, int count, float radius, float deltaTime, IRopeCollider collider, List<Vector3> output)
+        private void AddSegment(int segment, Vector3 from, Vector3 to, float slack, Vector3 down, int count, float radius, float deltaTime, IRopeObstacles obstacles, List<Vector3> output)
         {
             Vector3 along = to - from;
             float length = along.Length();
@@ -56,7 +58,8 @@ namespace Repkarbinhake.Core.Visual
             }
 
             Vector3 restPeak = Vector3.Lerp(from, to, 0.5f) + sideways * depth;
-            Vector3 swing = StepSwing(segment, restPeak, direction, depth, deltaTime);
+            Vector3 swing = StepSwing(segment, restPeak, direction, _grounded[segment] ? 0f : MathF.Min(depth, MaxSwing), deltaTime);
+            bool grounded = false;
 
             for (int j = 1; j < count; j++)
             {
@@ -64,13 +67,20 @@ namespace Repkarbinhake.Core.Visual
                 float bulge = PeakFactor * t * (1f - t);
                 Vector3 straight = Vector3.Lerp(from, to, t);
                 Vector3 sagged = straight + (sideways * depth + swing) * bulge;
-                output.Add(collider == null ? sagged : collider.Resolve(straight, sagged, radius));
+                if (obstacles != null && obstacles.TryHit(straight, sagged, radius, out Vector3 point, out Vector3 normal))
+                {
+                    sagged = point + normal * radius;
+                    grounded = true;
+                }
+
+                output.Add(sagged);
             }
 
+            _grounded[segment] = grounded;
             output.Add(to);
         }
 
-        private Vector3 StepSwing(int segment, Vector3 restPeak, Vector3 direction, float depth, float deltaTime)
+        private Vector3 StepSwing(int segment, Vector3 restPeak, Vector3 direction, float limit, float deltaTime)
         {
             if (float.IsNaN(_restPeaks[segment].X))
                 _restPeaks[segment] = restPeak;
@@ -81,9 +91,9 @@ namespace Repkarbinhake.Core.Visual
             swing += speed * deltaTime;
             swing -= direction * Vector3.Dot(swing, direction);
 
-            if (swing.Length() > depth)
+            if (swing.Length() > limit)
             {
-                swing = depth < float.Epsilon ? Vector3.Zero : Vector3.Normalize(swing) * depth;
+                swing = limit < float.Epsilon ? Vector3.Zero : Vector3.Normalize(swing) * limit;
                 speed = Vector3.Zero;
             }
 
@@ -104,12 +114,14 @@ namespace Repkarbinhake.Core.Visual
             _restPeaks.Clear();
             _swings.Clear();
             _swingSpeeds.Clear();
+            _grounded.Clear();
 
             for (int k = 0; k < segments; k++)
             {
                 _restPeaks.Add(Unset);
                 _swings.Add(Vector3.Zero);
                 _swingSpeeds.Add(Vector3.Zero);
+                _grounded.Add(false);
             }
         }
     }

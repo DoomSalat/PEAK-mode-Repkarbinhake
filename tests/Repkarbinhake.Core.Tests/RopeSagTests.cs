@@ -79,6 +79,25 @@ namespace Repkarbinhake.Core.Tests
             Assert.True(justAfter > settled + 0.05f);
         }
 
+        [Fact]
+        public void RopeLyingOnFloor_DoesNotWanderSideways()
+        {
+            BoxObstacles floor = new BoxObstacles().Add(new Vector3(-10f, -5f, -10f), new Vector3(10f, 0f, 10f));
+            RopeLengthState length = new RopeLengthState(8f, 0f, 0f);
+            Vector3 start = new Vector3(0f, 0.3f, 0f);
+            Vector3 end = new Vector3(3f, 0.3f, 0f);
+
+            for (int i = 0; i < 60; i++)
+            {
+                Vector3 jiggle = new Vector3(0f, 0f, (i % 2) * 0.05f);
+                _path.Update(start, end + jiggle, length, Radius, DeltaTime, floor);
+                _sag.Build(_path, Down, Bones, Radius, DeltaTime, floor, _output);
+            }
+
+            foreach (Vector3 point in _output)
+                Assert.InRange(point.Z, -0.1f, 0.15f);
+        }
+
         private void Build(Vector3 start, Vector3 end, float ropeLength, BoxObstacles obstacles)
         {
             RopeLengthState length = new RopeLengthState(ropeLength, 0f, 0f);
