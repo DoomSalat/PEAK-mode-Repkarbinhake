@@ -52,6 +52,36 @@ function Pack([string]$configuration, [string]$flavor, [string]$debugKeys) {
 $debugLines = "  F7                                  — окно настроек мода прямо в игре (Применить — сразу в силу)`r`n" +
               "  F9                                  — тестовая капсула: поставить / убрать (к ней можно привязаться)`r`n"
 
+function PackThunderstore {
+    $output = Join-Path $pluginProject 'bin\Public\netstandard2.1'
+    $source = Join-Path $PSScriptRoot 'thunderstore'
+    $stage = Join-Path $dist 'stage-thunderstore'
+    if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
+
+    $plugins = Join-Path $stage 'plugins'
+    New-Item -ItemType Directory -Force (Join-Path $plugins 'Assets') | Out-Null
+    foreach ($dll in 'Repkarbinhake.dll', 'Repkarbinhake.Core.dll', 'Repkarbinhake.Unity.dll') {
+        Copy-Item (Join-Path $output $dll) $plugins
+    }
+    Copy-Item (Join-Path $pluginProject 'Assets\*') (Join-Path $plugins 'Assets')
+
+    $utf8 = New-Object System.Text.UTF8Encoding $false
+    $manifest = (Get-Content (Join-Path $source 'manifest.json') -Raw -Encoding UTF8).Replace('{VERSION}', $version)
+    [System.IO.File]::WriteAllText((Join-Path $stage 'manifest.json'), $manifest, $utf8)
+    foreach ($file in 'README.md', 'CHANGELOG.md', 'icon.png') {
+        Copy-Item (Join-Path $source $file) $stage
+    }
+
+    $zip = Join-Path $dist "Repkarbinhake-$version-thunderstore.zip"
+    Remove-Item $zip -ErrorAction SilentlyContinue
+    & $tar -a -c -f $zip -C $stage @(Get-ChildItem $stage -Force | ForEach-Object Name)
+    if ($LASTEXITCODE -ne 0) { throw 'Packing failed (thunderstore)' }
+    Remove-Item $stage -Recurse -Force
+
+    Get-Item $zip | ForEach-Object { Write-Host ("  {0}  {1:N0} KB" -f $_.Name, ($_.Length / 1KB)) }
+}
+
 Pack 'Public' 'release' ''
+PackThunderstore
 Pack 'Release' 'debug' $debugLines
 Write-Host "Packed Repkarbinhake $version"

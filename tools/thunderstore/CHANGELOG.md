@@ -1,0 +1,13 @@
+# Changelog
+
+## 1.0.0
+
+First public release.
+
+- Tie to teammates with **G**, grab the rope with **E**, reel with the mouse wheel.
+- Physical rope: wraps around rocks, sags, slides up gentle slopes, ignores chests, thin bridges and the scout cannon.
+- Bracing, team pulling, belay on walls, knockdown on hard yanks, help under ledges.
+- Wall hook on **T**: pays out while you climb, locks on a fall, stiff rope.
+- Rope colors from the player list, on the rope, the spool and the length gauge.
+- Partner name under the grab prompt; prompts in 15 languages.
+- Mod version check between players.
