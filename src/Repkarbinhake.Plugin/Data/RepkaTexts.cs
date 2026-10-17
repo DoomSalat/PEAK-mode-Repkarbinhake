@@ -2,8 +2,6 @@ namespace Repkarbinhake.Plugin.Data
 {
     public static class RepkaTexts // Static: shared UI strings of the mod, no state
     {
-        public const string LogPrefix = "[Repkarbinhake] ";
-
         // Tables follow LocalizedText.Language order, English first
         private static readonly string[] RopeNames = { "Rope", "Corde", "Corda", "Seil", "Cuerda", "Cuerda", "Corda", "Верёвка", "Мотузка", "绳子", "繩子", "ロープ", "밧줄", "Lina", "Halat" }; // Static: fixed translation table
         private static readonly string[] Grabs = { "Grab rope", "Saisir la corde", "Afferra la corda", "Seil greifen", "Agarrar la cuerda", "Agarrar la cuerda", "Pegar a corda", "Взять верёвку", "Взяти мотузку", "抓住绳子", "抓住繩子", "ロープをつかむ", "밧줄 잡기", "Chwyć linę", "Halatı tut" }; // Static: fixed translation table

@@ -9,6 +9,7 @@ namespace Repkarbinhake.Core.Data
             First = new RopeEnd(FirstActor);
             Second = new RopeEnd(SecondActor);
             TieId = tieId;
+            Key = LinkKeys.Build(FirstActor, SecondActor);
         }
 
         public int FirstActor { get; }
@@ -16,7 +17,7 @@ namespace Repkarbinhake.Core.Data
         public RopeEnd First { get; }
         public RopeEnd Second { get; }
         public long TieId { get; private set; }
-        public string Key => LinkKeys.Build(FirstActor, SecondActor);
+        public string Key { get; }
         public bool IsHeld => First.IsHeld || Second.IsHeld;
         public float TotalReel => First.HeldReel + Second.HeldReel;
 

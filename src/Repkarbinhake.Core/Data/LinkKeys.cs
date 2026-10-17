@@ -18,6 +18,13 @@ namespace Repkarbinhake.Core.Data
             return EndPrefix + Pair(firstActor, secondActor) + ActorSeparator + endActor;
         }
 
+        public static long PairId(int firstActor, int secondActor)
+        {
+            int low = firstActor < secondActor ? firstActor : secondActor;
+            int high = firstActor < secondActor ? secondActor : firstActor;
+            return ((long)low << 32) | (uint)high;
+        }
+
         public static bool TryParse(string key, out int firstActor, out int secondActor)
         {
             firstActor = 0;

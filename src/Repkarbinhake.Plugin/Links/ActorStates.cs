@@ -75,13 +75,5 @@ namespace Repkarbinhake.Plugin.Links
             lead = Vector3.zero;
             return actor > 0 && _characters.TryFind(actor, out Character character) && _spools.TryGetRopeExit(character, out _, out lead);
         }
-
-        public bool IsPresent(int actor)
-        {
-            if (AnchorActors.IsAnchor(actor))
-                return _anchors.Has(AnchorActors.OwnerOf(actor));
-
-            return actor == TestDummy.Actor ? _dummy.IsPlaced : _characters.TryFind(actor, out _);
-        }
     }
 }

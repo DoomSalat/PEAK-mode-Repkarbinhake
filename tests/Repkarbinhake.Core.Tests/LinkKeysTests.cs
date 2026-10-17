@@ -61,5 +61,13 @@ namespace Repkarbinhake.Core.Tests
         {
             Assert.False(LinkKeys.TryParse(key, out _, out _));
         }
+
+        [Fact]
+        public void PairId_IgnoresOrderAndSeparatesPairs()
+        {
+            Assert.Equal(LinkKeys.PairId(3, 7), LinkKeys.PairId(7, 3));
+            Assert.NotEqual(LinkKeys.PairId(3, 7), LinkKeys.PairId(3, 8));
+            Assert.NotEqual(LinkKeys.PairId(-5, 2), LinkKeys.PairId(-2, 5));
+        }
     }
 }

@@ -11,7 +11,7 @@ using PhotonPlayer = Photon.Realtime.Player;
 
 namespace Repkarbinhake.Plugin.Network
 {
-    public sealed class RoomLinkSync : IInRoomCallbacks, IMatchmakingCallbacks
+    public sealed class RoomLinkSync : PhotonRoomCallbacks
     {
         private const float HostChoresInterval = 2f;
         private const float SweepMaxAge = 30f;
@@ -22,14 +22,13 @@ namespace Repkarbinhake.Plugin.Network
         private readonly DepartedUntieRule _departedRule;
         private readonly LobbyRopeSettings _settings;
         private readonly RepkaConfig _config;
-        private readonly TestDummy _dummy;
         private readonly HashSet<int> _present = new HashSet<int>();
         private readonly List<RopeLink> _departed = new List<RopeLink>();
         private readonly List<LinkUpdate> _stale = new List<LinkUpdate>();
         private float _hostTimer;
         private float _now;
 
-        public RoomLinkSync(PhotonLinkTransport transport, LinkRegistry registry, UntiedKeySweeper sweeper, DepartedUntieRule departedRule, LobbyRopeSettings settings, RepkaConfig config, TestDummy dummy)
+        public RoomLinkSync(PhotonLinkTransport transport, LinkRegistry registry, UntiedKeySweeper sweeper, DepartedUntieRule departedRule, LobbyRopeSettings settings, RepkaConfig config)
         {
             _transport = transport;
             _registry = registry;
@@ -37,27 +36,20 @@ namespace Repkarbinhake.Plugin.Network
             _departedRule = departedRule;
             _settings = settings;
             _config = config;
-            _dummy = dummy;
         }
-
-        public event Action JoinedRoom;
-        public event Action LeftRoom;
 
         public bool IsReadingSnapshot { get; private set; }
         public bool IsHost => PhotonNetwork.IsMasterClient;
 
-        public void Enable()
+        public override void Enable()
         {
-            PhotonNetwork.AddCallbackTarget(this);
             _config.MaxLengthEntry.SettingChanged += OnMaxLengthChanged;
-
-            if (PhotonNetwork.InRoom)
-                OnJoinedRoom();
+            base.Enable();
         }
 
-        public void Disable()
+        public override void Disable()
         {
-            PhotonNetwork.RemoveCallbackTarget(this);
+            base.Disable();
 
             if (_config.MaxLengthEntry != null)
                 _config.MaxLengthEntry.SettingChanged -= OnMaxLengthChanged;
@@ -80,7 +72,7 @@ namespace Repkarbinhake.Plugin.Network
             SweepUntied();
         }
 
-        public void OnJoinedRoom()
+        public override void OnJoinedRoom()
         {
             _registry.Clear();
             _sweeper.Clear();
@@ -89,63 +81,33 @@ namespace Repkarbinhake.Plugin.Network
             IsReadingSnapshot = true;
             ReadProperties(PhotonNetwork.CurrentRoom.CustomProperties);
             IsReadingSnapshot = false;
-            JoinedRoom?.Invoke();
 
             if (IsHost)
                 TakeHostDuties();
         }
 
-        public void OnLeftRoom()
+        public override void OnLeftRoom()
         {
             _registry.Clear();
             _sweeper.Clear();
             _settings.ForgetHost();
-            LeftRoom?.Invoke();
         }
 
-        public void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
+        public override void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
         {
             ReadProperties(propertiesThatChanged);
         }
 
-        public void OnPlayerLeftRoom(PhotonPlayer otherPlayer)
+        public override void OnPlayerLeftRoom(PhotonPlayer otherPlayer)
         {
             if (IsHost)
                 UntieDeparted();
         }
 
-        public void OnMasterClientSwitched(PhotonPlayer newMasterClient)
+        public override void OnMasterClientSwitched(PhotonPlayer newMasterClient)
         {
             if (IsHost)
                 TakeHostDuties();
-        }
-
-        public void OnPlayerEnteredRoom(PhotonPlayer newPlayer)
-        {
-        }
-
-        public void OnPlayerPropertiesUpdate(PhotonPlayer targetPlayer, Hashtable changedProps)
-        {
-        }
-
-        public void OnFriendListUpdate(List<FriendInfo> friendList)
-        {
-        }
-
-        public void OnCreatedRoom()
-        {
-        }
-
-        public void OnCreateRoomFailed(short returnCode, string message)
-        {
-        }
-
-        public void OnJoinRoomFailed(short returnCode, string message)
-        {
-        }
-
-        public void OnJoinRandomFailed(short returnCode, string message)
-        {
         }
 
         private void ReadProperties(Hashtable properties)
@@ -181,13 +143,22 @@ namespace Repkarbinhake.Plugin.Network
                 _present.Add(AnchorActors.Of(player.ActorNumber));
             }
 
-            if (_dummy.IsPlaced)
-                _present.Add(TestDummy.Actor);
+            foreach (RopeLink link in _registry.Links)
+            {
+                KeepLocal(link.FirstActor);
+                KeepLocal(link.SecondActor);
+            }
 
             _departedRule.Collect(_registry.Links, _present, _departed);
 
             foreach (RopeLink link in _departed)
                 _registry.Untie(link);
+        }
+
+        private void KeepLocal(int actor)
+        {
+            if (actor < 0 && !AnchorActors.IsAnchor(actor))
+                _present.Add(actor);
         }
 
         private void SweepUntied()

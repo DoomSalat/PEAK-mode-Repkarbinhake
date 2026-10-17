@@ -17,7 +17,7 @@ Repkarbinhake.Core (netstandard2.1, без Unity/Photon/BepInEx — тестир
 │   └── SegmentMode        — Auto / Fixed
 ├── Links
 │   ├── ILinkTransport     — публикация связок и концов, удаление через CAS
-│   ├── LinkRegistry       — состояние всех связок, порядок записей, эхо; TryGetHeld — какую верёвку держит игрок
+│   ├── LinkRegistry       — состояние всех связок (словарь по числовой паре актёров LinkKeys.PairId, без строк в TryGet), порядок записей, эхо; концы, пришедшие раньше связки, ждут её (PendingEndCount) и удаляются при появлении или удалении связки пары; TryGetHeld — какую верёвку держит игрок
 │   ├── RopePathAuthority  — кто считает путь верёвки: держащий, если держит один; иначе меньший номер; верёвки к манекену / якорю — локально
 │   ├── UntiedKeySweeper   — какие развязанные ключи хосту пора удалить
 │   ├── DeathUntieRule     — какие связки развязать из-за смерти (свои — всегда, чужие — если хост)
@@ -63,13 +63,14 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 ├── Network
 │   ├── PhotonLinkTransport  — ILinkTransport поверх room properties (LinkPayloadCodec), CAS-удаление
 │   ├── AnchorSync           — крюки через свойства комнаты rkb.anchor.<номер>: владелец пишет, все читают; хост удаляет крюк вышедшего; смена локации снимает свой крюк
+│   ├── PhotonRoomCallbacks  — база сетевых инструментов: пустые обработчики IInRoomCallbacks/IMatchmakingCallbacks, Enable/Disable (регистрация в Photon, при уже открытой комнате — сразу OnJoinedRoom); RoomLinkSync, AnchorSync, ModVersionCheck, RopePathSync переопределяют только нужное
 │   ├── RopePathSync         — синхронизация пути верёвки: хозяин (держащий, иначе меньший номер; RopePathAuthority) раз в 0,1 с рассылает точки касания и длины участков событием Photon 173, остальные ведут путь за ним (RopeWrapPath.Follow), смена хозяина — Lead, вошедшим — полный снимок
 │   ├── ModVersionCheck      — своя версия мода в свойства игрока Photon (rkb.ver), лог версий остальных, предупреждение при расхождении
 │   └── RoomLinkSync         — колбэки комнаты Photon, снимок при входе, обязанности хоста
 ├── Links
 │   ├── CharacterDirectory   — actor ↔ Character
 │   ├── ActorStates          — IFootingSource + IActorLifeSource + точки крепления верёвки (бедро / катушка в руках)
-│   ├── TestDummy            — отладочная капсула (Rigidbody 60 кг), актёр −1 000 000: не крюк (AnchorActors — только −1…−9999), локальная (ключи с «-» не публикуются); ActorStates — опора/точка верёвки, LinkTargetPicker — прицел G, RopeForces.ApplyToDummy — тяга, RoomLinkSync — не считается ушедшей
+│   ├── TestDummy            — отладочная капсула (Rigidbody 60 кг), актёр −1 000 000: не крюк (AnchorActors — только −1…−9999), локальная (ключи с «-» не публикуются); ActorStates — опора/точка верёвки, LinkTargetPicker — прицел G, RopeForces.ApplyToDummy — тяга, RoomLinkSync — связки с локальными актёрами (не игроки и не крюки) не проверяет на уход из комнаты
 │   ├── AnchorBoard          — крюки игроков (владелец → место): связка игрок ↔ крюк (крюк = актёр −номер, верёвка локальная у каждого клиента), точка верёвки на крюке, EnsureLinks; Remove сначала развязывает, потом убирает крюк — чтобы звук отстёгивания нашёл точку
 │   └── LinkColors           — цвет каждой связки из палитры RepkaColors (первый свободный при появлении, свой у каждого клиента); TryGetColor — цвет верёвки (у крюков нет)
 ├── Input

@@ -11,7 +11,7 @@ using PhotonPlayer = Photon.Realtime.Player;
 
 namespace Repkarbinhake.Plugin.Network
 {
-    public sealed class AnchorSync : IInRoomCallbacks, IMatchmakingCallbacks
+    public sealed class AnchorSync : PhotonRoomCallbacks
     {
         private readonly AnchorBoard _board;
         private readonly AnchorPayloadCodec _codec = new AnchorPayloadCodec();
@@ -21,18 +21,15 @@ namespace Repkarbinhake.Plugin.Network
             _board = board;
         }
 
-        public void Enable()
+        public override void Enable()
         {
-            PhotonNetwork.AddCallbackTarget(this);
             SceneManager.sceneLoaded += OnSceneLoaded;
-
-            if (PhotonNetwork.InRoom)
-                OnJoinedRoom();
+            base.Enable();
         }
 
-        public void Disable()
+        public override void Disable()
         {
-            PhotonNetwork.RemoveCallbackTarget(this);
+            base.Disable();
             SceneManager.sceneLoaded -= OnSceneLoaded;
         }
 
@@ -50,61 +47,29 @@ namespace Repkarbinhake.Plugin.Network
             Write(owner, null);
         }
 
-        public void OnJoinedRoom()
+        public override void OnJoinedRoom()
         {
             _board.Clear();
             Write(PhotonNetwork.LocalPlayer.ActorNumber, null);
             Read(PhotonNetwork.CurrentRoom.CustomProperties);
         }
 
-        public void OnLeftRoom()
+        public override void OnLeftRoom()
         {
             _board.Clear();
         }
 
-        public void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
+        public override void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
         {
             Read(propertiesThatChanged);
         }
 
-        public void OnPlayerLeftRoom(PhotonPlayer otherPlayer)
+        public override void OnPlayerLeftRoom(PhotonPlayer otherPlayer)
         {
             _board.Remove(otherPlayer.ActorNumber);
 
             if (PhotonNetwork.IsMasterClient)
                 Write(otherPlayer.ActorNumber, null);
-        }
-
-        public void OnPlayerEnteredRoom(PhotonPlayer newPlayer)
-        {
-        }
-
-        public void OnPlayerPropertiesUpdate(PhotonPlayer targetPlayer, Hashtable changedProps)
-        {
-        }
-
-        public void OnMasterClientSwitched(PhotonPlayer newMasterClient)
-        {
-        }
-
-        public void OnFriendListUpdate(List<FriendInfo> friendList)
-        {
-        }
-
-        public void OnCreatedRoom()
-        {
-        }
-
-        public void OnCreateRoomFailed(short returnCode, string message)
-        {
-        }
-
-        public void OnJoinRoomFailed(short returnCode, string message)
-        {
-        }
-
-        public void OnJoinRandomFailed(short returnCode, string message)
-        {
         }
 
         private void Read(Hashtable properties)

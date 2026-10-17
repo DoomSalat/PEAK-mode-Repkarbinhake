@@ -184,6 +184,43 @@ namespace Repkarbinhake.Core.Tests
         }
 
         [Fact]
+        public void EndFromPreviousTie_IsDroppedWhenTheLinkArrives()
+        {
+            _registry.Receive(RemoteTie(Local, Partner));
+            EndUpdate oldGrab = RemoteEnd(Single(), Partner, isHeld: true, reel: 3f);
+            _registry.Receive(RemoteUntie(Local, Partner));
+
+            _registry.ReceiveEnd(oldGrab);
+            _registry.Receive(RemoteTie(Local, Partner));
+
+            Assert.Equal(0, _registry.PendingEndCount);
+            Assert.False(Single().IsHeldBy(Partner));
+        }
+
+        [Fact]
+        public void PendingEnd_IsDroppedWhenItsLinkIsRemoved()
+        {
+            _registry.Receive(RemoteTie(Local, Partner));
+            RopeLink link = Single();
+            _registry.ReceiveEnd(new EndUpdate(link.EndKey(Partner), new EndState(link.TieId + 1, true, 1f)));
+
+            _registry.Receive(RemoteUntie(Local, Partner));
+
+            Assert.Equal(0, _registry.PendingEndCount);
+        }
+
+        [Fact]
+        public void TryGet_FindsLinkInEitherActorOrder()
+        {
+            _registry.Tie(Partner, Local);
+
+            Assert.True(_registry.TryGet(Local, Partner, out RopeLink link));
+            Assert.True(_registry.TryGet(Partner, Local, out RopeLink same));
+            Assert.Same(link, same);
+            Assert.False(_registry.TryGet(Local, Third, out _));
+        }
+
+        [Fact]
         public void Retie_ResetsBothEnds()
         {
             _registry.Receive(RemoteTie(Local, Partner));

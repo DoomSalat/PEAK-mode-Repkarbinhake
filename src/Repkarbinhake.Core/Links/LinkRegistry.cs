@@ -7,7 +7,7 @@ namespace Repkarbinhake.Core.Links
     public sealed class LinkRegistry
     {
         private readonly ILinkTransport _transport;
-        private readonly Dictionary<string, RopeLink> _links = new Dictionary<string, RopeLink>();
+        private readonly Dictionary<long, RopeLink> _links = new Dictionary<long, RopeLink>();
         private readonly Dictionary<string, EndUpdate> _orphanEnds = new Dictionary<string, EndUpdate>();
         private readonly Dictionary<string, int> _sentSequences = new Dictionary<string, int>();
         private readonly Dictionary<string, int> _echoedSequences = new Dictionary<string, int>();
@@ -24,6 +24,7 @@ namespace Repkarbinhake.Core.Links
         public event Action<RopeLink> LinkRemoved;
 
         public IReadOnlyCollection<RopeLink> Links => _links.Values;
+        public int PendingEndCount => _orphanEnds.Count;
         public int LocalActor => _localActor;
 
         public void Bind(int localActor)
@@ -33,7 +34,7 @@ namespace Repkarbinhake.Core.Links
 
         public bool TryGet(int firstActor, int secondActor, out RopeLink link)
         {
-            return _links.TryGetValue(LinkKeys.Build(firstActor, secondActor), out link);
+            return _links.TryGetValue(LinkKeys.PairId(firstActor, secondActor), out link);
         }
 
         public bool TryGetHeld(int actor, out RopeLink held)
@@ -99,7 +100,7 @@ namespace Repkarbinhake.Core.Links
 
         public void Untie(RopeLink link)
         {
-            Remove(link.Key);
+            Remove(link.FirstActor, link.SecondActor);
             Send(link.Key, LinkState.Untied, NextSequence());
         }
 
@@ -163,7 +164,7 @@ namespace Repkarbinhake.Core.Links
             _removalBuffer.AddRange(_links.Values);
 
             foreach (RopeLink link in _removalBuffer)
-                Remove(link.Key);
+                Remove(link.FirstActor, link.SecondActor);
 
             _orphanEnds.Clear();
             _sentSequences.Clear();
@@ -200,15 +201,15 @@ namespace Repkarbinhake.Core.Links
 
         private void Apply(int firstActor, int secondActor, LinkState state)
         {
-            string key = LinkKeys.Build(firstActor, secondActor);
+            long pair = LinkKeys.PairId(firstActor, secondActor);
 
             if (!state.IsTied)
             {
-                Remove(key);
+                Remove(firstActor, secondActor);
                 return;
             }
 
-            if (_links.TryGetValue(key, out RopeLink existing))
+            if (_links.TryGetValue(pair, out RopeLink existing))
             {
                 if (existing.TieId == state.TieId)
                     return;
@@ -219,7 +220,7 @@ namespace Repkarbinhake.Core.Links
             }
 
             RopeLink link = new RopeLink(firstActor, secondActor, state.TieId);
-            _links.Add(key, link);
+            _links.Add(pair, link);
             AdoptOrphans(link);
             LinkAdded?.Invoke(link);
         }
@@ -234,11 +235,13 @@ namespace Repkarbinhake.Core.Links
         {
             string endKey = link.EndKey(end.Actor);
 
-            if (!_orphanEnds.TryGetValue(endKey, out EndUpdate orphan) || orphan.State.TieId != link.TieId)
+            if (!_orphanEnds.TryGetValue(endKey, out EndUpdate orphan))
                 return;
 
             _orphanEnds.Remove(endKey);
-            ApplyEnd(end, orphan.State);
+
+            if (orphan.State.TieId == link.TieId)
+                ApplyEnd(end, orphan.State);
         }
 
         private void ApplyEnd(RopeEnd end, EndState state)
@@ -247,12 +250,16 @@ namespace Repkarbinhake.Core.Links
             end.Reel = state.IsHeld ? state.Reel : 0f;
         }
 
-        private void Remove(string key)
+        private void Remove(int firstActor, int secondActor)
         {
-            if (!_links.TryGetValue(key, out RopeLink link))
+            long pair = LinkKeys.PairId(firstActor, secondActor);
+
+            if (!_links.TryGetValue(pair, out RopeLink link))
                 return;
 
-            _links.Remove(key);
+            _links.Remove(pair);
+            _orphanEnds.Remove(link.EndKey(link.FirstActor));
+            _orphanEnds.Remove(link.EndKey(link.SecondActor));
             LinkRemoved?.Invoke(link);
         }
     }

@@ -203,7 +203,7 @@ namespace Repkarbinhake.Plugin
             LedgeAssist ledge = new LedgeAssist();
             _forces = new RopeForces(_registry, stability, tension, anchorTension, reel, _actors, _ropes, config, obstacles, ledge);
             _knockdown = new RopeKnockdown(_registry, reel, _ropes, config);
-            _sync = new RoomLinkSync(transport, _registry, new UntiedKeySweeper(), new DepartedUntieRule(), settings, config, _dummy);
+            _sync = new RoomLinkSync(transport, _registry, new UntiedKeySweeper(), new DepartedUntieRule(), settings, config);
             _versionCheck = new ModVersionCheck(RepkaPlugin.Version, log);
             _pathSync = new RopePathSync(_registry, _ropes);
             _sounds = new LinkSoundFeedback(new CarabinerSounds(assets, config), _actors);

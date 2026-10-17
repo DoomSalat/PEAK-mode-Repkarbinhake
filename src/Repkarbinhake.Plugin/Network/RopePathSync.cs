@@ -10,7 +10,7 @@ using PhotonPlayer = Photon.Realtime.Player;
 
 namespace Repkarbinhake.Plugin.Network
 {
-    public sealed class RopePathSync : IOnEventCallback, IInRoomCallbacks
+    public sealed class RopePathSync : PhotonRoomCallbacks, IOnEventCallback
     {
         private const byte EventCode = 173;
         private const float SendInterval = 0.1f;
@@ -36,16 +36,6 @@ namespace Repkarbinhake.Plugin.Network
         {
             _registry = registry;
             _ropes = ropes;
-        }
-
-        public void Enable()
-        {
-            PhotonNetwork.AddCallbackTarget(this);
-        }
-
-        public void Disable()
-        {
-            PhotonNetwork.RemoveCallbackTarget(this);
         }
 
         public void Tick(int localActor, float deltaTime)
@@ -94,25 +84,9 @@ namespace Repkarbinhake.Plugin.Network
             path.Follow(_contacts, _materials);
         }
 
-        public void OnPlayerEnteredRoom(PhotonPlayer newPlayer)
+        public override void OnPlayerEnteredRoom(PhotonPlayer newPlayer)
         {
             _resendAll = true;
-        }
-
-        public void OnPlayerLeftRoom(PhotonPlayer otherPlayer)
-        {
-        }
-
-        public void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
-        {
-        }
-
-        public void OnPlayerPropertiesUpdate(PhotonPlayer targetPlayer, Hashtable changedProps)
-        {
-        }
-
-        public void OnMasterClientSwitched(PhotonPlayer newMasterClient)
-        {
         }
 
         private void Send(RopeLink link)
