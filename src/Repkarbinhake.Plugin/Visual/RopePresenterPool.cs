@@ -144,6 +144,13 @@ namespace Repkarbinhake.Plugin.Visual
             return true;
         }
 
+        public bool TryGetPath(RopeLink link, out RopeWrapPath path)
+        {
+            bool found = _presenters.TryGetValue(link.Key, out RopePresenter presenter);
+            path = found ? presenter.Path : null;
+            return found;
+        }
+
         public int SegmentsOf(RopeLink link)
         {
             return _presenters.TryGetValue(link.Key, out RopePresenter presenter) ? presenter.SegmentCount : 0;

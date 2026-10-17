@@ -157,6 +157,46 @@ namespace Repkarbinhake.Core.Tests
             Assert.Equal(RopeLength, _path.Materials[0], 3);
         }
 
+        [Fact]
+        public void Follower_TakesRemoteContactsAndKeepsLocalEnds()
+        {
+            Vector3[] contacts = { new Vector3(1.5f, 1.15f, 0f), new Vector3(2.5f, 1.15f, 0f) };
+            float[] materials = { 1.7f, 1f, 1.7f };
+            Run(Start, End, new BoxObstacles());
+            _path.Follow(contacts, materials);
+            _path.Update(Start, End, new RopeLengthState(4.4f, 0f, 0f), Radius, DeltaTime, new BoxObstacles());
+
+            Assert.Equal(new[] { Start, contacts[0], contacts[1], End }, _path.Points);
+            Assert.Equal(4.4f, Sum(), 3);
+        }
+
+        [Fact]
+        public void Follower_SlidesTowardMovedContacts()
+        {
+            Vector3[] contacts = { new Vector3(2f, 1.2f, 0f) };
+            float[] materials = { 2.2f, 2.2f };
+            _path.Follow(contacts, materials);
+            _path.Update(Start, End, new RopeLengthState(4.4f, 0f, 0f), Radius, DeltaTime, new BoxObstacles());
+            _path.Follow(new[] { new Vector3(2f, 2.2f, 0f) }, materials);
+            _path.Update(Start, End, new RopeLengthState(4.4f, 0f, 0f), Radius, DeltaTime, new BoxObstacles());
+
+            Assert.InRange(_path.Points[1].Y, 1.21f, 2.19f);
+        }
+
+        [Fact]
+        public void Leader_ContinuesFromTheFollowedPath()
+        {
+            LowerOverWall();
+            int contacts = _path.ContactCount;
+            _path.Follow(Contacts(), Materials());
+            Run(Start, End, _wall);
+            _path.Lead();
+            Run(Start, End, _wall);
+
+            Assert.False(_path.IsFollowing);
+            Assert.Equal(contacts, _path.ContactCount);
+        }
+
         private void TautOverWall()
         {
             _length = new RopeLengthState(4.1f, 0f, 0f);

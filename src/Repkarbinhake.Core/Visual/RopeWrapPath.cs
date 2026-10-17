@@ -16,9 +16,12 @@ namespace Repkarbinhake.Core.Visual
         private const int EdgeSearchSteps = 10;
         private const float SlackFlowRate = 4f;
         private const float MinMaterial = 0.01f;
+        private const float FollowRate = 10f;
 
         private readonly List<Vector3> _points = new List<Vector3>();
         private readonly List<float> _materials = new List<float>();
+        private readonly List<Vector3> _remoteContacts = new List<Vector3>();
+        private readonly List<float> _remoteMaterials = new List<float>();
         private Vector3 _lastStart;
         private Vector3 _lastEnd;
         private float _lastFirstReel;
@@ -28,6 +31,7 @@ namespace Repkarbinhake.Core.Visual
         public IReadOnlyList<float> Materials => _materials;
         public int ContactCount => _points.Count < 2 ? 0 : _points.Count - 2;
         public int Version { get; private set; }
+        public bool IsFollowing { get; private set; }
 
         public void Update(Vector3 start, Vector3 end, RopeLengthState length, float radius, float deltaTime, IRopeObstacles obstacles)
         {
@@ -36,13 +40,30 @@ namespace Repkarbinhake.Core.Visual
 
             _points[0] = start;
             _points[_points.Count - 1] = end;
-            ApplyReel(length);
-            Unwrap(radius, obstacles);
-            WrapStart(radius, obstacles);
-            WrapEnd(radius, obstacles);
-            FlowSlack(deltaTime);
+
+            if (IsFollowing)
+                FollowRemote(length, deltaTime);
+            else
+                Simulate(length, radius, deltaTime, obstacles);
+
             _lastStart = start;
             _lastEnd = end;
+            _lastFirstReel = length.FirstReel;
+            _lastSecondReel = length.SecondReel;
+        }
+
+        public void Follow(IReadOnlyList<Vector3> contacts, IReadOnlyList<float> materials)
+        {
+            _remoteContacts.Clear();
+            _remoteContacts.AddRange(contacts);
+            _remoteMaterials.Clear();
+            _remoteMaterials.AddRange(materials);
+            IsFollowing = true;
+        }
+
+        public void Lead()
+        {
+            IsFollowing = false;
         }
 
         public float Chord(int segment)
@@ -89,6 +110,55 @@ namespace Repkarbinhake.Core.Visual
         {
             _points.Clear();
             _materials.Clear();
+        }
+
+        private void Simulate(RopeLengthState length, float radius, float deltaTime, IRopeObstacles obstacles)
+        {
+            ApplyReel(length);
+            Unwrap(radius, obstacles);
+            WrapStart(radius, obstacles);
+            WrapEnd(radius, obstacles);
+            FlowSlack(deltaTime);
+        }
+
+        private void FollowRemote(RopeLengthState length, float deltaTime)
+        {
+            Vector3 start = _points[0];
+            Vector3 end = _points[_points.Count - 1];
+
+            if (ContactCount != _remoteContacts.Count)
+            {
+                _points.Clear();
+                _points.Add(start);
+                _points.AddRange(_remoteContacts);
+                _points.Add(end);
+                Version++;
+            }
+            else
+            {
+                float share = Math.Clamp(FollowRate * deltaTime, 0f, 1f);
+
+                for (int i = 0; i < _remoteContacts.Count; i++)
+                    _points[i + 1] = Vector3.Lerp(_points[i + 1], _remoteContacts[i], share);
+            }
+
+            _materials.Clear();
+
+            if (_remoteMaterials.Count == _points.Count - 1)
+                _materials.AddRange(_remoteMaterials);
+            else
+                SpreadByChords(length.Total);
+
+            int last = _materials.Count - 1;
+            _materials[last] = MathF.Max(_materials[last] + length.Total - Sum(), MinMaterial);
+        }
+
+        private void SpreadByChords(float total)
+        {
+            float chords = PathLength();
+
+            for (int segment = 0; segment < _points.Count - 1; segment++)
+                _materials.Add(chords < float.Epsilon ? total / (_points.Count - 1) : total * Chord(segment) / chords);
         }
 
         private void Begin(Vector3 start, Vector3 end, RopeLengthState length)

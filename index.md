@@ -18,6 +18,8 @@ Repkarbinhake.Core (netstandard2.1, без Unity/Photon/BepInEx — тестир
 ├── Links
 │   ├── ILinkTransport     — публикация связок и концов, удаление через CAS
 │   ├── LinkRegistry       — состояние всех связок, порядок записей, эхо; TryGetHeld — какую верёвку держит игрок
+│   ├── RopePathAuthority  — кто считает путь верёвки: держащий, если держит один; иначе меньший номер; верёвки к манекену / якорю — локально
+│   ├── RopePathAuthority  — кто считает путь верёвки: держащий, если держит один; иначе меньший номер; верёвки к манекену / якорю — локально
 │   ├── UntiedKeySweeper   — какие развязанные ключи хосту пора удалить
 │   ├── DeathUntieRule     — какие связки развязать из-за смерти (свои — всегда, чужие — если хост)
 │   └── DepartedUntieRule  — какие связки развязать из-за выхода игрока (хост, по списку присутствующих)
@@ -56,6 +58,7 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 │   └── RepkaColors          — палитра цветов связок
 ├── Network
 │   ├── PhotonLinkTransport  — ILinkTransport поверх room properties (LinkPayloadCodec), CAS-удаление
+│   ├── RopePathSync         — синхронизация пути верёвки: хозяин (держащий, иначе меньший номер; RopePathAuthority) раз в 0,1 с рассылает точки касания и длины участков событием Photon 173, остальные ведут путь за ним (RopeWrapPath.Follow), смена хозяина — Lead, вошедшим — полный снимок
 │   ├── ModVersionCheck      — своя версия мода в свойства игрока Photon (rkb.ver), лог версий остальных, предупреждение при расхождении
 │   └── RoomLinkSync         — колбэки комнаты Photon, снимок при входе, обязанности хоста
 ├── Links

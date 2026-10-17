@@ -8,6 +8,7 @@ $pluginProject = Join-Path $root 'src\Repkarbinhake.Plugin'
 $version = (Select-String -Path (Join-Path $pluginProject 'RepkaPlugin.cs') -Pattern 'Version = "([^"]+)"').Matches[0].Groups[1].Value
 $dist = Join-Path $root 'dist'
 $stage = Join-Path $dist 'stage'
+$tar = Join-Path $env:SystemRoot 'System32\tar.exe'
 
 if (-not (Test-Path (Join-Path $BepInExDirectory 'winhttp.dll'))) {
     throw "BepInEx not found in '$BepInExDirectory'. Pass -BepInExDirectory with an unpacked BepInEx_win_x64 5.4.x."
@@ -39,8 +40,8 @@ $pluginZip = Join-Path $dist "Repkarbinhake-$version-plugin.zip"
 $fullZip = Join-Path $dist "Repkarbinhake-$version-full.zip"
 Remove-Item $pluginZip, $fullZip -ErrorAction SilentlyContinue
 # Windows tar writes standard forward-slash zip entries, Compress-Archive in PowerShell 5.1 does not
-tar -a -c -f $pluginZip -C $pluginStage @(Get-ChildItem $pluginStage -Force | ForEach-Object Name)
-tar -a -c -f $fullZip -C $fullStage @(Get-ChildItem $fullStage -Force | ForEach-Object Name)
+& $tar -a -c -f $pluginZip -C $pluginStage @(Get-ChildItem $pluginStage -Force | ForEach-Object Name)
+& $tar -a -c -f $fullZip -C $fullStage @(Get-ChildItem $fullStage -Force | ForEach-Object Name)
 if ($LASTEXITCODE -ne 0) { throw 'Packing failed' }
 Remove-Item $stage -Recurse -Force
 

@@ -47,6 +47,7 @@ namespace Repkarbinhake.Plugin
         private RopePresenterPool _ropes;
         private RoomLinkSync _sync;
         private ModVersionCheck _versionCheck;
+        private RopePathSync _pathSync;
         private LinkSoundFeedback _sounds;
         private RopeDebugReport _report;
         private RopeDebugOverlay _overlay;
@@ -58,6 +59,7 @@ namespace Repkarbinhake.Plugin
             _ropes.RopeInteracted += OnRopeInteracted;
             _sync.Enable();
             _versionCheck.Enable();
+            _pathSync.Enable();
         }
 
         private void OnDisable()
@@ -73,6 +75,7 @@ namespace Repkarbinhake.Plugin
 
             _sync?.Disable();
             _versionCheck?.Disable();
+            _pathSync?.Disable();
             _hookFeed.Clear();
         }
 
@@ -114,6 +117,7 @@ namespace Repkarbinhake.Plugin
             else
                 _reelDriver.Stop();
 
+            _pathSync.Tick(actor, Time.deltaTime);
             _knockdown.Tick(local, actor, Time.deltaTime);
             _poses.Refresh(Time.deltaTime);
             UntieDead(actor);
@@ -179,6 +183,7 @@ namespace Repkarbinhake.Plugin
             _knockdown = new RopeKnockdown(_registry, reel, _ropes, config);
             _sync = new RoomLinkSync(transport, _registry, new UntiedKeySweeper(), new DepartedUntieRule(), settings, config, anchor, _dummy);
             _versionCheck = new ModVersionCheck(RepkaPlugin.Version, log);
+            _pathSync = new RopePathSync(_registry, _ropes);
             _sounds = new LinkSoundFeedback(new CarabinerSounds(assets, config), _actors);
             _report = new RopeDebugReport(_registry, _actors, stability, tension, reel, _ropes, settings);
             _hookFeed = new RepkaHookFeed(_registry, reel, _policy, _ropes, _linkHold, config.LinkKey);
@@ -218,6 +223,7 @@ namespace Repkarbinhake.Plugin
 
         private void OnLinkRemoved(RopeLink link)
         {
+            _pathSync.Forget(link);
             _knockdown.Forget(link);
             _colors.Release(link);
             _sounds.Untied(link);

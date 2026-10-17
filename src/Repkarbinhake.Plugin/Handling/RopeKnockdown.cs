@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using Repkarbinhake.Core.Data;
 using Repkarbinhake.Core.Links;
 using Repkarbinhake.Core.Physics;
+using Repkarbinhake.Core.Visual;
 using Repkarbinhake.Plugin.Data;
 using Repkarbinhake.Plugin.Visual;
 using Repkarbinhake.Unity;
@@ -15,6 +17,7 @@ namespace Repkarbinhake.Plugin.Handling
         private readonly RopePresenterPool _ropes;
         private readonly RepkaConfig _config;
         private readonly RopeSnatch _snatch = new RopeSnatch();
+        private readonly Dictionary<string, int> _pathVersions = new Dictionary<string, int>();
 
         public RopeKnockdown(LinkRegistry registry, RopeReel reel, RopePresenterPool ropes, RepkaConfig config)
         {
@@ -34,6 +37,7 @@ namespace Repkarbinhake.Plugin.Handling
                 if (!link.Contains(actor))
                     continue;
 
+                SkipIfReshaped(link);
                 RopeSpan span = _ropes.SpanFor(link, actor);
                 float stretch = span.PathLength - _reel.EffectiveLength(link);
                 float ownSeparatingSpeed = Mathf.Max(-Vector3.Dot(velocity, span.Direction.ToUnity()), 0f);
@@ -50,11 +54,24 @@ namespace Repkarbinhake.Plugin.Handling
         public void Forget(RopeLink link)
         {
             _snatch.Forget(link.Key);
+            _pathVersions.Remove(link.Key);
         }
 
         public void Clear()
         {
             _snatch.Clear();
+            _pathVersions.Clear();
+        }
+
+        private void SkipIfReshaped(RopeLink link)
+        {
+            if (!_ropes.TryGetPath(link, out RopeWrapPath path))
+                return;
+
+            if (_pathVersions.TryGetValue(link.Key, out int version) && version != path.Version)
+                _snatch.Forget(link.Key);
+
+            _pathVersions[link.Key] = path.Version;
         }
     }
 }

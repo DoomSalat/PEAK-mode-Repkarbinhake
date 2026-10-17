@@ -30,6 +30,7 @@ namespace Repkarbinhake.Plugin.Visual
 
         public RopeLink Link { get; }
         public RopeInteractible Interactible { get; }
+        public RopeWrapPath Path => _path;
         public int SegmentCount => _targets.Count;
         public int ContactCount => _path.ContactCount;
         public IReadOnlyList<System.Numerics.Vector3> Points => _loose.Positions;
