@@ -24,11 +24,10 @@ namespace Repkarbinhake.Plugin.Visual
         {
             if (!_anchors.TryGetValue(owner, out RopeAnchor anchor) || anchor == null)
             {
-                anchor = Create(AnchorName + owner);
+                anchor = CreateSolid(AnchorName + owner);
                 _anchors[owner] = anchor;
             }
 
-            anchor.Ghost = false;
             Place(anchor.transform, placement);
         }
 
@@ -88,6 +87,20 @@ namespace Repkarbinhake.Plugin.Visual
         {
             RopeAnchor anchor = Object.Instantiate(_spool.Tier.anchorPreview).GetComponent<RopeAnchor>();
             anchor.name = name;
+            return anchor;
+        }
+
+        private RopeAnchor CreateSolid(string name)
+        {
+            RopeAnchor anchor = Create(name);
+            RopeAnchor solid = _spool.Tier.anchorPrefab.GetComponent<RopeAnchor>();
+            Transform root = solid.transform;
+            Transform part = solid.normalPart.transform;
+            Transform body = Object.Instantiate(solid.normalPart, anchor.transform).transform;
+            body.SetLocalPositionAndRotation(root.InverseTransformPoint(part.position), Quaternion.Inverse(root.rotation) * part.rotation);
+            body.gameObject.SetActive(true);
+            anchor.normalPart.SetActive(false);
+            anchor.ghostPart.SetActive(false);
             return anchor;
         }
 

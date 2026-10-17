@@ -35,9 +35,9 @@ namespace Repkarbinhake.Plugin.Visual
         public int ContactCount => _path.ContactCount;
         public IReadOnlyList<System.Numerics.Vector3> Points => _loose.Positions;
 
-        public void Tint(int property, Color color)
+        public void ChangeMaterial(Material material)
         {
-            _view.Tint(property, color);
+            _view.ChangeMaterial(material);
         }
 
         public void Tick(Vector3 start, Vector3 end, RopeLengthState length, int segments, float deltaTime, float radius, IRopeObstacles obstacles)

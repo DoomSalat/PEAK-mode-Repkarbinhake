@@ -61,11 +61,9 @@ namespace Repkarbinhake.Unity
             ApplyHighlight(0f, Color.black);
         }
 
-        public void Tint(int property, Color color)
+        public void ChangeMaterial(Material material)
         {
-            _renderer.GetPropertyBlock(_properties);
-            _properties.SetColor(property, color);
-            _renderer.SetPropertyBlock(_properties);
+            _renderer.sharedMaterial = material;
         }
 
         private void ApplyHighlight(float interactable, Color emission)

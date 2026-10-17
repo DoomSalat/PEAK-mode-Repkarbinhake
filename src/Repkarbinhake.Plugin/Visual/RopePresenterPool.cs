@@ -22,7 +22,6 @@ namespace Repkarbinhake.Plugin.Visual
 
         private static readonly Color FallbackColor = new Color(0.55f, 0.36f, 0.18f); // Static: constant rope color
         private static readonly Color HighlightEmission = new Color(0.55f, 0.4f, 0.1f); // Static: constant hover glow
-        private static readonly int[] TintProperties = { Shader.PropertyToID("_BaseColor"), Shader.PropertyToID("_Color") }; // Static: shader property ids are global
 
         private readonly Transform _root;
         private readonly RepkaConfig _config;
@@ -35,6 +34,7 @@ namespace Repkarbinhake.Plugin.Visual
         private readonly VanillaRopeSpool _spool;
         private readonly RopeRayPicker _picker = new RopeRayPicker();
         private readonly Dictionary<string, RopePresenter> _presenters = new Dictionary<string, RopePresenter>();
+        private readonly RopeRecolor _recolor = new RopeRecolor();
         private Material _material;
 
         public RopePresenterPool(Transform root, RepkaConfig config, RopeReel reel, RopeSegmentation segmentation, ActorStates actors, LinkRegistry registry, RopeHandPolicy policy, IRopeObstacles obstacles, VanillaRopeSpool spool)
@@ -71,17 +71,8 @@ namespace Repkarbinhake.Plugin.Visual
             if (!_presenters.TryGetValue(link.Key, out RopePresenter presenter))
                 return;
 
-            Material material = RopeMaterial();
-
-            foreach (int property in TintProperties)
-            {
-                if (!material.HasProperty(property))
-                    continue;
-
-                Color tint = Color.Lerp(Color.white, color, _config.RopeTint.Value);
-                presenter.Tint(property, material.GetColor(property) * tint);
-                return;
-            }
+            if (_config.RopeColor.Value > 0f)
+                presenter.ChangeMaterial(_recolor.For(RopeMaterial(), color, _config.RopeColor.Value));
         }
 
         public void Remove(RopeLink link)

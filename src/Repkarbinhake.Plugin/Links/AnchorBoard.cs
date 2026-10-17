@@ -38,13 +38,14 @@ namespace Repkarbinhake.Plugin.Links
 
         public void Remove(int owner)
         {
-            if (!_anchors.Remove(owner))
+            if (!_anchors.ContainsKey(owner))
                 return;
-
-            _visuals.Hide(owner);
 
             if (_registry.TryGet(owner, AnchorActors.Of(owner), out RopeLink link))
                 _registry.Untie(link);
+
+            _anchors.Remove(owner);
+            _visuals.Hide(owner);
         }
 
         public void EnsureLinks()

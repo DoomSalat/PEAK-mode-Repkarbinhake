@@ -42,7 +42,7 @@ Repkarbinhake.Core (netstandard2.1, без Unity/Photon/BepInEx — тестир
     └── AnchorActors / AnchorPlacement / AnchorPayloadCodec — номер крюка (−владелец), место и ориентация, строка свойства комнаты
 
 Repkarbinhake.Unity (netstandard2.1, только UnityEngine — общий для мода и песочницы)
-├── RopeTubeView           — View: меш-трубка по точкам, подсветка (_Interactable / _EmissionColor), оттенок Tint(property, color) через MaterialPropertyBlock
+├── RopeTubeView           — View: меш-трубка по точкам, подсветка (_Interactable / _EmissionColor), ChangeMaterial(material) — смена материала (перекрашенная копия)
 ├── PhysicsRopeObstacles   — IRopeObstacles через Physics.SphereCast / ComputePenetration, сам создаёт пробный коллайдер вдали от сцены; пропускает коллайдеры по IColliderFilter (NoColliderFilter в песочнице)
 └── VectorConversion       — UnityEngine ↔ System.Numerics
 
@@ -67,7 +67,7 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 ├── Links
 │   ├── CharacterDirectory   — actor ↔ Character
 │   ├── ActorStates          — IFootingSource + IActorLifeSource + точки крепления верёвки (бедро / катушка в руках)
-│   ├── AnchorBoard          — крюки игроков (владелец → место): связка игрок ↔ крюк (крюк = актёр −номер, верёвка локальная у каждого клиента), точка верёвки на крюке, EnsureLinks
+│   ├── AnchorBoard          — крюки игроков (владелец → место): связка игрок ↔ крюк (крюк = актёр −номер, верёвка локальная у каждого клиента), точка верёвки на крюке, EnsureLinks; Remove сначала развязывает, потом убирает крюк — чтобы звук отстёгивания нашёл точку
 │   └── LinkColors           — цвет каждой связки из палитры RepkaColors (первый свободный при появлении, свой у каждого клиента); TryGetColor — цвет верёвки (у крюков нет)
 ├── Input
 │   ├── LinkHoldInput        — G: цель по взгляду, удержание, связать / отцепить
@@ -84,13 +84,14 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 │   ├── RopeHoldPoses        — кто держит верёвку (все игроки) + угол катушки по изменению Reel (200°/м); показываемый угол догоняет целевой (сглаживание чужих рывков сети)
 │   └── RopeHoldPose         — actor + угол вращения катушки
 ├── Visual
-│   ├── RopePresenterPool    — верёвки на сцене: создание, отрисовка, путь (span), наведение, материал; Tint — основной цвет материала (_BaseColor / _Color) умножается на цвет связки из ESC, сила RopeTint (Visual, 0,35)
+│   ├── RopePresenterPool    — верёвки на сцене: создание, отрисовка, путь (span), наведение, материал; Tint — материал верёвки с перекрашенной текстурой (RopeRecolor) цвета связки из ESC, доля RopeColor (Visual, 0,85)
+│   ├── RopeRecolor          — копия материала верёвки на цвет: текстура читается через RenderTexture, оттенок каждого пикселя меняется на цвет связки с сохранением светлоты волокон (кэш по цвету; без текстуры — смешивается основной цвет)
 │   ├── RopePresenter        — одна верёвка: RopeWrapPath + RopeSag + RopeLooseness + RopeTubeView + RopeInteractible; при пропаже конца путь сбрасывается
 │   ├── SpoolProps           — визуальная копия обычной катушки в руках каждого держащего: центр её Hand_R/Hand_L ставится между физическими кистями, источник точки выхода верёвки
 │   ├── SpoolProp            — MonoBehaviour на корне копии (ссылки на колесо и точки выхода переносятся при Instantiate из шаблона, собранного один раз): колесо (ropeSpoolTf) вращается при смотке, верёвка как у ванильной: видимый путь ropeStart → ropeBase → физическая часть (ActorStates: ropeBase — точка физики, TryGetRopeLead — ropeStart для отрисовки)
 │   ├── CarabinerSounds / LinkSoundFeedback — SFX_Instance → SFX_Player игры; звук в середине верёвки
 │   ├── ChestColliderFilter  — верёвка проходит сквозь сундуки: Luggage (в т.ч. LuggageCursed, RespawnChest) и MirageLuggage, результат кэшируется по коллайдеру
-│   ├── AnchorVisuals        — модель крюка из ванильной катушки (RopeTier.anchorPreview): обычная у поставленных, призрак при наведении
+│   ├── AnchorVisuals        — модель крюка из ванильной катушки: при наведении — полупрозрачный RopeTier.anchorPreview, у поставленных — в превью вместо прозрачных частей непрозрачный normalPart из RopeTier.anchorPrefab (сам сетевой префаб не создаётся)
 │   ├── CarabinerHud         — прицел-карабин (материал ванильного прицела) и подсказка «Привязать / Отцепить» с иконкой клавиши
 │   ├── PlayerListBadges     — ряды цветных карабинов в списке игроков (ESC), проверка наложения на громкость / кик
 │   ├── LinkBadgeRow         — ряд цветных карабинов под аватаркой в списке игроков (ESC), материал прицела, проверка наложения на громкость / кик
@@ -136,7 +137,7 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой в BepInEx/plugins/Repkar
 | `HoldAction` | `src/Repkarbinhake.Core/Interaction/HoldAction.cs` | Удержание клавиши на цели (отцеп) | `Begin(target, duration)`, `Advance(isHeld, currentTarget, dt)`, `Cancel`, `Progress`, `IsActive` |
 | `UntiedKeySweeper` | `src/Repkarbinhake.Core/Links/UntiedKeySweeper.cs` | Учёт развязанных ключей; наблюдают все, собирает хост | `Observe(update, now)`, `Collect(now, maxAge, result)`, `Forget`, `Clear` |
 | `RopeRayPicker` | `src/Repkarbinhake.Core/Visual/RopeRayPicker.cs` | Попадание луча взгляда в верёвку (ближайшее сближение луча с отрезками) | `TryPick(origin, direction, maxDistance, tolerance, points, out distance)` |
-| `RopeTubeView` | `src/Repkarbinhake.Unity/RopeTubeView.cs` | View верёвки | `Initialize(filter, renderer, material, radius, highlightEmission)`, `Render(points)`, `Highlight`, `Unhighlight`, `Tint(property, color)` |
+| `RopeTubeView` | `src/Repkarbinhake.Unity/RopeTubeView.cs` | View верёвки | `Initialize(filter, renderer, material, radius, highlightEmission)`, `Render(points)`, `Highlight`, `Unhighlight`, `ChangeMaterial(material)` |
 | `PhysicsRopeObstacles` | `src/Repkarbinhake.Unity/PhysicsRopeObstacles.cs` | Обход рельефа точками верёвки: проверка по ходу движения + выталкивание из геометрии | ctor `(layerMask, probe SphereCollider)`; `Resolve(from, to, radius)` |
 | `RopeSegmentation` | `src/Repkarbinhake.Core/Visual/RopeSegmentation.cs` | Кол-во костей: `clamp(ceil(length / SegmentLength), 4, Cap)`; `Cap` = `FixedSegments` или `SegmentBudget / кол-во верёвок` в пределах `AutoMaxSegments` | `Count(length, ropeCount)`, `Cap(ropeCount)` |
 
