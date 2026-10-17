@@ -22,14 +22,13 @@ namespace Repkarbinhake.Plugin.Network
         private readonly DepartedUntieRule _departedRule;
         private readonly LobbyRopeSettings _settings;
         private readonly RepkaConfig _config;
-        private readonly TestAnchor _anchor;
         private readonly HashSet<int> _present = new HashSet<int>();
         private readonly List<RopeLink> _departed = new List<RopeLink>();
         private readonly List<LinkUpdate> _stale = new List<LinkUpdate>();
         private float _hostTimer;
         private float _now;
 
-        public RoomLinkSync(PhotonLinkTransport transport, LinkRegistry registry, UntiedKeySweeper sweeper, DepartedUntieRule departedRule, LobbyRopeSettings settings, RepkaConfig config, TestAnchor anchor)
+        public RoomLinkSync(PhotonLinkTransport transport, LinkRegistry registry, UntiedKeySweeper sweeper, DepartedUntieRule departedRule, LobbyRopeSettings settings, RepkaConfig config)
         {
             _transport = transport;
             _registry = registry;
@@ -37,7 +36,6 @@ namespace Repkarbinhake.Plugin.Network
             _departedRule = departedRule;
             _settings = settings;
             _config = config;
-            _anchor = anchor;
         }
 
         public event Action JoinedRoom;
@@ -97,8 +95,6 @@ namespace Repkarbinhake.Plugin.Network
 
         public void OnLeftRoom()
         {
-            _anchor.Remove();
-
             _registry.Clear();
             _sweeper.Clear();
             _settings.ForgetHost();
@@ -176,12 +172,12 @@ namespace Repkarbinhake.Plugin.Network
 
             foreach (PhotonPlayer player in PhotonNetwork.PlayerList)
             {
-                if (!player.IsInactive)
-                    _present.Add(player.ActorNumber);
-            }
+                if (player.IsInactive)
+                    continue;
 
-            if (_anchor.IsPlaced)
-                _present.Add(TestAnchor.Actor);
+                _present.Add(player.ActorNumber);
+                _present.Add(AnchorActors.Of(player.ActorNumber));
+            }
 
             _departedRule.Collect(_registry.Links, _present, _departed);
 

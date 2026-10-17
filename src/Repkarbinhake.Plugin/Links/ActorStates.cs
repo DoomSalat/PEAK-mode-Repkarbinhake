@@ -7,19 +7,19 @@ namespace Repkarbinhake.Plugin.Links
     public sealed class ActorStates : IFootingSource, IActorLifeSource
     {
         private readonly CharacterDirectory _characters;
-        private readonly TestAnchor _anchor;
+        private readonly AnchorBoard _anchors;
         private readonly SpoolProps _spools;
 
-        public ActorStates(CharacterDirectory characters, TestAnchor anchor, SpoolProps spools)
+        public ActorStates(CharacterDirectory characters, AnchorBoard anchors, SpoolProps spools)
         {
             _characters = characters;
-            _anchor = anchor;
+            _anchors = anchors;
             _spools = spools;
         }
 
         public Footing FootingOf(int actor)
         {
-            if (actor == TestAnchor.Actor)
+            if (AnchorActors.IsAnchor(actor))
                 return Footing.Grounded;
 
             if (!_characters.TryFind(actor, out Character character))
@@ -43,11 +43,8 @@ namespace Repkarbinhake.Plugin.Links
 
         public bool TryGetRopePoint(int actor, bool holding, out Vector3 point)
         {
-            if (actor == TestAnchor.Actor)
-            {
-                point = _anchor.Position;
-                return _anchor.IsPlaced;
-            }
+            if (AnchorActors.IsAnchor(actor))
+                return _anchors.TryGetRopePoint(actor, out point);
 
             if (!_characters.TryFind(actor, out Character character))
             {
@@ -70,8 +67,8 @@ namespace Repkarbinhake.Plugin.Links
 
         public bool IsPresent(int actor)
         {
-            if (actor == TestAnchor.Actor)
-                return _anchor.IsPlaced;
+            if (AnchorActors.IsAnchor(actor))
+                return _anchors.Has(AnchorActors.OwnerOf(actor));
 
             return _characters.TryFind(actor, out _);
         }

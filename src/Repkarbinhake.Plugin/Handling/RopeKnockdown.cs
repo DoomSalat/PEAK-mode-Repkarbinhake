@@ -34,7 +34,7 @@ namespace Repkarbinhake.Plugin.Handling
 
             foreach (RopeLink link in _registry.Links)
             {
-                if (!link.Contains(actor))
+                if (!link.Contains(actor) || AnchorActors.IsAnchor(link.FirstActor))
                     continue;
 
                 SkipIfReshaped(link);

@@ -116,7 +116,7 @@ namespace Repkarbinhake.Plugin.Visual
 
             foreach (RopePresenter presenter in _presenters.Values)
             {
-                if (!presenter.Link.Contains(localActor))
+                if (!presenter.Link.Contains(localActor) || AnchorActors.IsAnchor(presenter.Link.FirstActor))
                     continue;
 
                 if (!presenter.TryPick(_picker, ray, _config.RopeAimReach.Value, _config.RopeAimTolerance.Value, out float hit) || hit >= distance)
@@ -164,7 +164,7 @@ namespace Repkarbinhake.Plugin.Visual
         private bool CanInteract(RopeLink link)
         {
             int local = _registry.LocalActor;
-            return link.Contains(local) && _policy.CanHold(_actors.FootingOf(local));
+            return link.Contains(local) && !AnchorActors.IsAnchor(link.FirstActor) && _policy.CanHold(_actors.FootingOf(local));
         }
 
         private bool IsHeldLocally(RopeLink link)

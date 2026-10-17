@@ -8,6 +8,7 @@ namespace Repkarbinhake.Plugin.Data
         private bool _resolved;
         private Item _item;
         private RopeSpool _spool;
+        private RopeTier _tier;
         private RopeBoneVisualizer _visualizer;
 
         public Item Item
@@ -25,6 +26,15 @@ namespace Repkarbinhake.Plugin.Data
             {
                 Resolve();
                 return _spool;
+            }
+        }
+
+        public RopeTier Tier
+        {
+            get
+            {
+                Resolve();
+                return _tier;
             }
         }
 
@@ -53,6 +63,7 @@ namespace Repkarbinhake.Plugin.Data
 
                 _item = item;
                 _spool = spool;
+                _tier = item.GetComponent<RopeTier>();
                 _visualizer = spool.ropePrefab.GetComponentInChildren<RopeBoneVisualizer>(true);
                 return;
             }

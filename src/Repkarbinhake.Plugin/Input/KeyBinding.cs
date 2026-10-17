@@ -17,6 +17,7 @@ namespace Repkarbinhake.Plugin.Input
 
         public bool IsPressed => _action.IsPressed();
         public bool WasPressed => _action.WasPressedThisFrame();
+        public bool WasReleased => _action.WasReleasedThisFrame();
 
         public void Dispose()
         {

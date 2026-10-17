@@ -49,7 +49,7 @@ namespace Repkarbinhake.Plugin.Handling
                 if (!_actors.TryGetRopePoint(partner, link.IsHeldBy(partner), out Vector3 partnerPoint))
                     continue;
 
-                if (_tension.IsSnapped(local.Center.ToNumerics(), partnerPoint.ToNumerics()))
+                if (!AnchorActors.IsAnchor(partner) && _tension.IsSnapped(local.Center.ToNumerics(), partnerPoint.ToNumerics()))
                 {
                     _snapped.Add(link);
                     continue;

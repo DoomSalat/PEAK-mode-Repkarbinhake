@@ -46,7 +46,7 @@ namespace Repkarbinhake.Plugin.Links
 
             foreach (RopeLink link in _registry.Links)
             {
-                if (link.Contains(actor) && _slots.TryGetValue(link.Key, out int slot))
+                if (link.Contains(actor) && !AnchorActors.IsAnchor(link.FirstActor) && _slots.TryGetValue(link.Key, out int slot))
                     colors.Add(RepkaColors.LinkPalette[slot]);
             }
         }

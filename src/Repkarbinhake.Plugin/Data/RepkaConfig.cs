@@ -41,6 +41,7 @@ namespace Repkarbinhake.Plugin.Data
         public RepkaConfig(ConfigFile file)
         {
             LinkKey = file.Bind(InputSection, "LinkKey", "<Keyboard>/g", "Look at a player and hold to tie or untie.");
+            AnchorKey = file.Bind(InputSection, "AnchorKey", "<Keyboard>/t", "Hold to aim a wall hook, release to set it (tied to you). Press again to take it back.");
             LinkAimAngle = file.Bind(InputSection, "LinkAimAngle", 12f, "Max angle between view direction and the player (degrees).");
             RopeAimReach = file.Bind(InputSection, "RopeAimReach", 2.5f, "Max distance to the rope you grab with the interact key (meters).");
             RopeAimTolerance = file.Bind(InputSection, "RopeAimTolerance", 0.25f, "How close the view ray must pass the rope to aim at it (meters).");
@@ -80,12 +81,11 @@ namespace Repkarbinhake.Plugin.Data
             _autoMaxSegments = file.Bind(PerformanceSection, "AutoMaxSegments", 40, new ConfigDescription("Max bones per rope in Auto mode, even with few ropes.", new AcceptableValueRange<int>(RopeSegmentation.MinSegments, SegmentLimit)));
             _segmentLength = file.Bind(PerformanceSection, "SegmentLength", 0.3f, "Preferred bone spacing (meters). Short ropes never get more bones than they need.");
 
-            EnableTestAnchor = file.Bind(DebugSection, "EnableTestAnchor", true, "Allow tying yourself to a test anchor (local only, for solo testing).");
-            TestAnchorKey = file.Bind(DebugSection, "TestAnchorKey", "<Keyboard>/f8", "Press to place a test anchor where you look and tie to it; press again to remove it.");
             ShowDebugOverlay = file.Bind(DebugSection, "ShowDebugOverlay", false, "Show rope numbers on screen.");
         }
 
         public ConfigEntry<string> LinkKey { get; }
+        public ConfigEntry<string> AnchorKey { get; }
         public ConfigEntry<float> LinkAimAngle { get; }
         public ConfigEntry<float> RopeAimReach { get; }
         public ConfigEntry<float> RopeAimTolerance { get; }
@@ -98,8 +98,6 @@ namespace Repkarbinhake.Plugin.Data
         public ConfigEntry<float> Thickness { get; }
         public ConfigEntry<bool> UseVanillaRopeMaterial { get; }
         public ConfigEntry<float> SoundVolume { get; }
-        public ConfigEntry<bool> EnableTestAnchor { get; }
-        public ConfigEntry<string> TestAnchorKey { get; }
         public ConfigEntry<bool> ShowDebugOverlay { get; }
         public ConfigEntry<float> MaxLengthEntry => _maxLength;
         public float MinLength => _minLength.Value;
