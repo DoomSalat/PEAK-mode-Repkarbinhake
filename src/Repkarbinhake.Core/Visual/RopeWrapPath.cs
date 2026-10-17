@@ -17,6 +17,20 @@ namespace Repkarbinhake.Core.Visual
         private const float SlackFlowRate = 4f;
         private const float MinMaterial = 0.01f;
         private const float FollowRate = 10f;
+        private const float ClimbFriction = 0.36f;
+        private const float ClimbSpeed = 2f;
+        private const float ClimbClearance = 0.5f;
+
+        private static readonly Vector3[] ClimbBlends = // Static: shared direction table (forward, up, side)
+        {
+            new Vector3(1f, 1f, 0f),
+            new Vector3(1f, 1f, 1f),
+            new Vector3(1f, 1f, -1f),
+            new Vector3(0f, 1f, 1f),
+            new Vector3(0f, 1f, -1f),
+            new Vector3(1f, 2f, 0f),
+            new Vector3(1f, 0f, 0f),
+        };
 
         private readonly List<Vector3> _points = new List<Vector3>();
         private readonly List<float> _materials = new List<float>();
@@ -26,6 +40,7 @@ namespace Repkarbinhake.Core.Visual
         private Vector3 _lastEnd;
         private float _lastFirstReel;
         private float _lastSecondReel;
+        private int _climbTurn;
 
         public IReadOnlyList<Vector3> Points => _points;
         public IReadOnlyList<float> Materials => _materials;
@@ -115,6 +130,7 @@ namespace Repkarbinhake.Core.Visual
         private void Simulate(RopeLengthState length, float radius, float deltaTime, IRopeObstacles obstacles)
         {
             ApplyReel(length);
+            Climb(radius, deltaTime, obstacles);
             Unwrap(radius, obstacles);
             WrapStart(radius, obstacles);
             WrapEnd(radius, obstacles);
@@ -151,6 +167,54 @@ namespace Repkarbinhake.Core.Visual
 
             int last = _materials.Count - 1;
             _materials[last] = MathF.Max(_materials[last] + length.Total - Sum(), MinMaterial);
+        }
+
+        private void Climb(float radius, float deltaTime, IRopeObstacles obstacles)
+        {
+            float lift = radius * ContactLift;
+            Vector3 blend = ClimbBlends[_climbTurn];
+            _climbTurn = (_climbTurn + 1) % ClimbBlends.Length;
+
+            for (int i = 1; i < _points.Count - 1; i++)
+            {
+                if (!IsTaut(i - 1) || !IsTaut(i))
+                    continue;
+
+                Vector3 contact = _points[i];
+                Vector3 pull = Direction(contact, _points[i - 1]) + Direction(contact, _points[i + 1]);
+
+                if (pull.LengthSquared() < float.Epsilon)
+                    continue;
+
+                Vector3 forward = Vector3.Normalize(pull);
+                Vector3 side = Vector3.Cross(forward, Vector3.UnitY);
+
+                if (side.LengthSquared() < float.Epsilon)
+                    continue;
+
+                Vector3 direction = Vector3.Normalize(forward * blend.X + Vector3.UnitY * blend.Y + Vector3.Normalize(side) * blend.Z);
+                Vector3 candidate = obstacles.Resolve(contact, contact + direction * ClimbSpeed * deltaTime, lift);
+
+                if (CanClimb(i, contact, candidate, pull.Length(), radius, obstacles))
+                    _points[i] = candidate;
+            }
+        }
+
+        private bool CanClimb(int index, Vector3 contact, Vector3 candidate, float pull, float radius, IRopeObstacles obstacles)
+        {
+            float moved = Vector3.Distance(contact, candidate);
+
+            if (moved < float.Epsilon || candidate.Y < contact.Y)
+                return false;
+
+            float drive = (SpanThrough(index, contact) - SpanThrough(index, candidate)) / moved;
+            float pressure = MathF.Sqrt(MathF.Max(pull * pull - drive * drive, 0f));
+
+            if (drive <= ClimbFriction * pressure)
+                return false;
+
+            float clearance = radius * ClimbClearance;
+            return !obstacles.TryHit(_points[index - 1], candidate, clearance, out _, out _) && !obstacles.TryHit(candidate, _points[index + 1], clearance, out _, out _);
         }
 
         private void SpreadByChords(float total)
@@ -343,6 +407,17 @@ namespace Repkarbinhake.Core.Visual
                 total += material;
 
             return total;
+        }
+
+        private float SpanThrough(int contact, Vector3 position)
+        {
+            return Vector3.Distance(_points[contact - 1], position) + Vector3.Distance(position, _points[contact + 1]);
+        }
+
+        private static Vector3 Direction(Vector3 from, Vector3 to) // Static: pure geometry helper
+        {
+            Vector3 offset = to - from;
+            return offset.LengthSquared() < float.Epsilon ? Vector3.Zero : Vector3.Normalize(offset);
         }
 
         private static Vector3 ClosestOnSegment(Vector3 a, Vector3 b, Vector3 point) // Static: pure geometry helper
