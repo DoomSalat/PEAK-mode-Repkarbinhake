@@ -1,4 +1,4 @@
-# Repkarbinhake
+# Rope Carabiner
 
 Climb PEAK together on a real rope. Tie yourself to a teammate, hold the rope, reel them up, catch them when they fall, or drive a hook into the wall to belay yourself.
 
@@ -29,7 +29,7 @@ Keys can be changed in the config.
 
 ## Settings
 
-All values live in `BepInEx/config/repkarbinhake.cfg` (edit it through your mod manager's config editor).
+All values live in `BepInEx/config/repkarbinhake.cfg` (edit it through your mod manager's config editor; the file keeps the mod's internal name).
 
 Pulling forces are computed by each player's own game for their own character. If a teammate cannot be lifted, they should raise **`MaxPull`** in their config. The full rope length (**`MaxLength`**) is taken from the host.
 
@@ -44,7 +44,3 @@ Useful values:
 | `MaxPull` | 80 | Max pull of a rope on **you** |
 | `AnchorStiffness` | 300 | Stiffness of the wall hook rope |
 | `RopeColor` | 0.85 | How strongly ropes take their color |
-
-## Links
-
-Source code, issues: https://github.com/DoomSalat/PEAK-mode-Repkarbinhake

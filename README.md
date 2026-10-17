@@ -52,7 +52,7 @@ powershell -ExecutionPolicy Bypass -File tools/Pack-Release.ps1
 - `Repkarbinhake-<версия>-<вариант>-full.zip` — BepInEx 5.4.23.5 + мод, распаковать в папку игры (для тех, у кого модов нет);
 - `Repkarbinhake-<версия>-<вариант>-plugin.zip` — только `BepInEx/plugins/Repkarbinhake` (если BepInEx уже стоит).
 
-Ещё один архив — `Repkarbinhake-<версия>-thunderstore.zip` для загрузки на Thunderstore: в корне `manifest.json` (версия подставляется), `icon.png` 256×256, `README.md`, `CHANGELOG.md` из `tools/thunderstore/`, мод из релизной сборки — в `plugins/` (менеджер модов кладёт его в `BepInEx/plugins/<команда>-Repkarbinhake/`). Зависимость — `BepInEx-BepInExPack_PEAK-5.4.75301`. Перед новой версией дополнить `tools/thunderstore/CHANGELOG.md`.
+Ещё один архив — `Repkarbinhake-<версия>-thunderstore.zip` для загрузки на Thunderstore: в корне `manifest.json` (версия подставляется), `icon.png` 256×256, `README.md`, `CHANGELOG.md` из `tools/thunderstore/`, мод из релизной сборки — в `plugins/` (менеджер модов кладёт его в `BepInEx/plugins/<команда>-Rope_Carabiner/`; на Thunderstore пакет называется Rope Carabiner, внутреннее имя мода и файла настроек осталось repkarbinhake). Зависимость — `BepInEx-BepInExPack_PEAK-5.4.75301`. Перед новой версией дополнить `tools/thunderstore/CHANGELOG.md`.
 
 Вручную релизную сборку можно собрать `dotnet build src/Repkarbinhake.Plugin -c Public`.
 
