@@ -17,14 +17,28 @@ namespace Repkarbinhake.Plugin.Visual
 
         public void Tied(RopeLink link)
         {
-            if (TryMiddle(link, out Vector3 middle))
+            if (AnchorActors.IsAnchor(link.FirstActor))
+            {
+                if (_actors.TryGetRopePoint(link.FirstActor, false, out Vector3 hook))
+                    _sounds.PlayHookLock(hook);
+            }
+            else if (TryMiddle(link, out Vector3 middle))
+            {
                 _sounds.PlayLock(middle);
+            }
         }
 
         public void Untied(RopeLink link)
         {
-            if (TryMiddle(link, out Vector3 middle))
+            if (AnchorActors.IsAnchor(link.FirstActor))
+            {
+                if (_actors.TryGetRopePoint(link.FirstActor, false, out Vector3 hook))
+                    _sounds.PlayHookUnlock(hook);
+            }
+            else if (TryMiddle(link, out Vector3 middle))
+            {
                 _sounds.PlayUnlock(middle);
+            }
         }
 
         private bool TryMiddle(RopeLink link, out Vector3 middle)

@@ -18,6 +18,10 @@ namespace Repkarbinhake.Plugin.Visual
         private readonly TMP_Text _text;
         private readonly TMP_Text _key;
         private readonly Dictionary<string, string> _keyTags = new Dictionary<string, string>();
+        private string _shownLine;
+        private string _shownSide;
+        private string _shownSideKey;
+        private string _shownText;
 
         public HudPrompt(GameObject vanilla, string name, ManualLogSource log)
         {
@@ -62,13 +66,29 @@ namespace Repkarbinhake.Plugin.Visual
             _key.spriteAsset = keyboardSprites;
             _key.text = KeyTag(line.KeyPath);
             _text.spriteAsset = keyboardSprites;
-            _text.text = side.Text == null ? line.Text : string.Format(SideFormat, line.Text, KeyTag(side.KeyPath), side.Text);
+            _text.text = TextOf(line, side);
             _root.SetActive(true);
         }
 
         public void Hide()
         {
             _root.SetActive(false);
+        }
+
+        private string TextOf(HudPromptLine line, HudPromptLine side)
+        {
+            if (side.Text == null)
+                return line.Text;
+
+            if (line.Text != _shownLine || side.Text != _shownSide || side.KeyPath != _shownSideKey)
+            {
+                _shownLine = line.Text;
+                _shownSide = side.Text;
+                _shownSideKey = side.KeyPath;
+                _shownText = string.Format(SideFormat, line.Text, KeyTag(side.KeyPath), side.Text);
+            }
+
+            return _shownText;
         }
 
         private string KeyTag(string path)
