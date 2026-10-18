@@ -30,15 +30,15 @@ function Pack([string]$configuration, [string]$flavor, [string]$debugKeys) {
     Copy-Item (Join-Path $pluginProject 'Assets\*') (Join-Path $modFolder 'Assets')
 
     $install = (Get-Content (Join-Path $PSScriptRoot 'INSTALL.txt') -Raw -Encoding UTF8).Replace('{VERSION}', "$version $flavor").Replace('{DEBUG_KEYS}', $debugKeys)
-    Set-Content (Join-Path $pluginStage 'Repkarbinhake-INSTALL.txt') $install -Encoding UTF8
+    Set-Content (Join-Path $pluginStage 'RopeCarabiner-INSTALL.txt') $install -Encoding UTF8
 
     $fullStage = Join-Path $stage 'full'
     New-Item -ItemType Directory -Force $fullStage | Out-Null
     Copy-Item (Join-Path $BepInExDirectory '*') $fullStage -Recurse -Force
     Copy-Item (Join-Path $pluginStage '*') $fullStage -Recurse -Force
 
-    $pluginZip = Join-Path $dist "Repkarbinhake-$version-$flavor-plugin.zip"
-    $fullZip = Join-Path $dist "Repkarbinhake-$version-$flavor-full.zip"
+    $pluginZip = Join-Path $dist "RopeCarabiner-$version-$flavor-plugin.zip"
+    $fullZip = Join-Path $dist "RopeCarabiner-$version-$flavor-full.zip"
     Remove-Item $pluginZip, $fullZip -ErrorAction SilentlyContinue
     # Windows tar writes standard forward-slash zip entries, Compress-Archive in PowerShell 5.1 does not
     & $tar -a -c -f $pluginZip -C $pluginStage @(Get-ChildItem $pluginStage -Force | ForEach-Object Name)
@@ -80,7 +80,7 @@ function PackThunderstore {
     [System.IO.File]::WriteAllText((Join-Path $stage 'README.md'), $kept, $utf8)
     if ($unlinked.Count -gt 0) { Write-Warning "README: $($unlinked.Count) image(s) without a link left out of the package" }
 
-    $zip = Join-Path $dist "Repkarbinhake-$version-thunderstore.zip"
+    $zip = Join-Path $dist "RopeCarabiner-$version-thunderstore.zip"
     Remove-Item $zip -ErrorAction SilentlyContinue
     & $tar -a -c -f $zip -C $stage @(Get-ChildItem $stage -Force | ForEach-Object Name)
     if ($LASTEXITCODE -ne 0) { throw 'Packing failed (thunderstore)' }
@@ -92,4 +92,4 @@ function PackThunderstore {
 Pack 'Public' 'release' ''
 PackThunderstore
 Pack 'Release' 'debug' $debugLines
-Write-Host "Packed Repkarbinhake $version"
+Write-Host "Packed Rope Carabiner $version"

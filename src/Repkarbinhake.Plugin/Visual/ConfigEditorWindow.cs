@@ -15,7 +15,7 @@ namespace Repkarbinhake.Plugin.Visual
         private const float NameWidth = 200f;
         private const float ScopeWidth = 150f;
         private const float HintHeight = 54f;
-        private const string Title = "Repkarbinhake — настройки";
+        private const string Title = RepkaPlugin.Name + " — настройки";
         private const string ApplyText = "Применить";
         private const string ResetText = "Сбросить";
         private const string CloseText = "Закрыть";

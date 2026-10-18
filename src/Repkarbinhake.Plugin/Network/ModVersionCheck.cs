@@ -63,18 +63,18 @@ namespace Repkarbinhake.Plugin.Network
             _reported[player.ActorNumber] = version;
 
             if (version == _version)
-                _log.LogInfo($"{nameof(ModVersionCheck)}: {player.NickName} has Repkarbinhake {version}");
+                _log.LogInfo($"{nameof(ModVersionCheck)}: {player.NickName} has {RepkaPlugin.Name} {version}");
             else
                 Warn(player, version);
         }
 
         private void Warn(PhotonPlayer player, string version)
         {
-            _log.LogWarning($"{nameof(ModVersionCheck)}: {player.NickName} has Repkarbinhake {version}, you have {_version} — ropes may behave differently");
+            _log.LogWarning($"{nameof(ModVersionCheck)}: {player.NickName} has {RepkaPlugin.Name} {version}, you have {_version} — ropes may behave differently");
             PlayerConnectionLog feed = RepkaHooks.ConnectionLog;
 
             if (feed != null)
-                feed.AddMessage($"Repkarbinhake: {feed.GetColorTag(feed.userColor)}{player.NickName}</color> {version} ≠ {_version}");
+                feed.AddMessage($"{RepkaPlugin.Name}: {feed.GetColorTag(feed.userColor)}{player.NickName}</color> {version} ≠ {_version}");
         }
     }
 }
