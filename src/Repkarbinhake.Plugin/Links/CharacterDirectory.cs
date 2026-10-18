@@ -29,7 +29,7 @@ namespace Repkarbinhake.Plugin.Links
             return _byActor.TryGetValue(actor, out result) && result != null;
         }
 
-        public int ActorOf(Character character)
+        public static int ActorOf(Character character) // Static: pure Photon lookup, also needed by Harmony patches
         {
             return character.photonView.Owner == null ? 0 : character.photonView.Owner.ActorNumber;
         }

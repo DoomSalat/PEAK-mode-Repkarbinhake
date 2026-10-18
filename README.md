@@ -2,6 +2,16 @@
 
 Мод для PEAK (BepInEx 5): игроки связываются физичной верёвкой, сматывают её, страхуют и вытягивают друг друга.
 
+## Что умеет
+
+- **Связка** — G на тиммейта; верёвка огибает камни, кроны деревьев, полы цитадели и подвесные мосты снаружи.
+- **Верёвка в руках** — E взять / отпустить, G подтянуть, T размотать, колесо мыши; держащий на земле стоит устойчиво, тянуть вдвоём-втроём легче.
+- **Страховка** — сорвавшийся повисает на верёвке; у края его выталкивает на пол (`MantleStep` / `MantlePush`), подтянутого ближе 3,5 м тянущий сам подхватывает ванильной рукой (`AutoHandUp`); натянутая верёвка вытаскивает из кактуса, паутины и мухоловки (`FreeWhenPulled`).
+- **Крюк T** — вбить в стену стоя на земле; верёвка до `HookLength` (своя у каждого) идёт следом, ловит срыв и сматывает обратно к крюку; у прицела значок с метрами и цветом состояния.
+- **Удобство** — подсказки клавиш на языке игры, ник партнёра цветом верёвки, цвета связок в списке игроков (ESC), окно настроек в игре, защита от укачивания камерой (`StableCamera`).
+
+Все настройки с описанием — [CONFIG.md](CONFIG.md), отладка — [DEBUG.md](DEBUG.md).
+
 ## Структура
 
 | Папка | Что внутри |
@@ -52,7 +62,7 @@ powershell -ExecutionPolicy Bypass -File tools/Pack-Release.ps1
 - `Repkarbinhake-<версия>-<вариант>-full.zip` — BepInEx 5.4.23.5 + мод, распаковать в папку игры (для тех, у кого модов нет);
 - `Repkarbinhake-<версия>-<вариант>-plugin.zip` — только `BepInEx/plugins/Repkarbinhake` (если BepInEx уже стоит).
 
-Ещё один архив — `Repkarbinhake-<версия>-thunderstore.zip` для загрузки на Thunderstore: в корне `manifest.json` (версия подставляется), `icon.png` 256×256, `README.md`, `CHANGELOG.md` из `tools/thunderstore/`, мод из релизной сборки — в `plugins/` (менеджер модов кладёт его в `BepInEx/plugins/<команда>-Rope_Carabiner/`; на Thunderstore пакет называется Rope Carabiner, внутреннее имя мода и файла настроек осталось repkarbinhake); `website_url` и раздел Links описания ведут на этот репозиторий, картинки страницы лежат в публичном `DoomSalat/Rope-Carabiner-media`. Зависимость — `BepInEx-BepInExPack_PEAK-5.4.75301`. Перед новой версией дополнить `tools/thunderstore/CHANGELOG.md`.
+Ещё один архив — `Repkarbinhake-<версия>-thunderstore.zip` для загрузки на Thunderstore: в корне `manifest.json` (версия подставляется), `icon.png` 256×256, `README.md`, `CHANGELOG.md` из `tools/thunderstore/`, мод из релизной сборки — в `plugins/` (менеджер модов кладёт его в `BepInEx/plugins/<команда>-Rope_Carabiner/`; на Thunderstore пакет называется Rope Carabiner, внутреннее имя мода и файла настроек осталось repkarbinhake); `website_url` и раздел Links описания ведут на этот репозиторий, картинки страницы лежат в этом же репозитории в `tools/thunderstore/images/` (ссылки raw.githubusercontent на ветку `main`, поэтому картинки должны быть запушены до загрузки пакета). Зависимость — `BepInEx-BepInExPack_PEAK-5.4.75301`. Перед новой версией дополнить `tools/thunderstore/CHANGELOG.md`.
 
 Вручную релизную сборку можно собрать `dotnet build src/Repkarbinhake.Plugin -c Public`.
 

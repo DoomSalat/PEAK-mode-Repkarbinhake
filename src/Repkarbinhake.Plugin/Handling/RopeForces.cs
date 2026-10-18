@@ -44,8 +44,11 @@ namespace Repkarbinhake.Plugin.Handling
             _mantle = mantle;
         }
 
+        public bool IsPulledByTeammate { get; private set; }
+
         public void Apply(Character local, int actor)
         {
+            IsPulledByTeammate = false;
             float stability = _stability.Resolve(actor, _registry.Links);
             Vector3 total = Vector3.zero;
             bool partnerHolds = false;
@@ -60,24 +63,27 @@ namespace Repkarbinhake.Plugin.Handling
                     continue;
 
                 int partner = link.Partner(actor);
+                bool hook = AnchorActors.IsAnchor(partner);
+                bool held = link.IsHeldBy(partner);
 
-                if (!_actors.TryGetRopePoint(partner, link.IsHeldBy(partner), out Vector3 partnerPoint))
+                if (!_actors.TryGetRopePoint(partner, held, out Vector3 partnerPoint))
                     continue;
 
-                if (!AnchorActors.IsAnchor(partner) && _tension.IsSnapped(local.Center.ToNumerics(), partnerPoint.ToNumerics()))
+                if (!hook && _tension.IsSnapped(local.Center.ToNumerics(), partnerPoint.ToNumerics()))
                 {
                     _snapped.Add(link);
                     continue;
                 }
 
-                partnerHolds |= link.IsHeldBy(partner);
-                TensionSolver tension = AnchorActors.IsAnchor(partner) ? _anchorTension : _tension;
+                partnerHolds |= held;
+                TensionSolver tension = hook ? _anchorTension : _tension;
                 RopeSpan span = _ropes.SpanFor(link, actor);
-                total += tension.Solve(span, local.data.avarageVelocity.ToNumerics(), _lengths.EffectiveLength(link), stability).ToUnity();
+                float length = _lengths.EffectiveLength(link);
+                total += tension.Solve(span, local.data.avarageVelocity.ToNumerics(), length, stability).ToUnity();
+                bool taut = (hook || held) && tension.Load(span, length) > 0f;
+                IsPulledByTeammate |= taut && !hook;
 
-                bool hook = AnchorActors.IsAnchor(partner);
-
-                if (!hauled && (hook || link.IsHeldBy(partner)) && tension.Load(span, _lengths.EffectiveLength(link)) > 0f)
+                if (!hauled && taut)
                     hauled = TryGetLip(link, actor, partnerPoint.ToNumerics(), hook ? 0f : HandsAboveFloor, local.Center.ToNumerics(), out lip, out beyondLip);
             }
 

@@ -7,13 +7,11 @@ namespace Repkarbinhake.Plugin.Input
     public sealed class LinkTargetPicker
     {
         private readonly RepkaConfig _config;
-        private readonly CharacterDirectory _characters;
         private readonly TestDummy _dummy;
 
-        public LinkTargetPicker(RepkaConfig config, CharacterDirectory characters, TestDummy dummy)
+        public LinkTargetPicker(RepkaConfig config, TestDummy dummy)
         {
             _config = config;
-            _characters = characters;
             _dummy = dummy;
         }
 
@@ -28,7 +26,7 @@ namespace Repkarbinhake.Plugin.Input
                     continue;
 
                 if (IsBetter(view, candidate.Center, ref bestAngle))
-                    target = _characters.ActorOf(candidate);
+                    target = CharacterDirectory.ActorOf(candidate);
             }
 
             if (_dummy.IsPlaced && IsDummyAimed(view, ref bestAngle))

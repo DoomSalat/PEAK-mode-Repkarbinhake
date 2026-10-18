@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.1.0
+
+- **Give a hand:** pull a hanging or passed-out friend close and look at them — you let go of the rope and help them up like with the right mouse button (`AutoHandUp`).
+- **Rescue:** a taut rope pulls a friend out of a cactus, a spider web or a flytrap (`FreeWhenPulled`).
+- **Help onto the edge:** when you're hauled up and stuck right under the edge, you get pushed onto the floor (`MantleStep`, `MantlePush`).
+- **Wall hook:** after catching a fall it reels you back up; own rope length `HookLength`; the icon by the crosshair shows meters, turns orange at full length, red while holding you, with red arrows while reeling you up; its click sounds lower and comes from the hook.
+- **Let the rope out:** hold **T** while holding a rope; hanging in the air you let it out slower, so a friend pulling you up always wins.
+- The rope stays on the outside of tree crowns, citadel floors and hanging bridges instead of tangling inside.
+- The partner's name sits next to "Rope", both in the rope color; "Pull in" and "Let out" hints share one line.
+- Optional `StableCamera`: the camera stops spinning while you dangle (off by default).
+- `ArmStrength` default raised to 90.
+- Mod page pictures now load from the main repository.
+
 ## 1.0.3
 
 - Mod page now shows pictures and the tie GIF.

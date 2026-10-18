@@ -21,6 +21,7 @@ namespace Repkarbinhake.Plugin.Patches
         {
             RopeInteractible rope = __instance.currentInteractable as RopeInteractible;
             bool aimsRope = rope != null;
+
             if (aimsRope && __instance.interactPromptText.text != rope.GetInteractionText())
                 __instance.RefreshInteractablePrompt();
 
@@ -28,7 +29,7 @@ namespace Repkarbinhake.Plugin.Patches
             HudPromptLine prompt = new HudPromptLine(RepkaHooks.ReleasePrompt && vanillaShowsRope ? null : RepkaHooks.LinkPrompt, RepkaHooks.LinkKeyPath);
             HudPromptLine pullPrompt = new HudPromptLine(RepkaHooks.PullPrompt, RepkaHooks.PullKeyPath);
             HudPromptLine unwindPrompt = new HudPromptLine(RepkaHooks.UnwindPrompt, RepkaHooks.UnwindKeyPath);
-            RepkaHooks.Hud?.Show(__instance, RepkaHooks.ShowCarabinerReticle, prompt, pullPrompt, unwindPrompt, aimsRope ? rope.PartnerName : null, aimsRope ? rope.Color : Color.white, new HookIndicatorState(RepkaHooks.HookPlaced, RepkaHooks.HookLocked, RepkaHooks.HookAtMax, RepkaHooks.HookRetracting, RepkaHooks.HookMeters));
+            RepkaHooks.Hud?.Show(__instance, RepkaHooks.ShowCarabinerReticle, prompt, pullPrompt, unwindPrompt, aimsRope ? rope.PartnerName : null, aimsRope ? rope.Color : Color.white, RepkaHooks.Hook);
         }
 
         [HarmonyPostfix]

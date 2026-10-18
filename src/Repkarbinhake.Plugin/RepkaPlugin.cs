@@ -12,7 +12,7 @@ namespace Repkarbinhake.Plugin
     {
         public const string Guid = "repkarbinhake";
         public const string Name = "Repkarbinhake";
-        public const string Version = "1.0.3";
+        public const string Version = "1.1.0";
 
         private Harmony _harmony;
 

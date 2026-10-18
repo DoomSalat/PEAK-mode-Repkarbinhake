@@ -31,8 +31,9 @@ namespace Repkarbinhake.Plugin.Patches
         private readonly ConfigEntry<string> _pullKey;
         private readonly ConfigEntry<string> _unwindKey;
         private readonly ConfigEntry<bool> _stableCamera;
+        private readonly AutoHandUp _handUp;
 
-        public RepkaHookFeed(LinkRegistry registry, RopeReel reel, RopeHandPolicy policy, RopePresenterPool ropes, LinkHoldInput linkHold, AnchorBoard anchors, AnchorRopes anchorRopes, LinkColors colors, ConfigEntry<float> ropeColor, ConfigEntry<string> linkKey, ConfigEntry<string> pullKey, ConfigEntry<string> unwindKey, ConfigEntry<bool> stableCamera)
+        public RepkaHookFeed(LinkRegistry registry, RopeReel reel, RopeHandPolicy policy, RopePresenterPool ropes, LinkHoldInput linkHold, AnchorBoard anchors, AnchorRopes anchorRopes, AutoHandUp handUp, LinkColors colors, ConfigEntry<float> ropeColor, ConfigEntry<string> linkKey, ConfigEntry<string> pullKey, ConfigEntry<string> unwindKey, ConfigEntry<bool> stableCamera)
         {
             _registry = registry;
             _reel = reel;
@@ -41,6 +42,7 @@ namespace Repkarbinhake.Plugin.Patches
             _linkHold = linkHold;
             _anchors = anchors;
             _anchorRopes = anchorRopes;
+            _handUp = handUp;
             _colors = colors;
             _ropeColor = ropeColor;
             _linkKey = linkKey;
@@ -51,12 +53,11 @@ namespace Repkarbinhake.Plugin.Patches
 
         public void Publish(int actor, Footing footing, Transform view)
         {
-            RepkaHooks.HookPlaced = _anchors.Has(actor);
-            RepkaHooks.HookLocked = RepkaHooks.HookPlaced && _anchorRopes.IsOwnLocked;
-            RepkaHooks.HookAtMax = RepkaHooks.HookPlaced && _anchorRopes.IsOwnAtMax;
-            RepkaHooks.HookRetracting = RepkaHooks.HookPlaced && _anchorRopes.IsOwnRetracting;
-            RepkaHooks.HookMeters = _anchorRopes.OwnMeters;
+            RepkaHooks.Hook = _anchors.Has(actor) ? new HookIndicatorState(true, _anchorRopes.IsOwnLocked, _anchorRopes.IsOwnAtMax, _anchorRopes.IsOwnRetracting, _anchorRopes.OwnMeters) : default;
             RepkaHooks.StableCamera = _stableCamera.Value && IsTied(actor);
+            RepkaHooks.HandUpTarget = _handUp.Target;
+            RepkaHooks.LocalHelpless = AutoHandUp.IsHelpless(footing);
+            CollectPartners(actor);
             RepkaHooks.ShowCarabinerReticle = _linkHold.HasAction;
             RepkaHooks.LinkHoldProgress = _linkHold.Progress;
             bool holds = _registry.TryGetHeld(actor, out RopeLink heldLink);
@@ -95,12 +96,11 @@ namespace Repkarbinhake.Plugin.Patches
         {
             RepkaHooks.HeldRope = null;
             RepkaHooks.AimedRope = null;
-            RepkaHooks.HookPlaced = false;
-            RepkaHooks.HookLocked = false;
-            RepkaHooks.HookAtMax = false;
-            RepkaHooks.HookRetracting = false;
-            RepkaHooks.HookMeters = 0f;
+            RepkaHooks.Hook = default;
             RepkaHooks.StableCamera = false;
+            RepkaHooks.HandUpTarget = 0;
+            RepkaHooks.LocalHelpless = false;
+            RepkaHooks.TiedPartners.Clear();
             RepkaHooks.ShowCarabinerReticle = false;
             RepkaHooks.LinkHoldProgress = 0f;
             RepkaHooks.LinkPrompt = null;
@@ -109,6 +109,17 @@ namespace Repkarbinhake.Plugin.Patches
             RepkaHooks.UnwindPrompt = null;
             RepkaHooks.HeldRopeLength = 0f;
             RepkaHooks.HeldRopeColor = null;
+        }
+
+        private void CollectPartners(int actor)
+        {
+            RepkaHooks.TiedPartners.Clear();
+
+            foreach (RopeLink link in _registry.Links)
+            {
+                if (link.Contains(actor) && !AnchorActors.IsAnchor(link.FirstActor))
+                    RepkaHooks.TiedPartners.Add(link.Partner(actor));
+            }
         }
 
         private bool IsTied(int actor)

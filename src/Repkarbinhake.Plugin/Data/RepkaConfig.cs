@@ -76,6 +76,8 @@ namespace Repkarbinhake.Plugin.Data
             LedgePush = file.Bind(HangingSection, "LedgePush", 10f, "When a pulled rope holds you stuck under a ledge (in the air, barely moving for 0.3 s), the pull stops pressing you into the wall and pushes you off it this hard, so you swing around the ledge. 0 = off.");
             MantleStep = file.Bind(HangingSection, "MantleStep", 0.8f, "Help onto the edge: when a held rope hauls you up and you get stuck just under the edge, you are pushed onto a floor this far past the edge, toward the puller (meters).");
             MantlePush = file.Bind(HangingSection, "MantlePush", 30f, "Help onto the edge: how hard you are pushed onto that floor. 0 = off.");
+            AutoHandUp = file.Bind(HangingSection, "AutoHandUp", true, "Auto hand-up: while you reel in a teammate who hangs helpless on your rope (in the air or passed out) and they come within 3.5 m in front of you, you let go of the rope and reach out like holding the right mouse button, pulling them up the game's way until they stand.");
+            FreeWhenPulled = file.Bind(HangingSection, "FreeWhenPulled", true, "When a teammate holding your rope pulls it taut, you are freed from a cactus, a spider web or a flytrap, like the game's helping hand (right mouse button) does.");
             BelaySlideCap = file.Bind(HangingSection, "BelaySlideCap", 2f, "Belay: while a partner holds your rope, out-of-stamina wall slide time is capped to this (seconds, 0 = no slide build-up).");
 
             HookLength = file.Bind(HookSection, "HookLength", 14f, "Wall hook rope (T): longest rope from your hook to you (meters). Your own value, not synced with the host. Climbing farther than this, the hook rope holds you back.");
@@ -123,6 +125,8 @@ namespace Repkarbinhake.Plugin.Data
         public ConfigEntry<float> LedgePush { get; }
         public ConfigEntry<float> MantleStep { get; }
         public ConfigEntry<float> MantlePush { get; }
+        public ConfigEntry<bool> AutoHandUp { get; }
+        public ConfigEntry<bool> FreeWhenPulled { get; }
         public ConfigEntry<float> HookLength { get; }
         public ConfigEntry<float> AnchorStiffness { get; }
         public ConfigEntry<float> AnchorDamping { get; }

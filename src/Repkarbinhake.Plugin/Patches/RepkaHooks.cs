@@ -27,11 +27,10 @@ namespace Repkarbinhake.Plugin.Patches
         public static float HeldRopeTint { get; set; } // Set: written by RepkaBack every frame, how strongly the rope gauge takes that color
         public static RopeGaugeTint GaugeTint { get; set; } // Set: assigned once by RepkaBack, driven by the rope gauge patch
         public static PlayerConnectionLog ConnectionLog { get; set; } // Set: remembered by the connection log patch, the on-screen join/leave feed
-        public static bool HookLocked { get; set; } // Set: written by RepkaBack every frame, your hook rope locked its length on a fall
-        public static bool HookPlaced { get; set; } // Set: written by RepkaBack every frame, shows the hook indicator by the crosshair
-        public static bool HookAtMax { get; set; } // Set: written by RepkaBack every frame, your hook rope is at full length
-        public static bool HookRetracting { get; set; } // Set: written by RepkaBack every frame, your locked hook rope reels you back up
-        public static float HookMeters { get; set; } // Set: written by RepkaBack every frame, current length of your hook rope
+        public static HookIndicatorState Hook { get; set; } // Set: written by RepkaBack every frame, your hook state for the indicator by the crosshair
+        public static int HandUpTarget { get; set; } // Set: written by RepkaBack every frame, teammate your auto hand-up reaches for (0 = none)
+        public static bool LocalHelpless { get; set; } // Set: written by RepkaBack every frame, you hang or lie helpless and may be handed up by a tied teammate
+        public static HashSet<int> TiedPartners { get; } = new HashSet<int>(); // Static: refilled by RepkaBack every frame, teammates tied to you by rope
         public static bool StableCamera { get; set; } // Set: written by RepkaBack every frame, keeps the camera off the ragdoll head while tied
         public static bool ConfigWindowOpen { get; set; } // Set: written by RepkaBack every frame, frees the cursor and blocks game input
         public static IReadOnlyDictionary<Character, RopeHoldPose> HoldPoses { get; set; } // Set: assigned once by RepkaBack, read by the hold pose patch

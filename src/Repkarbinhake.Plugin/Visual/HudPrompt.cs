@@ -3,6 +3,7 @@ using BepInEx.Logging;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using Zorro.Core;
 
 namespace Repkarbinhake.Plugin.Visual
@@ -10,25 +11,18 @@ namespace Repkarbinhake.Plugin.Visual
     public sealed class HudPrompt
     {
         private const string KeyFallbackFormat = "[{0}]";
-        private const string SideFormat = "{0}    {1} {2}";
 
         private readonly GameObject _root;
         private readonly RectTransform _rect;
-        private readonly Vector2 _home;
         private readonly TMP_Text _text;
         private readonly TMP_Text _key;
         private readonly Dictionary<string, string> _keyTags = new Dictionary<string, string>();
-        private string _shownLine;
-        private string _shownSide;
-        private string _shownSideKey;
-        private string _shownText;
 
         public HudPrompt(GameObject vanilla, string name, ManualLogSource log)
         {
             _root = Object.Instantiate(vanilla, vanilla.transform.parent);
             _root.name = name;
             _rect = (RectTransform)_root.transform;
-            _home = _rect.anchoredPosition;
 
             foreach (InputIcon icon in _root.GetComponentsInChildren<InputIcon>(true))
             {
@@ -55,18 +49,19 @@ namespace Repkarbinhake.Plugin.Visual
         }
 
         public bool Exists => _root != null;
+        public bool IsComplete => _key != null && _text != null;
 
-        public void Show(HudPromptLine line, HudPromptLine side, int row)
+        public void Show(HudPromptLine line)
         {
-            if (_key == null || _text == null)
+            if (!IsComplete || line.Text == null)
+            {
+                Hide();
                 return;
+            }
 
-            TMP_SpriteAsset keyboardSprites = SingletonAsset<InputSpriteData>.Instance.keyboardSprites;
-            _rect.anchoredPosition = _home + Vector2.up * _rect.rect.height * row;
-            _key.spriteAsset = keyboardSprites;
+            _key.spriteAsset = SingletonAsset<InputSpriteData>.Instance.keyboardSprites;
             _key.text = KeyTag(line.KeyPath);
-            _text.spriteAsset = keyboardSprites;
-            _text.text = TextOf(line, side);
+            _text.text = line.Text;
             _root.SetActive(true);
         }
 
@@ -75,20 +70,15 @@ namespace Repkarbinhake.Plugin.Visual
             _root.SetActive(false);
         }
 
-        private string TextOf(HudPromptLine line, HudPromptLine side)
+        public void LeaveLayout()
         {
-            if (side.Text == null)
-                return line.Text;
+            _root.AddComponent<LayoutElement>().ignoreLayout = true;
+        }
 
-            if (line.Text != _shownLine || side.Text != _shownSide || side.KeyPath != _shownSideKey)
-            {
-                _shownLine = line.Text;
-                _shownSide = side.Text;
-                _shownSideKey = side.KeyPath;
-                _shownText = string.Format(SideFormat, line.Text, KeyTag(side.KeyPath), side.Text);
-            }
-
-            return _shownText;
+        public void PlaceRightOf(HudPrompt other, float gap)
+        {
+            if (IsComplete && other.IsComplete)
+                HudPlacement.RightOf(other._rect, other._text, _rect, _key, gap);
         }
 
         private string KeyTag(string path)

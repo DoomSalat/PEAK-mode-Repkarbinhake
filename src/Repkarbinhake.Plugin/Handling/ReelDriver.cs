@@ -33,6 +33,8 @@ namespace Repkarbinhake.Plugin.Handling
             _team = team;
         }
 
+        public bool IsReelingIn => _velocity < -IdleVelocity;
+
         public void Tick(Character local, int actor, Footing footing, bool pulling, bool unwinding, float deltaTime)
         {
             _velocity = Mathf.Clamp(Mathf.Lerp(_velocity, ScrollTarget(local.input, pulling, unwinding), deltaTime * Smoothing), MinVelocity, MaxVelocity);
