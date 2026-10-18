@@ -8,16 +8,14 @@ namespace Repkarbinhake.Plugin.Patches
     {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MainCameraMovement), "CharacterCam")]
-        public static void KeepLevelWhileTied(MainCameraMovement __instance)
+        public static void SteadyWhileTied(MainCameraMovement __instance)
         {
             Character local = Character.localCharacter;
 
-            if (!RepkaHooks.StableCamera || local == null || local.data.lookDirection == Vector3.zero)
+            if (local == null || RepkaHooks.HangingCamera == null)
                 return;
 
-            Transform camera = __instance.transform;
-            camera.rotation = Quaternion.LookRotation(local.data.lookDirection);
-            camera.Rotate(GamefeelHandler.instance.GetRotation(), Space.World);
+            RepkaHooks.HangingCamera.Apply(__instance.transform, local.data.lookDirection, RepkaHooks.StableCamera, RepkaHooks.CameraHanging, Time.deltaTime);
         }
     }
 }

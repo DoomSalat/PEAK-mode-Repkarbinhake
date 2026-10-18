@@ -51,8 +51,9 @@ namespace Repkarbinhake.Plugin.Patches
             _stableCamera = stableCamera;
         }
 
-        public void Publish(int actor, Footing footing, Transform view)
+        public void Publish(int actor, Footing footing, Transform view, bool hanging)
         {
+            RepkaHooks.CameraHanging = _stableCamera.Value && hanging;
             RepkaHooks.Hook = _anchors.Has(actor) ? new HookIndicatorState(true, _anchorRopes.IsOwnLocked, _anchorRopes.IsOwnAtMax, _anchorRopes.IsOwnRetracting, _anchorRopes.OwnMeters) : default;
             RepkaHooks.StableCamera = _stableCamera.Value && IsTied(actor);
             RepkaHooks.HandUpTarget = _handUp.Target;
@@ -98,6 +99,7 @@ namespace Repkarbinhake.Plugin.Patches
             RepkaHooks.AimedRope = null;
             RepkaHooks.Hook = default;
             RepkaHooks.StableCamera = false;
+            RepkaHooks.CameraHanging = false;
             RepkaHooks.HandUpTarget = 0;
             RepkaHooks.LocalHelpless = false;
             RepkaHooks.TiedPartners.Clear();

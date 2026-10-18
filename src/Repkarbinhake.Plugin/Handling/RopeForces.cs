@@ -45,10 +45,12 @@ namespace Repkarbinhake.Plugin.Handling
         }
 
         public bool IsPulledByTeammate { get; private set; }
+        public bool IsOnTautRope { get; private set; }
 
         public void Apply(Character local, int actor)
         {
             IsPulledByTeammate = false;
+            IsOnTautRope = false;
             float stability = _stability.Resolve(actor, _registry.Links);
             Vector3 total = Vector3.zero;
             bool partnerHolds = false;
@@ -80,7 +82,9 @@ namespace Repkarbinhake.Plugin.Handling
                 RopeSpan span = _ropes.SpanFor(link, actor);
                 float length = _lengths.EffectiveLength(link);
                 total += tension.Solve(span, local.data.avarageVelocity.ToNumerics(), length, stability).ToUnity();
-                bool taut = (hook || held) && tension.Load(span, length) > 0f;
+                bool loaded = tension.Load(span, length) > 0f;
+                bool taut = (hook || held) && loaded;
+                IsOnTautRope |= loaded;
                 IsPulledByTeammate |= taut && !hook;
 
                 if (!hauled && taut)

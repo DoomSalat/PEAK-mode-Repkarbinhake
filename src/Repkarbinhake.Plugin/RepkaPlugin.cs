@@ -12,7 +12,7 @@ namespace Repkarbinhake.Plugin
     {
         public const string Guid = "repkarbinhake";
         public const string Name = "Rope Carabiner";
-        public const string Version = "1.1.1";
+        public const string Version = "1.1.2";
 
         private Harmony _harmony;
 

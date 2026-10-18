@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.2
+
+- **Come to faster on the rope:** knocked out of control while hanging, you recover right away if a teammate holds your rope (`RecoverWhenHeld`), otherwise within 5 seconds (`HangRecoverySeconds`) instead of the game's slow mid-air recovery. Then you can grab the wall.
+- **Steadier camera while dangling** (`StableCamera`): the camera no longer jerks with your body and the yank shake is off while you hang on a taut rope.
+- **Give a hand** now starts only while you actively pull the rope in, not when you just hold it.
+- The mod now shows up as "Rope Carabiner" in BepInEx, the settings window and the version warning. Your settings file stays `repkarbinhake.cfg`.
+
 ## 1.1.1
 
 - Fixed: the carabiner crosshair was invisible when looking at a teammate.

@@ -28,7 +28,7 @@ Once your friend is close enough and you look at them, you let go of the rope an
 
 ### Hanging on the rope
 
-Just hang on — your friend will pull you up. If the rope pins you under an overhang, it pushes you away from the wall so you can swing around it.
+Just hang on — your friend will pull you up. If the rope pins you under an overhang, it pushes you away from the wall so you can swing around it. Knocked out by the fall? While a friend holds your rope you come to right away and can grab the wall.
 
 ![View of the teammate hanging on the rope](https://raw.githubusercontent.com/DoomSalat/PEAK-mode-Repkarbinhake/main/tools/thunderstore/images/hanging_view.jpg)
 
@@ -67,7 +67,7 @@ You can change keys and rope strength in `BepInEx/config/repkarbinhake.cfg` (or 
 
 - **Can't pull a friend up?** The friend who is hanging should raise **`MaxPull`** in their own settings.
 - **Rope too short?** The host sets the rope length with **`MaxLength`**. Your own hook rope length is **`HookLength`**.
-- **Dizzy when dangling?** Turn on **`StableCamera`** to keep the camera steady while you hang on a rope.
+- **Dizzy when dangling?** Turn on **`StableCamera`** to keep the camera steady and smooth while you hang on a rope.
 - **Want to tweak things in game?** Set a key for **`ConfigEditorKey`** (for example `<Keyboard>/f7`) to open a settings window while playing.
 
 ## Links

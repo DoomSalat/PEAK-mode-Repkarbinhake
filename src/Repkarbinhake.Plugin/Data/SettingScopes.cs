@@ -27,6 +27,8 @@ namespace Repkarbinhake.Plugin.Data
             { "MantleStep", OnYou },
             { "MantlePush", OnYou },
             { "FreeWhenPulled", OnYou },
+            { "HangRecoverySeconds", OnYou },
+            { "RecoverWhenHeld", OnYou },
             { "HookLength", OnYou },
             { "AnchorStiffness", OnYou },
             { "AnchorDamping", OnYou },

@@ -32,6 +32,8 @@ namespace Repkarbinhake.Plugin.Patches
         public static bool LocalHelpless { get; set; } // Set: written by RepkaBack every frame, you hang or lie helpless and may be handed up by a tied teammate
         public static HashSet<int> TiedPartners { get; } = new HashSet<int>(); // Static: refilled by RepkaBack every frame, teammates tied to you by rope
         public static bool StableCamera { get; set; } // Set: written by RepkaBack every frame, keeps the camera off the ragdoll head while tied
+        public static bool CameraHanging { get; set; } // Set: written by RepkaBack every frame, you dangle on a taut rope: smooth camera position, no shake
+        public static HangingCamera HangingCamera { get; set; } // Set: assigned once by RepkaBack, driven by the camera patch
         public static bool ConfigWindowOpen { get; set; } // Set: written by RepkaBack every frame, frees the cursor and blocks game input
         public static IReadOnlyDictionary<Character, RopeHoldPose> HoldPoses { get; set; } // Set: assigned once by RepkaBack, read by the hold pose patch
     }

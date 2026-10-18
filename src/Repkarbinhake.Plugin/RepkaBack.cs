@@ -47,6 +47,7 @@ namespace Repkarbinhake.Plugin
         private SpoolProps _spools;
         private RopeForces _forces;
         private RopeRescue _rescue;
+        private HangRecovery _hangRecovery;
         private RopeKnockdown _knockdown;
         private RepkaHookFeed _hookFeed;
         private RopePresenterPool _ropes;
@@ -154,7 +155,7 @@ namespace Repkarbinhake.Plugin
             _knockdown.Tick(local, actor, Time.deltaTime);
             _poses.Refresh(Time.deltaTime);
             UntieDead(actor);
-            _hookFeed.Publish(actor, footing, view);
+            _hookFeed.Publish(actor, footing, view, _hangRecovery.IsHanging);
             _debug.ShowOverlay(local, actor);
         }
 
@@ -167,6 +168,7 @@ namespace Repkarbinhake.Plugin
 
             _forces.Apply(local, _registry.LocalActor);
             _rescue.Tick(local, _forces.IsPulledByTeammate);
+            _hangRecovery.Tick(local, _actors.FootingOf(_registry.LocalActor), _forces.IsOnTautRope, _forces.IsPulledByTeammate, Time.fixedDeltaTime);
             _forces.ApplyToDummy(_dummy);
         }
 
@@ -188,6 +190,7 @@ namespace Repkarbinhake.Plugin
             _registry = new LinkRegistry(transport);
             _colors = new LinkColors(_registry);
             RepkaHooks.Badges = new PlayerListBadges(_colors, assets.ReticleSprite, log);
+            RepkaHooks.HangingCamera = new HangingCamera();
             RepkaHooks.Hud = new CarabinerHud(assets.ReticleSprite, new HookIndicatorView(assets.HookIndicatorSprite, assets.HookRetractSprite), log);
             _characters = new CharacterDirectory();
             _dummy = new TestDummy();
@@ -227,6 +230,7 @@ namespace Repkarbinhake.Plugin
             MantleAssist mantle = new MantleAssist();
             _forces = new RopeForces(_registry, stability, tension, anchorTension, lengths, _actors, _ropes, config, obstacles, ledge, mantle);
             _rescue = new RopeRescue(config.FreeWhenPulled);
+            _hangRecovery = new HangRecovery(config.HangRecoverySeconds, config.RecoverWhenHeld);
             _knockdown = new RopeKnockdown(_registry, reel, _ropes, config);
             _sync = new RoomLinkSync(transport, _registry, new UntiedKeySweeper(), new DepartedUntieRule(), settings, config);
             _versionCheck = new ModVersionCheck(RepkaPlugin.Version, log);
