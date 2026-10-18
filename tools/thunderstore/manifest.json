@@ -1,7 +1,7 @@
 {
   "name": "Rope_Carabiner",
   "version_number": "{VERSION}",
-  "website_url": "",
+  "website_url": "https://github.com/DoomSalat/PEAK-mode-Repkarbinhake",
   "description": "Tie yourself to teammates with a real rope: hold it, reel it in, catch falling friends and set a wall hook. The rope wraps around rocks and pulls with physics. Everyone in the lobby needs the mod.",
   "dependencies": [
     "BepInEx-BepInExPack_PEAK-5.4.75301"

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3
+
+- Mod page now shows pictures and the tie GIF.
+- Links to the source code and the bug tracker.
+
 ## 1.0.2
 
 - Hold **G** while holding a rope to pull it in (key: `PullKey`). On-screen hint "G Pull in" in every game language.
