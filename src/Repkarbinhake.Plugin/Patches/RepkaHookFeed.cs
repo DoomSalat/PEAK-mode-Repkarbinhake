@@ -27,8 +27,9 @@ namespace Repkarbinhake.Plugin.Patches
         private readonly LinkColors _colors;
         private readonly ConfigEntry<float> _ropeColor;
         private readonly ConfigEntry<string> _linkKey;
+        private readonly ConfigEntry<string> _pullKey;
 
-        public RepkaHookFeed(LinkRegistry registry, RopeReel reel, RopeHandPolicy policy, RopePresenterPool ropes, LinkHoldInput linkHold, AnchorBoard anchors, LinkColors colors, ConfigEntry<float> ropeColor, ConfigEntry<string> linkKey)
+        public RepkaHookFeed(LinkRegistry registry, RopeReel reel, RopeHandPolicy policy, RopePresenterPool ropes, LinkHoldInput linkHold, AnchorBoard anchors, LinkColors colors, ConfigEntry<float> ropeColor, ConfigEntry<string> linkKey, ConfigEntry<string> pullKey)
         {
             _registry = registry;
             _reel = reel;
@@ -39,15 +40,18 @@ namespace Repkarbinhake.Plugin.Patches
             _colors = colors;
             _ropeColor = ropeColor;
             _linkKey = linkKey;
+            _pullKey = pullKey;
         }
 
         public void Publish(int actor, Footing footing, Transform view)
         {
             RepkaHooks.HookPlaced = _anchors.Has(actor);
-            RepkaHooks.ShowCarabinerReticle = _linkHold.HasTarget;
+            RepkaHooks.ShowCarabinerReticle = _linkHold.HasAction;
             RepkaHooks.LinkHoldProgress = _linkHold.Progress;
             bool holds = _registry.TryGetHeld(actor, out RopeLink heldLink);
-            RepkaHooks.ReleasePrompt = holds && !_linkHold.HasTarget;
+            RepkaHooks.ReleasePrompt = holds && !_linkHold.HasAction;
+            RepkaHooks.PullPrompt = RepkaHooks.ReleasePrompt ? RepkaTexts.Pull : null;
+            RepkaHooks.PullKeyPath = _pullKey.Value;
 
             if (RepkaHooks.ReleasePrompt)
             {
@@ -56,7 +60,7 @@ namespace Repkarbinhake.Plugin.Patches
             }
             else
             {
-                RepkaHooks.LinkPrompt = _linkHold.HasTarget ? (_linkHold.TargetIsLinked ? RepkaTexts.Untie : RepkaTexts.Tie) : null;
+                RepkaHooks.LinkPrompt = _linkHold.HasAction ? (_linkHold.TargetIsLinked ? RepkaTexts.Untie : RepkaTexts.Tie) : null;
                 RepkaHooks.LinkKeyPath = _linkKey.Value;
             }
 
@@ -65,7 +69,7 @@ namespace Repkarbinhake.Plugin.Patches
             RepkaHooks.HeldRopeTint = _ropeColor.Value;
             RepkaHooks.HeldRope = _ropes.TryGetHeld(actor, out RopeInteractible held) ? held : null;
 
-            if (!_linkHold.HasTarget && _policy.CanHold(footing) && _ropes.TryAim(new Ray(view.position, view.forward), actor, out RopeInteractible aimed, out _))
+            if (!_linkHold.HasAction && _policy.CanHold(footing) && _ropes.TryAim(new Ray(view.position, view.forward), actor, out RopeInteractible aimed, out _))
             {
                 RepkaHooks.AimedRope = aimed;
                 return;
@@ -83,6 +87,7 @@ namespace Repkarbinhake.Plugin.Patches
             RepkaHooks.LinkHoldProgress = 0f;
             RepkaHooks.LinkPrompt = null;
             RepkaHooks.ReleasePrompt = false;
+            RepkaHooks.PullPrompt = null;
             RepkaHooks.HeldRopeLength = 0f;
             RepkaHooks.HeldRopeColor = null;
         }

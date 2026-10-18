@@ -20,6 +20,7 @@ namespace Repkarbinhake.Plugin.Data
         private const int SegmentLimit = 64;
         private const int BudgetLimit = 1024;
         private const string OrphanedEntriesProperty = "OrphanedEntries";
+        private const string DebugWindowKey = "<Keyboard>/f7";
 
         private readonly ConfigEntry<float> _minLength;
         private readonly ConfigEntry<float> _maxLength;
@@ -46,6 +47,7 @@ namespace Repkarbinhake.Plugin.Data
         {
             File = file;
             LinkKey = file.Bind(InputSection, "LinkKey", "<Keyboard>/g", "Look at a player and hold to tie or untie.");
+            PullKey = file.Bind(InputSection, "PullKey", "<Keyboard>/g", "While holding a rope, hold to reel it in. Looking at an untied player, the link key ties instead.");
             AnchorKey = file.Bind(InputSection, "AnchorKey", "<Keyboard>/t", "Hold to aim a wall hook, release to set it (tied to you). Press again to take it back.");
             LinkAimAngle = file.Bind(InputSection, "LinkAimAngle", 12f, "Max angle between view direction and the player (degrees).");
             RopeAimReach = file.Bind(InputSection, "RopeAimReach", 2.5f, "Max distance to the rope you grab with the interact key (meters).");
@@ -96,13 +98,15 @@ namespace Repkarbinhake.Plugin.Data
             {
                 ShowDebugOverlay = file.Bind(DebugSection, "ShowDebugOverlay", false, "Show rope numbers on screen.");
                 TestDummyKey = file.Bind(DebugSection, "TestDummyKey", "<Keyboard>/f9", "Press to place a local test capsule where you look, then tie to it with the link key and pull it; press again to remove it.");
-                ConfigEditorKey = file.Bind(DebugSection, "ConfigEditorKey", "<Keyboard>/f7", "Opens an in-game window to edit and apply these settings while playing.");
             }
+
+            ConfigEditorKey = file.Bind(DebugSection, "ConfigEditorKey", BuildFlavor.HasDebugTools ? DebugWindowKey : string.Empty, "Key that opens the in-game settings window to edit and apply these settings while playing. Empty = no key; set it yourself, e.g. <Keyboard>/f7.");
 
             DropRemovedSettings(file);
         }
 
         public ConfigEntry<string> LinkKey { get; }
+        public ConfigEntry<string> PullKey { get; }
         public ConfigEntry<string> AnchorKey { get; }
         public ConfigEntry<float> LinkAimAngle { get; }
         public ConfigEntry<float> RopeAimReach { get; }

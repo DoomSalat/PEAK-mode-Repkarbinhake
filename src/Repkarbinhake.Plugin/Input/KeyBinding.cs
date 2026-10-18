@@ -29,7 +29,7 @@ namespace Repkarbinhake.Plugin.Input
         {
             _action?.Disable();
             _action?.Dispose();
-            _action = new InputAction(binding: _path.Value);
+            _action = string.IsNullOrWhiteSpace(_path.Value) ? new InputAction() : new InputAction(binding: _path.Value);
             _action.Enable();
         }
     }

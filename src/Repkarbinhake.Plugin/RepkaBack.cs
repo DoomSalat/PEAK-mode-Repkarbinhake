@@ -32,6 +32,7 @@ namespace Repkarbinhake.Plugin
         private ActorStates _actors;
         private KeyBinding _linkKey;
         private KeyBinding _anchorKey;
+        private KeyBinding _pullKey;
         private TestDummy _dummy;
         private LinkHoldInput _linkHold;
         private AnchorInput _anchorInput;
@@ -52,6 +53,7 @@ namespace Repkarbinhake.Plugin
         private PassThroughColliderFilter _passThrough;
         private LinkSoundFeedback _sounds;
         private IDebugTools _debug;
+        private ConfigWindowInput _configWindow;
 
         private void OnEnable()
         {
@@ -86,12 +88,14 @@ namespace Repkarbinhake.Plugin
         {
             _linkKey?.Dispose();
             _anchorKey?.Dispose();
+            _pullKey?.Dispose();
             _debug?.Dispose();
+            _configWindow?.Dispose();
         }
 
         private void Update()
         {
-            _debug.TickWindow();
+            _configWindow.Tick();
             _sync.Tick(Time.deltaTime, Time.time);
             Character local = Character.localCharacter;
 
@@ -113,7 +117,9 @@ namespace Repkarbinhake.Plugin
             Footing footing = _actors.FootingOf(actor);
             Transform view = MainCamera.instance.transform;
 
-            if (_debug.BlocksInput)
+            bool pulling = false;
+
+            if (_configWindow.IsOpen)
             {
                 _anchorInput.Cancel();
                 _linkHold.Cancel();
@@ -122,14 +128,15 @@ namespace Repkarbinhake.Plugin
             {
                 _anchorInput.Tick(local, actor, footing, view);
                 _debug.TickInput(actor, view);
-                _linkHold.Tick(local, actor, footing, view, Time.deltaTime);
+                _linkHold.Tick(local, actor, footing, view, _hands.IsHolding(actor), Time.deltaTime);
+                pulling = _pullKey.IsPressed && !_linkHold.HasAction;
             }
 
             _hands.Enforce(local, actor, footing, Time.deltaTime);
             _anchorRopes.Tick(local, actor, footing);
 
             if (_hands.IsHolding(actor))
-                _reelDriver.Tick(local, actor, footing, Time.deltaTime);
+                _reelDriver.Tick(local, actor, footing, pulling, Time.deltaTime);
             else
                 _reelDriver.Stop();
 
@@ -193,6 +200,7 @@ namespace Repkarbinhake.Plugin
 
             _linkKey = new KeyBinding(config.LinkKey);
             _anchorKey = new KeyBinding(config.AnchorKey);
+            _pullKey = new KeyBinding(config.PullKey);
             _linkHold = new LinkHoldInput(_registry, new LinkTargetPicker(config, _characters, _dummy), _linkKey, settings);
             _anchorSync = new AnchorSync(anchors);
             _anchorInput = new AnchorInput(anchors, _anchorSync, anchorVisuals, spool, _anchorKey, settings);
@@ -207,8 +215,11 @@ namespace Repkarbinhake.Plugin
             _versionCheck = new ModVersionCheck(RepkaPlugin.Version, log);
             _pathSync = new RopePathSync(_registry, _ropes);
             _sounds = new LinkSoundFeedback(new CarabinerSounds(assets, config), _actors);
-            _hookFeed = new RepkaHookFeed(_registry, reel, _policy, _ropes, _linkHold, anchors, _colors, config.RopeColor, config.LinkKey);
+            _hookFeed = new RepkaHookFeed(_registry, reel, _policy, _ropes, _linkHold, anchors, _colors, config.RopeColor, config.LinkKey, config.PullKey);
             RepkaHooks.GaugeTint = new RopeGaugeTint();
+            ConfigEditorWindow window = gameObject.AddComponent<ConfigEditorWindow>();
+            window.Initialize(config.File);
+            _configWindow = new ConfigWindowInput(window, new KeyBinding(config.ConfigEditorKey));
             _debug = BuildFlavor.HasDebugTools ? CreateDebugTools(config, log, new RopeDebugReport(_registry, _actors, stability, tension, reel, team, ledge, _ropes, settings, anchorSettings)) : new NoDebugTools();
         }
 
@@ -225,11 +236,9 @@ namespace Repkarbinhake.Plugin
 
         private IDebugTools CreateDebugTools(RepkaConfig config, ManualLogSource log, RopeDebugReport report)
         {
-            ConfigEditorWindow window = gameObject.AddComponent<ConfigEditorWindow>();
-            window.Initialize(config.File);
             KeyBinding dummyKey = new KeyBinding(config.TestDummyKey);
             TestDummyInput dummyInput = new TestDummyInput(_registry, _dummy, dummyKey, log);
-            return new DebugTools(config, report, gameObject.AddComponent<RopeDebugOverlay>(), window, new KeyBinding(config.ConfigEditorKey), dummyKey, dummyInput);
+            return new DebugTools(config, report, gameObject.AddComponent<RopeDebugOverlay>(), dummyKey, dummyInput);
         }
 
         private void OnRopeInteracted(RopeLink link)

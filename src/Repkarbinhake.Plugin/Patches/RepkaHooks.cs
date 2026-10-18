@@ -14,6 +14,8 @@ namespace Repkarbinhake.Plugin.Patches
         public static float LinkHoldProgress { get; set; } // Set: written by RepkaBack every frame, read by the progress ring patch
         public static string LinkPrompt { get; set; } // Set: written by RepkaBack every frame, null hides the prompt
         public static bool ReleasePrompt { get; set; } // Set: written by RepkaBack every frame, LinkPrompt is the release hint for the held rope
+        public static string PullPrompt { get; set; } // Set: written by RepkaBack every frame, null hides the pull hint
+        public static string PullKeyPath { get; set; } // Set: written by RepkaBack every frame, input path of the pull key for its icon
         public static string LinkKeyPath { get; set; } // Set: written by RepkaBack every frame, input path of the link key for its icon
         public static float HeldRopeLength { get; set; } // Set: written by RepkaBack every frame, zero or less hides the rope gauge
         public static VanillaRopeSpool Spool { get; set; } // Set: assigned once by RepkaBack, read by the hold pose patch

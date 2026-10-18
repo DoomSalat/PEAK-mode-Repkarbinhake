@@ -30,3 +30,6 @@ Thumbs.db
 
 # Release archives built by tools/Pack-Release.ps1
 dist/
+
+# Local Thunderstore page preview (generated)
+tools/thunderstore/preview.html

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.2
+
+- Hold **G** while holding a rope to pull it in (key: `PullKey`). On-screen hint "G Pull in" in every game language.
+- Looking at the friend you're tied to while holding the rope, **G** pulls instead of untying.
+- In-game settings window: set `ConfigEditorKey` to open it (no key by default).
+- Friendlier mod page with pictures.
+
 ## 1.0.1
 
 - New package icon.

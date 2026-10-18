@@ -14,6 +14,7 @@ namespace Repkarbinhake.Plugin.Input
         private readonly HoldAction _hold = new HoldAction();
         private bool _unties;
         private int _target = HoldAction.NoTarget;
+        private bool _holdingRope;
 
         public LinkHoldInput(LinkRegistry registry, LinkTargetPicker picker, KeyBinding key, IRopeSettings settings)
         {
@@ -24,19 +25,21 @@ namespace Repkarbinhake.Plugin.Input
         }
 
         public bool HasTarget => _target != HoldAction.NoTarget;
+        public bool HasAction => HasTarget && !(_holdingRope && TargetIsLinked);
         public bool TargetIsLinked { get; private set; }
         public float Progress => _hold.Progress;
 
-        public void Tick(Character local, int actor, Footing footing, Transform view, float deltaTime)
+        public void Tick(Character local, int actor, Footing footing, Transform view, bool holdingRope, float deltaTime)
         {
             _target = HoldAction.NoTarget;
+            _holdingRope = holdingRope;
 
             if (local.CanDoInput() && footing != Footing.Unconscious && _picker.TryPick(local, view, out int target))
                 _target = target;
 
             TargetIsLinked = HasTarget && _registry.TryGet(actor, _target, out _);
 
-            if (_key.WasPressed && HasTarget)
+            if (_key.WasPressed && HasAction)
             {
                 _unties = TargetIsLinked;
                 _hold.Begin(_target, _unties ? _settings.UntieHoldSeconds : _settings.TieHoldSeconds);

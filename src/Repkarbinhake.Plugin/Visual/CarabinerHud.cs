@@ -1,9 +1,7 @@
 using BepInEx.Logging;
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
-using Zorro.Core;
 
 namespace Repkarbinhake.Plugin.Visual
 {
@@ -11,26 +9,22 @@ namespace Repkarbinhake.Plugin.Visual
     {
         private const string ReticleName = "Repkarbinhake Carabiner Reticle";
         private const string PromptName = "Repkarbinhake Link Prompt";
+        private const string PullPromptName = "Repkarbinhake Pull Prompt";
         private const string PartnerName = "Repkarbinhake Rope Partner";
         private const string HookIndicatorName = "Repkarbinhake Hook Indicator";
         private const float HookIndicatorSize = 22f;
         private const float HookIndicatorOffset = 26f;
         private const float ReticleSize = 48f;
-        private const string KeyFallbackFormat = "[{0}]";
 
         private readonly Sprite _sprite;
         private readonly Sprite _hookSprite;
         private readonly ManualLogSource _log;
         private GameObject _reticle;
-        private GameObject _prompt;
-        private TMP_Text _promptText;
-        private TMP_Text _promptKey;
+        private HudPrompt _prompt;
+        private HudPrompt _pullPrompt;
         private GameObject _vanillaPrompt;
         private TMP_Text _partner;
         private GameObject _hookIndicator;
-        private Vector2 _promptHome;
-        private string _keyPath;
-        private string _keyTag;
 
         public CarabinerHud(Sprite sprite, Sprite hookSprite, ManualLogSource log)
         {
@@ -42,14 +36,16 @@ namespace Repkarbinhake.Plugin.Visual
         public void Attach(GUIManager gui)
         {
             CreateReticle(gui);
-            CreatePrompt(gui);
+            _vanillaPrompt = gui.interactPromptPrimary;
+            _prompt = new HudPrompt(_vanillaPrompt, PromptName, _log);
+            _pullPrompt = new HudPrompt(_vanillaPrompt, PullPromptName, _log);
             CreatePartner(gui);
             CreateHookIndicator(gui);
         }
 
-        public void Show(GUIManager gui, bool showReticle, string prompt, string keyPath, string partner, Color partnerColor, bool hookPlaced)
+        public void Show(GUIManager gui, bool showReticle, HudPromptLine prompt, HudPromptLine pullPrompt, string partner, Color partnerColor, bool hookPlaced)
         {
-            if (_reticle == null || _prompt == null || _partner == null || _hookIndicator == null)
+            if (_reticle == null || !_prompt.Exists || !_pullPrompt.Exists || _partner == null || _hookIndicator == null)
                 return;
 
             if (hookPlaced != _hookIndicator.activeSelf)
@@ -58,7 +54,9 @@ namespace Repkarbinhake.Plugin.Visual
             if (showReticle)
                 gui.SetReticle(_reticle);
 
-            ShowPrompt(prompt, keyPath);
+            int row = _vanillaPrompt.activeSelf ? 1 : 0;
+            row = ShowLine(_prompt, prompt, row);
+            ShowLine(_pullPrompt, pullPrompt, row);
             ShowPartner(partner, partnerColor);
         }
 
@@ -86,38 +84,6 @@ namespace Repkarbinhake.Plugin.Visual
                 _log.LogWarning($"{nameof(CarabinerHud)}: carabiner sprite is missing, reticle will be blank");
         }
 
-        private void CreatePrompt(GUIManager gui)
-        {
-            _vanillaPrompt = gui.interactPromptPrimary;
-            _prompt = Object.Instantiate(_vanillaPrompt, _vanillaPrompt.transform.parent);
-            _prompt.name = PromptName;
-            _promptHome = ((RectTransform)_prompt.transform).anchoredPosition;
-            _promptKey = null;
-            _promptText = null;
-
-            foreach (InputIcon icon in _prompt.GetComponentsInChildren<InputIcon>(true))
-            {
-                _promptKey = icon.GetComponent<TMP_Text>();
-                Object.DestroyImmediate(icon);
-            }
-
-            foreach (LocalizedText localized in _prompt.GetComponentsInChildren<LocalizedText>(true))
-                Object.DestroyImmediate(localized);
-
-            foreach (TMP_Text text in _prompt.GetComponentsInChildren<TMP_Text>(true))
-            {
-                if (text != _promptKey && text.gameObject.activeSelf)
-                {
-                    _promptText = text;
-                    break;
-                }
-            }
-
-            _prompt.SetActive(false);
-
-            if (_promptKey == null || _promptText == null)
-                _log.LogWarning($"{nameof(CarabinerHud)}: interact prompt layout changed (key {_promptKey != null}, text {_promptText != null}), link prompt disabled");
-        }
 
         private void CreateHookIndicator(GUIManager gui)
         {
@@ -172,34 +138,16 @@ namespace Repkarbinhake.Plugin.Visual
             _partner.gameObject.SetActive(true);
         }
 
-        private void ShowPrompt(string text, string keyPath)
+        private int ShowLine(HudPrompt prompt, HudPromptLine line, int row)
         {
-            if (text == null || _promptKey == null || _promptText == null)
+            if (line.Text == null)
             {
-                _prompt.SetActive(false);
-                return;
+                prompt.Hide();
+                return row;
             }
 
-            RectTransform rect = (RectTransform)_prompt.transform;
-            rect.anchoredPosition = _vanillaPrompt.activeSelf ? _promptHome + Vector2.up * rect.rect.height : _promptHome;
-            _promptKey.spriteAsset = SingletonAsset<InputSpriteData>.Instance.keyboardSprites;
-            _promptKey.text = KeyTag(keyPath);
-            _promptText.text = text;
-            _prompt.SetActive(true);
-        }
-
-        private string KeyTag(string path)
-        {
-            if (path == _keyPath)
-                return _keyTag;
-
-            _keyPath = path;
-            _keyTag = SingletonAsset<InputSpriteData>.Instance.GetSpriteTagFromInputPathKeyboard(path);
-
-            if (string.IsNullOrEmpty(_keyTag))
-                _keyTag = string.Format(KeyFallbackFormat, InputControlPath.ToHumanReadableString(path, InputControlPath.HumanReadableStringOptions.OmitDevice));
-
-            return _keyTag;
+            prompt.Show(line.Text, line.KeyPath, row);
+            return row + 1;
         }
     }
 }

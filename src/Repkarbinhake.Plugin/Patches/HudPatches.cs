@@ -1,5 +1,6 @@
 using HarmonyLib;
 using Repkarbinhake.Plugin.Handling;
+using Repkarbinhake.Plugin.Visual;
 using UnityEngine;
 
 namespace Repkarbinhake.Plugin.Patches
@@ -24,8 +25,9 @@ namespace Repkarbinhake.Plugin.Patches
                 __instance.RefreshInteractablePrompt();
 
             bool vanillaShowsRope = aimsRope && __instance.interactPromptPrimary.activeSelf;
-            string prompt = RepkaHooks.ReleasePrompt && vanillaShowsRope ? null : RepkaHooks.LinkPrompt;
-            RepkaHooks.Hud?.Show(__instance, RepkaHooks.ShowCarabinerReticle, prompt, RepkaHooks.LinkKeyPath, aimsRope ? rope.PartnerName : null, aimsRope ? rope.Color : Color.white, RepkaHooks.HookPlaced);
+            HudPromptLine prompt = new HudPromptLine(RepkaHooks.ReleasePrompt && vanillaShowsRope ? null : RepkaHooks.LinkPrompt, RepkaHooks.LinkKeyPath);
+            HudPromptLine pullPrompt = new HudPromptLine(RepkaHooks.PullPrompt, RepkaHooks.PullKeyPath);
+            RepkaHooks.Hud?.Show(__instance, RepkaHooks.ShowCarabinerReticle, prompt, pullPrompt, aimsRope ? rope.PartnerName : null, aimsRope ? rope.Color : Color.white, RepkaHooks.HookPlaced);
         }
 
         [HarmonyPostfix]

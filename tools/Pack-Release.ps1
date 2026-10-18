@@ -68,9 +68,17 @@ function PackThunderstore {
     $utf8 = New-Object System.Text.UTF8Encoding $false
     $manifest = (Get-Content (Join-Path $source 'manifest.json') -Raw -Encoding UTF8).Replace('{VERSION}', $version)
     [System.IO.File]::WriteAllText((Join-Path $stage 'manifest.json'), $manifest, $utf8)
-    foreach ($file in 'README.md', 'CHANGELOG.md', 'icon.png') {
+    foreach ($file in 'CHANGELOG.md', 'icon.png') {
         Copy-Item (Join-Path $source $file) $stage
     }
+
+    # Images without a hosted link would show broken on Thunderstore, so they are left out of the packed README
+    $readme = Get-Content (Join-Path $source 'README.md') -Encoding UTF8
+    $unlinked = @($readme | Where-Object { $_ -match '\]\(IMAGE_' })
+    $kept = ($readme | Where-Object { $_ -notmatch '\]\(IMAGE_' }) -join "`n"
+    $kept = [regex]::Replace($kept, "`n{3,}", "`n`n")
+    [System.IO.File]::WriteAllText((Join-Path $stage 'README.md'), $kept, $utf8)
+    if ($unlinked.Count -gt 0) { Write-Warning "README: $($unlinked.Count) image(s) without a link left out of the package" }
 
     $zip = Join-Path $dist "Repkarbinhake-$version-thunderstore.zip"
     Remove-Item $zip -ErrorAction SilentlyContinue

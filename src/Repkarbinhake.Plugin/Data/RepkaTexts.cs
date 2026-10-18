@@ -9,7 +9,10 @@ namespace Repkarbinhake.Plugin.Data
         private static readonly string[] Ties = { "Tie rope", "Attacher la corde", "Lega la corda", "Seil anbinden", "Atar la cuerda", "Amarrar la cuerda", "Amarrar a corda", "Привязать верёвку", "Прив'язати мотузку", "系上绳子", "繫上繩子", "ロープを結ぶ", "밧줄 묶기", "Przywiąż linę", "Halatı bağla" }; // Static: fixed translation table
         private static readonly string[] Unties = { "Untie rope", "Détacher la corde", "Slega la corda", "Seil lösen", "Desatar la cuerda", "Desamarrar la cuerda", "Desamarrar a corda", "Отцепить верёвку", "Відчепити мотузку", "解开绳子", "解開繩子", "ロープをほどく", "밧줄 풀기", "Odwiąż linę", "Halatı çöz" }; // Static: fixed translation table
 
+        private static readonly string[] Pulls = { "Pull in", "Tirer", "Tira", "Heranziehen", "Tirar", "Jalar", "Puxar", "Подтянуть", "Підтягнути", "拉近", "拉近", "引き寄せる", "당기기", "Przyciągnij", "Çek" }; // Static: fixed translation table
+
         public static string RopeName => Pick(RopeNames);
+        public static string Pull => Pick(Pulls);
         public static string Grab => Pick(Grabs);
         public static string Release => Pick(Releases);
         public static string Tie => Pick(Ties);
