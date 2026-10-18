@@ -27,7 +27,8 @@ namespace Repkarbinhake.Plugin.Patches
             bool vanillaShowsRope = aimsRope && __instance.interactPromptPrimary.activeSelf;
             HudPromptLine prompt = new HudPromptLine(RepkaHooks.ReleasePrompt && vanillaShowsRope ? null : RepkaHooks.LinkPrompt, RepkaHooks.LinkKeyPath);
             HudPromptLine pullPrompt = new HudPromptLine(RepkaHooks.PullPrompt, RepkaHooks.PullKeyPath);
-            RepkaHooks.Hud?.Show(__instance, RepkaHooks.ShowCarabinerReticle, prompt, pullPrompt, aimsRope ? rope.PartnerName : null, aimsRope ? rope.Color : Color.white, RepkaHooks.HookPlaced);
+            HudPromptLine unwindPrompt = new HudPromptLine(RepkaHooks.UnwindPrompt, RepkaHooks.UnwindKeyPath);
+            RepkaHooks.Hud?.Show(__instance, RepkaHooks.ShowCarabinerReticle, prompt, pullPrompt, unwindPrompt, aimsRope ? rope.PartnerName : null, aimsRope ? rope.Color : Color.white, new HookIndicatorState(RepkaHooks.HookPlaced, RepkaHooks.HookLocked, RepkaHooks.HookAtMax, RepkaHooks.HookRetracting, RepkaHooks.HookMeters));
         }
 
         [HarmonyPostfix]

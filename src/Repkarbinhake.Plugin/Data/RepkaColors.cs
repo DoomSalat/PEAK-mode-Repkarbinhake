@@ -17,5 +17,8 @@ namespace Repkarbinhake.Plugin.Data
             new Color(0.60f, 0.45f, 0.25f),
             new Color(0.85f, 0.85f, 0.85f),
         };
+
+        public static readonly Color HookLocked = new Color(0.95f, 0.2f, 0.2f); // Static: fixed color of the hook indicator while the hook rope is locked
+        public static readonly Color HookAtMax = new Color(1f, 0.6f, 0.15f); // Static: fixed color of the hook indicator while the hook rope is at full length
     }
 }

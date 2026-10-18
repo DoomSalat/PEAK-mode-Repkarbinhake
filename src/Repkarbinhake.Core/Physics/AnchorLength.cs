@@ -25,6 +25,14 @@ namespace Repkarbinhake.Core.Physics
             return _length;
         }
 
+        public float Retract(float amount, float closest)
+        {
+            if (_locked && _length > closest)
+                _length = Math.Max(_length - amount, closest);
+
+            return _length;
+        }
+
         public void Reset()
         {
             _locked = false;

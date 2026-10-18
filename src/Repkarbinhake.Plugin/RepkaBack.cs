@@ -33,6 +33,7 @@ namespace Repkarbinhake.Plugin
         private KeyBinding _linkKey;
         private KeyBinding _anchorKey;
         private KeyBinding _pullKey;
+        private KeyBinding _unwindKey;
         private TestDummy _dummy;
         private LinkHoldInput _linkHold;
         private AnchorInput _anchorInput;
@@ -50,7 +51,7 @@ namespace Repkarbinhake.Plugin
         private RoomLinkSync _sync;
         private ModVersionCheck _versionCheck;
         private RopePathSync _pathSync;
-        private PassThroughColliderFilter _passThrough;
+        private RopeColliderFilter _colliderFilter;
         private LinkSoundFeedback _sounds;
         private IDebugTools _debug;
         private ConfigWindowInput _configWindow;
@@ -89,6 +90,7 @@ namespace Repkarbinhake.Plugin
             _linkKey?.Dispose();
             _anchorKey?.Dispose();
             _pullKey?.Dispose();
+            _unwindKey?.Dispose();
             _debug?.Dispose();
             _configWindow?.Dispose();
         }
@@ -105,7 +107,7 @@ namespace Repkarbinhake.Plugin
                 _poses.Clear();
                 _anchorInput.Cancel();
                 _knockdown.Clear();
-                _passThrough.Clear();
+                _colliderFilter.Clear();
                 _spools.Clear();
                 _hookFeed.Clear();
                 _debug.Hide();
@@ -118,6 +120,8 @@ namespace Repkarbinhake.Plugin
             Transform view = MainCamera.instance.transform;
 
             bool pulling = false;
+            bool unwinding = false;
+            bool holding = _hands.IsHolding(actor);
 
             if (_configWindow.IsOpen)
             {
@@ -126,17 +130,18 @@ namespace Repkarbinhake.Plugin
             }
             else
             {
-                _anchorInput.Tick(local, actor, footing, view);
+                _anchorInput.Tick(local, actor, footing, view, holding && _config.UnwindKey.Value == _config.AnchorKey.Value);
                 _debug.TickInput(actor, view);
-                _linkHold.Tick(local, actor, footing, view, _hands.IsHolding(actor), Time.deltaTime);
+                _linkHold.Tick(local, actor, footing, view, holding, Time.deltaTime);
                 pulling = _pullKey.IsPressed && !_linkHold.HasAction;
+                unwinding = _unwindKey.IsPressed;
             }
 
             _hands.Enforce(local, actor, footing, Time.deltaTime);
-            _anchorRopes.Tick(local, actor, footing);
+            _anchorRopes.Tick(local, actor, footing, Time.deltaTime);
 
             if (_hands.IsHolding(actor))
-                _reelDriver.Tick(local, actor, footing, pulling, Time.deltaTime);
+                _reelDriver.Tick(local, actor, footing, pulling, unwinding, Time.deltaTime);
             else
                 _reelDriver.Stop();
 
@@ -177,7 +182,7 @@ namespace Repkarbinhake.Plugin
             _registry = new LinkRegistry(transport);
             _colors = new LinkColors(_registry);
             RepkaHooks.Badges = new PlayerListBadges(_colors, assets.ReticleSprite, log);
-            RepkaHooks.Hud = new CarabinerHud(assets.ReticleSprite, assets.HookIndicatorSprite, log);
+            RepkaHooks.Hud = new CarabinerHud(assets.ReticleSprite, assets.HookIndicatorSprite, assets.HookRetractSprite, log);
             _characters = new CharacterDirectory();
             _dummy = new TestDummy();
             VanillaRopeSpool spool = new VanillaRopeSpool();
@@ -194,33 +199,37 @@ namespace Repkarbinhake.Plugin
             AnchorRopeSettings anchorSettings = new AnchorRopeSettings(settings, config);
             TensionSolver anchorTension = new TensionSolver(anchorSettings);
             RopeReel reel = new RopeReel(settings, _policy);
-            _passThrough = new PassThroughColliderFilter();
-            PhysicsRopeObstacles obstacles = new PhysicsRopeObstacles(HelperFunctions.GetMask(HelperFunctions.LayerType.TerrainMap), transform, _passThrough);
-            _ropes = new RopePresenterPool(transform, config, reel, new RopeSegmentation(config), _actors, _registry, _policy, obstacles, spool);
+            _colliderFilter = new RopeColliderFilter();
+            PhysicsRopeObstacles obstacles = new PhysicsRopeObstacles(HelperFunctions.GetMask(HelperFunctions.LayerType.TerrainMap), transform, _colliderFilter);
+            HookLengths hookLengths = new HookLengths();
+            LinkLengths lengths = new LinkLengths(reel, hookLengths);
+            _ropes = new RopePresenterPool(transform, config, lengths, new RopeSegmentation(config), _actors, _registry, _policy, obstacles, spool);
 
             _linkKey = new KeyBinding(config.LinkKey);
             _anchorKey = new KeyBinding(config.AnchorKey);
             _pullKey = new KeyBinding(config.PullKey);
+            _unwindKey = new KeyBinding(config.UnwindKey);
             _linkHold = new LinkHoldInput(_registry, new LinkTargetPicker(config, _characters, _dummy), _linkKey, settings);
             _anchorSync = new AnchorSync(anchors);
             _anchorInput = new AnchorInput(anchors, _anchorSync, anchorVisuals, spool, _anchorKey, settings);
-            _anchorRopes = new AnchorRopes(_registry, anchors, _ropes, settings);
+            _anchorRopes = new AnchorRopes(_registry, anchors, _ropes, settings, config.HookRetractSpeed, config.HookLength, hookLengths);
             _hands = new RopeHands(_registry, _policy, _actors);
             TeamPull team = new TeamPull(_policy, _actors);
             _reelDriver = new ReelDriver(_registry, reel, tension, _ropes, team);
             LedgeAssist ledge = new LedgeAssist();
-            _forces = new RopeForces(_registry, stability, tension, anchorTension, reel, _actors, _ropes, config, obstacles, ledge);
+            MantleAssist mantle = new MantleAssist();
+            _forces = new RopeForces(_registry, stability, tension, anchorTension, lengths, _actors, _ropes, config, obstacles, ledge, mantle);
             _knockdown = new RopeKnockdown(_registry, reel, _ropes, config);
             _sync = new RoomLinkSync(transport, _registry, new UntiedKeySweeper(), new DepartedUntieRule(), settings, config);
             _versionCheck = new ModVersionCheck(RepkaPlugin.Version, log);
             _pathSync = new RopePathSync(_registry, _ropes);
             _sounds = new LinkSoundFeedback(new CarabinerSounds(assets, config), _actors);
-            _hookFeed = new RepkaHookFeed(_registry, reel, _policy, _ropes, _linkHold, anchors, _colors, config.RopeColor, config.LinkKey, config.PullKey);
+            _hookFeed = new RepkaHookFeed(_registry, reel, _policy, _ropes, _linkHold, anchors, _anchorRopes, _colors, config.RopeColor, config.LinkKey, config.PullKey, config.UnwindKey, config.StableCamera);
             RepkaHooks.GaugeTint = new RopeGaugeTint();
             ConfigEditorWindow window = gameObject.AddComponent<ConfigEditorWindow>();
             window.Initialize(config.File);
             _configWindow = new ConfigWindowInput(window, new KeyBinding(config.ConfigEditorKey));
-            _debug = BuildFlavor.HasDebugTools ? CreateDebugTools(config, log, new RopeDebugReport(_registry, _actors, stability, tension, reel, team, ledge, _ropes, settings, anchorSettings)) : new NoDebugTools();
+            _debug = BuildFlavor.HasDebugTools ? CreateDebugTools(config, log, new RopeDebugReport(_registry, _actors, stability, tension, reel, lengths, team, ledge, mantle, _ropes, settings, anchorSettings)) : new NoDebugTools();
         }
 
         private void UntieDead(int actor)

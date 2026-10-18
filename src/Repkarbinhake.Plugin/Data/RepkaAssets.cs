@@ -8,6 +8,7 @@ namespace Repkarbinhake.Plugin.Data
         private const string AssetsFolder = "Assets";
         private const string ReticleFile = "carabiner_reticle.png";
         private const string HookIndicatorFile = "hook_indicator.png";
+        private const string HookRetractFile = "hook_retract.png";
         private const string LockFile = "carabiner_lock.wav";
         private const string UnlockFile = "carabiner_unlock.wav";
         private const float CenterPivot = 0.5f;
@@ -18,12 +19,14 @@ namespace Repkarbinhake.Plugin.Data
             WavReader wav = new WavReader();
             ReticleSprite = LoadSprite(Path.Combine(folder, ReticleFile));
             HookIndicatorSprite = LoadSprite(Path.Combine(folder, HookIndicatorFile));
+            HookRetractSprite = LoadSprite(Path.Combine(folder, HookRetractFile));
             LockClip = wav.Read(Path.Combine(folder, LockFile));
             UnlockClip = wav.Read(Path.Combine(folder, UnlockFile));
         }
 
         public Sprite ReticleSprite { get; }
         public Sprite HookIndicatorSprite { get; }
+        public Sprite HookRetractSprite { get; }
         public AudioClip LockClip { get; }
         public AudioClip UnlockClip { get; }
 

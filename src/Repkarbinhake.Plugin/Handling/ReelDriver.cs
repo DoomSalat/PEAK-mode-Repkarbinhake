@@ -33,9 +33,9 @@ namespace Repkarbinhake.Plugin.Handling
             _team = team;
         }
 
-        public void Tick(Character local, int actor, Footing footing, bool pulling, float deltaTime)
+        public void Tick(Character local, int actor, Footing footing, bool pulling, bool unwinding, float deltaTime)
         {
-            _velocity = Mathf.Clamp(Mathf.Lerp(_velocity, ScrollTarget(local.input, pulling), deltaTime * Smoothing), MinVelocity, MaxVelocity);
+            _velocity = Mathf.Clamp(Mathf.Lerp(_velocity, ScrollTarget(local.input, pulling, unwinding), deltaTime * Smoothing), MinVelocity, MaxVelocity);
 
             if (Mathf.Abs(_velocity) > IdleVelocity)
                 Reel(local, actor, footing, _velocity, deltaTime);
@@ -48,10 +48,13 @@ namespace Repkarbinhake.Plugin.Handling
             _velocity = 0f;
         }
 
-        private float ScrollTarget(CharacterInput input, bool pulling)
+        private float ScrollTarget(CharacterInput input, bool pulling, bool unwinding)
         {
             if (pulling)
                 return -ButtonScroll;
+
+            if (unwinding)
+                return ButtonScroll;
 
             if (input.scrollForwardIsPressed)
                 return ButtonScroll;

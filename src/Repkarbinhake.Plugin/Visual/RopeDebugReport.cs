@@ -23,22 +23,26 @@ namespace Repkarbinhake.Plugin.Visual
         private readonly TensionSolver _tension;
         private readonly TensionSolver _anchorTension;
         private readonly RopeReel _reel;
+        private readonly LinkLengths _lengths;
         private readonly TeamPull _team;
         private readonly LedgeAssist _ledge;
+        private readonly MantleAssist _mantle;
         private readonly RopePresenterPool _ropes;
         private readonly IRopeSettings _settings;
         private readonly IRopeSettings _anchorSettings;
         private readonly List<string> _lines = new List<string>();
 
-        public RopeDebugReport(LinkRegistry registry, ActorStates actors, StabilityResolver stability, TensionSolver tension, RopeReel reel, TeamPull team, LedgeAssist ledge, RopePresenterPool ropes, IRopeSettings settings, IRopeSettings anchorSettings)
+        public RopeDebugReport(LinkRegistry registry, ActorStates actors, StabilityResolver stability, TensionSolver tension, RopeReel reel, LinkLengths lengths, TeamPull team, LedgeAssist ledge, MantleAssist mantle, RopePresenterPool ropes, IRopeSettings settings, IRopeSettings anchorSettings)
         {
             _registry = registry;
             _actors = actors;
             _stability = stability;
             _tension = tension;
             _reel = reel;
+            _lengths = lengths;
             _team = team;
             _ledge = ledge;
+            _mantle = mantle;
             _ropes = ropes;
             _settings = settings;
             _anchorSettings = anchorSettings;
@@ -53,6 +57,7 @@ namespace Repkarbinhake.Plugin.Visual
             _lines.Add($"ТЫ  actor {actor}  опора {_actors.FootingOf(actor)}  устойчивость {stability * Percent:0}%  скорость {velocity.magnitude:0.0} (верт {velocity.y:0.0})  в воздухе {local.data.sinceGrounded:0.00} с  выносливость {local.GetTotalStamina() * Percent:0}%");
             _lines.Add($"язык игры: {(int)LocalizedText.CURRENT_LANGUAGE} {LocalizedText.CURRENT_LANGUAGE}  подсказка «{RepkaTexts.Grab}»");
             _lines.Add($"уступ: застрял {_ledge.StuckFor:0.00} с{(_ledge.IsPushing ? "  ОТТАЛКИВАНИЕ" : string.Empty)}");
+            _lines.Add($"на край: застрял {_mantle.StuckFor:0.00} с{(_mantle.IsPushing ? $"  ТОЛКАЮ к точке ({_mantle.Target.X:0.0}, {_mantle.Target.Y:0.0}, {_mantle.Target.Z:0.0})" : string.Empty)}");
             _lines.Add($"лобби  maxLength {_settings.MaxLength:0.0}  хост {PhotonNetwork.IsMasterClient}  твои силы: Stiffness {_settings.Stiffness:0}  Damping {_settings.Damping:0}  MaxPull {_settings.MaxPull:0}  ArmStrength {_settings.ArmStrength:0}");
 
             foreach (RopeLink link in _registry.Links)
@@ -60,7 +65,7 @@ namespace Repkarbinhake.Plugin.Visual
                 if (link.Contains(actor))
                     AddOwnLink(link, actor, stability, velocity);
                 else
-                    _lines.Add($"{link.Key}  чужая  длина {_reel.EffectiveLength(link):0.00}  держат {link.First.IsHeld}/{link.Second.IsHeld}");
+                    _lines.Add($"{link.Key}  чужая  длина {_lengths.EffectiveLength(link):0.00}  держат {link.First.IsHeld}/{link.Second.IsHeld}");
             }
 
             return _lines;
@@ -69,7 +74,7 @@ namespace Repkarbinhake.Plugin.Visual
         private void AddOwnLink(RopeLink link, int actor, float stability, Vector3 velocity)
         {
             int partner = link.Partner(actor);
-            float length = _reel.EffectiveLength(link);
+            float length = _lengths.EffectiveLength(link);
             RopeSpan span = _ropes.SpanFor(link, actor);
             float stretch = span.PathLength - length;
             bool hook = AnchorActors.IsAnchor(partner);

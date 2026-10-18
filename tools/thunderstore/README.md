@@ -34,11 +34,11 @@ Careful: a really hard yank can knock you off your feet if you're not holding th
 
 ## Climbing alone? Use a hook
 
-Stand on the ground, **hold T** and aim at the wall, then let go to hammer in a hook. The rope follows you up as you climb and catches you if you fall. Press **T** again to take the hook back.
+Stand on the ground, **hold T** and aim at the wall, then let go to hammer in a hook. The rope follows you up as you climb and catches you if you fall — then it reels you back up to the hook. Press **T** again to take the hook back.
 
 ![A wall hook set with T, the rope going up to the climber](https://raw.githubusercontent.com/DoomSalat/Rope-Carabiner-media/main/wall_hook.jpg)
 
-A small icon next to your crosshair shows that your hook is set.
+A small icon next to your crosshair shows that your hook is set, with the rope length in meters under it. It turns orange when the rope is fully let out and red while the hook is holding you after a fall; red arrows next to it mean the hook is reeling you back up.
 
 ## Who's tied to whom?
 

@@ -172,6 +172,16 @@ namespace Repkarbinhake.Core.Tests
         }
 
         [Fact]
+        public void Hanging_ReelsOutSlowerThanGrounded()
+        {
+            Hold(A, 4f);
+
+            float hanging = _reel.StepReel(_link, A, 1f, 0.5f, NoLoad, Footing.Airborne, FullStamina).Reel;
+
+            Assert.Equal(4f - 6f * RopeReel.AirborneReelOutFactor * 0.5f, hanging, Precision);
+        }
+
+        [Fact]
         public void Climbing_CannotReelOut()
         {
             Hold(A, 4f);

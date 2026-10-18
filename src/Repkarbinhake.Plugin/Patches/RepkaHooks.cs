@@ -16,6 +16,8 @@ namespace Repkarbinhake.Plugin.Patches
         public static bool ReleasePrompt { get; set; } // Set: written by RepkaBack every frame, LinkPrompt is the release hint for the held rope
         public static string PullPrompt { get; set; } // Set: written by RepkaBack every frame, null hides the pull hint
         public static string PullKeyPath { get; set; } // Set: written by RepkaBack every frame, input path of the pull key for its icon
+        public static string UnwindPrompt { get; set; } // Set: written by RepkaBack every frame, null hides the unwind hint
+        public static string UnwindKeyPath { get; set; } // Set: written by RepkaBack every frame, input path of the unwind key for its icon
         public static string LinkKeyPath { get; set; } // Set: written by RepkaBack every frame, input path of the link key for its icon
         public static float HeldRopeLength { get; set; } // Set: written by RepkaBack every frame, zero or less hides the rope gauge
         public static VanillaRopeSpool Spool { get; set; } // Set: assigned once by RepkaBack, read by the hold pose patch
@@ -25,7 +27,12 @@ namespace Repkarbinhake.Plugin.Patches
         public static float HeldRopeTint { get; set; } // Set: written by RepkaBack every frame, how strongly the rope gauge takes that color
         public static RopeGaugeTint GaugeTint { get; set; } // Set: assigned once by RepkaBack, driven by the rope gauge patch
         public static PlayerConnectionLog ConnectionLog { get; set; } // Set: remembered by the connection log patch, the on-screen join/leave feed
+        public static bool HookLocked { get; set; } // Set: written by RepkaBack every frame, your hook rope locked its length on a fall
         public static bool HookPlaced { get; set; } // Set: written by RepkaBack every frame, shows the hook indicator by the crosshair
+        public static bool HookAtMax { get; set; } // Set: written by RepkaBack every frame, your hook rope is at full length
+        public static bool HookRetracting { get; set; } // Set: written by RepkaBack every frame, your locked hook rope reels you back up
+        public static float HookMeters { get; set; } // Set: written by RepkaBack every frame, current length of your hook rope
+        public static bool StableCamera { get; set; } // Set: written by RepkaBack every frame, keeps the camera off the ragdoll head while tied
         public static bool ConfigWindowOpen { get; set; } // Set: written by RepkaBack every frame, frees the cursor and blocks game input
         public static IReadOnlyDictionary<Character, RopeHoldPose> HoldPoses { get; set; } // Set: assigned once by RepkaBack, read by the hold pose patch
     }

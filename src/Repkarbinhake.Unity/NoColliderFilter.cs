@@ -8,5 +8,10 @@ namespace Repkarbinhake.Unity
         {
             return false;
         }
+
+        public ShellShape ShellOf(Collider collider)
+        {
+            return ShellShape.None;
+        }
     }
 }

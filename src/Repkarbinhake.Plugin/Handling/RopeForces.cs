@@ -8,35 +8,40 @@ using Repkarbinhake.Plugin.Links;
 using Repkarbinhake.Plugin.Visual;
 using Repkarbinhake.Unity;
 using UnityEngine;
+using NumericsVector3 = System.Numerics.Vector3;
 
 namespace Repkarbinhake.Plugin.Handling
 {
     public sealed class RopeForces
     {
+        private const float HandsAboveFloor = 1f;
+
         private readonly LinkRegistry _registry;
         private readonly StabilityResolver _stability;
         private readonly TensionSolver _tension;
         private readonly TensionSolver _anchorTension;
-        private readonly RopeReel _reel;
+        private readonly LinkLengths _lengths;
         private readonly ActorStates _actors;
         private readonly RopePresenterPool _ropes;
         private readonly RepkaConfig _config;
         private readonly IRopeObstacles _obstacles;
         private readonly LedgeAssist _ledge;
+        private readonly MantleAssist _mantle;
         private readonly List<RopeLink> _snapped = new List<RopeLink>();
 
-        public RopeForces(LinkRegistry registry, StabilityResolver stability, TensionSolver tension, TensionSolver anchorTension, RopeReel reel, ActorStates actors, RopePresenterPool ropes, RepkaConfig config, IRopeObstacles obstacles, LedgeAssist ledge)
+        public RopeForces(LinkRegistry registry, StabilityResolver stability, TensionSolver tension, TensionSolver anchorTension, LinkLengths lengths, ActorStates actors, RopePresenterPool ropes, RepkaConfig config, IRopeObstacles obstacles, LedgeAssist ledge, MantleAssist mantle)
         {
             _registry = registry;
             _stability = stability;
             _tension = tension;
             _anchorTension = anchorTension;
-            _reel = reel;
+            _lengths = lengths;
             _actors = actors;
             _ropes = ropes;
             _config = config;
             _obstacles = obstacles;
             _ledge = ledge;
+            _mantle = mantle;
         }
 
         public void Apply(Character local, int actor)
@@ -44,6 +49,9 @@ namespace Repkarbinhake.Plugin.Handling
             float stability = _stability.Resolve(actor, _registry.Links);
             Vector3 total = Vector3.zero;
             bool partnerHolds = false;
+            bool hauled = false;
+            NumericsVector3 lip = NumericsVector3.Zero;
+            NumericsVector3 beyondLip = NumericsVector3.Zero;
             _snapped.Clear();
 
             foreach (RopeLink link in _registry.Links)
@@ -64,7 +72,13 @@ namespace Repkarbinhake.Plugin.Handling
 
                 partnerHolds |= link.IsHeldBy(partner);
                 TensionSolver tension = AnchorActors.IsAnchor(partner) ? _anchorTension : _tension;
-                total += tension.Solve(_ropes.SpanFor(link, actor), local.data.avarageVelocity.ToNumerics(), _reel.EffectiveLength(link), stability).ToUnity();
+                RopeSpan span = _ropes.SpanFor(link, actor);
+                total += tension.Solve(span, local.data.avarageVelocity.ToNumerics(), _lengths.EffectiveLength(link), stability).ToUnity();
+
+                bool hook = AnchorActors.IsAnchor(partner);
+
+                if (!hauled && (hook || link.IsHeldBy(partner)) && tension.Load(span, _lengths.EffectiveLength(link)) > 0f)
+                    hauled = TryGetLip(link, actor, partnerPoint.ToNumerics(), hook ? 0f : HandsAboveFloor, local.Center.ToNumerics(), out lip, out beyondLip);
             }
 
             foreach (RopeLink link in _snapped)
@@ -73,6 +87,8 @@ namespace Repkarbinhake.Plugin.Handling
             Footing footing = _actors.FootingOf(actor);
             bool canAssist = _config.LedgePush.Value > 0f && (footing == Footing.Airborne || footing == Footing.Unconscious);
             total = _ledge.Adjust(total.ToNumerics(), local.Center.ToNumerics(), local.data.avarageVelocity.ToNumerics(), canAssist, _config.LedgePush.Value, Time.fixedDeltaTime, _obstacles).ToUnity();
+            bool canMantle = (hauled || (_mantle.IsPushing && partnerHolds)) && footing != Footing.Grounded;
+            total += _mantle.Push(local.Center.ToNumerics(), local.data.avarageVelocity.ToNumerics(), lip, beyondLip, canMantle, _config.MantleStep.Value, _config.MantlePush.Value, Time.fixedDeltaTime, _obstacles).ToUnity();
 
             if (total.sqrMagnitude > 0f)
                 local.AddForce(total);
@@ -94,11 +110,33 @@ namespace Repkarbinhake.Plugin.Handling
             foreach (RopeLink link in _registry.Links)
             {
                 if (link.Contains(TestDummy.Actor))
-                    total += _tension.Solve(_ropes.SpanFor(link, TestDummy.Actor), dummy.Velocity.ToNumerics(), _reel.EffectiveLength(link), stability).ToUnity();
+                    total += _tension.Solve(_ropes.SpanFor(link, TestDummy.Actor), dummy.Velocity.ToNumerics(), _lengths.EffectiveLength(link), stability).ToUnity();
             }
 
             if (total.sqrMagnitude > 0f)
                 dummy.Push(total);
+        }
+
+        private bool TryGetLip(RopeLink link, int actor, NumericsVector3 partnerPoint, float floorBelowPartner, NumericsVector3 center, out NumericsVector3 lip, out NumericsVector3 beyondLip)
+        {
+            lip = NumericsVector3.Zero;
+            beyondLip = NumericsVector3.Zero;
+
+            if (!_ropes.TryGetPath(link, out RopeWrapPath path))
+                return false;
+
+            if (path.ContactCount == 0)
+            {
+                lip = partnerPoint - NumericsVector3.UnitY * floorBelowPartner;
+                beyondLip = lip + (partnerPoint - center);
+                return true;
+            }
+
+            IReadOnlyList<NumericsVector3> points = path.Points;
+            bool fromStart = actor == link.FirstActor;
+            lip = fromStart ? points[1] : points[points.Count - 2];
+            beyondLip = fromStart ? points[2] : points[points.Count - 3];
+            return true;
         }
 
         private void KeepHangingLight(Character local, Vector3 pull)

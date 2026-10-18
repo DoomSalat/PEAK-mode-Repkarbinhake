@@ -147,3 +147,4 @@ G (связать / отцепить) — отдельная клавиша, с�
 ### 6. Релиз
 - [x] `manifest.json`, `icon.png`, `README.md`, `CHANGELOG.md` для Thunderstore (`tools/thunderstore`, архив `-thunderstore.zip`)
 - [ ] `index.md` фичи актуален
+- [ ] Следующий патч: убрать дублирующий медиа-репозиторий `DoomSalat/Rope-Carabiner-media`. Основной репозиторий теперь публичный, а картинки уже лежат в нём (`tools/thunderstore/images/`). Перевести ссылки в `tools/thunderstore/README.md` на `https://raw.githubusercontent.com/DoomSalat/PEAK-mode-Repkarbinhake/main/tools/thunderstore/images/<файл>`, проверить, что все открываются, собрать и загрузить новую версию на Thunderstore. Только после этого удалить репозиторий `Rope-Carabiner-media` на GitHub и его локальную копию `D:\GameDev\UnityEngine\Projects\Modding\Rope-Carabiner-media` — иначе у уже загруженных версий пропадут картинки

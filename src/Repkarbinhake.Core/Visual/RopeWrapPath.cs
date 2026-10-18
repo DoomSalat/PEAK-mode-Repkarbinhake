@@ -20,6 +20,8 @@ namespace Repkarbinhake.Core.Visual
         private const float ClimbFriction = 0.36f;
         private const float ClimbSpeed = 2f;
         private const float ClimbClearance = 0.5f;
+        private const float TightenReach = 0.5f;
+        private const int TightenSteps = 6;
 
         private static readonly Vector3[] ClimbBlends = // Static: shared direction table (forward, up, side)
         {
@@ -134,6 +136,7 @@ namespace Repkarbinhake.Core.Visual
             Unwrap(radius, obstacles);
             WrapStart(radius, obstacles);
             WrapEnd(radius, obstacles);
+            SeatLowerLip(radius, obstacles);
             FlowSlack(deltaTime);
         }
 
@@ -198,6 +201,76 @@ namespace Repkarbinhake.Core.Visual
                 if (CanClimb(i, contact, candidate, pull.Length(), radius, obstacles))
                     _points[i] = candidate;
             }
+        }
+
+        private void SeatLowerLip(float radius, IRopeObstacles obstacles)
+        {
+            if (ContactCount == 0)
+                return;
+
+            int last = _points.Count - 1;
+            bool lowerIsStart = _points[0].Y <= _points[last].Y;
+            int end = lowerIsStart ? 0 : last;
+            int lip = lowerIsStart ? 1 : last - 1;
+
+            if (ContactCount < MaxContacts && TryFindLipEdge(_points[end], _points[lip], radius, obstacles, out Vector3 edge))
+            {
+                Split(lowerIsStart ? 1 : last, edge);
+                lip = lowerIsStart ? 1 : _points.Count - 2;
+            }
+
+            Tighten(lip, radius, obstacles);
+        }
+
+        private bool TryFindLipEdge(Vector3 end, Vector3 lip, float radius, IRopeObstacles obstacles, out Vector3 edge)
+        {
+            edge = Vector3.Zero;
+
+            if (!obstacles.TryHit(end, lip, radius, out _, out _))
+                return false;
+
+            Vector3 straightUp = end + Vector3.UnitY * Vector3.Distance(end, lip);
+            return !obstacles.TryHit(end, straightUp, radius, out _, out _) && TryFindEdge(end, straightUp, end, lip, radius, obstacles, out edge);
+        }
+
+        private void Tighten(int index, float radius, IRopeObstacles obstacles)
+        {
+            if (!IsTaut(index - 1) || !IsTaut(index))
+                return;
+
+            Vector3 contact = _points[index];
+            Vector3 pull = Direction(contact, _points[index - 1]) + Direction(contact, _points[index + 1]);
+
+            if (pull.LengthSquared() < float.Epsilon)
+                return;
+
+            Vector3 direction = Vector3.Normalize(pull);
+
+            if (direction.Y < 0f)
+                return;
+
+            float clear = 0f;
+            float blocked = TightenReach;
+
+            for (int step = 0; step < TightenSteps; step++)
+            {
+                float middle = (clear + blocked) * 0.5f;
+
+                if (IsSeatClear(index, contact, contact + direction * middle, radius, obstacles))
+                    clear = middle;
+                else
+                    blocked = middle;
+            }
+
+            if (clear > 0f)
+                _points[index] = contact + direction * clear;
+        }
+
+        private bool IsSeatClear(int index, Vector3 contact, Vector3 candidate, float radius, IRopeObstacles obstacles)
+        {
+            return !obstacles.TryHit(contact, candidate, radius * ContactLift, out _, out _)
+                && !obstacles.TryHit(_points[index - 1], candidate, radius, out _, out _)
+                && !obstacles.TryHit(candidate, _points[index + 1], radius, out _, out _);
         }
 
         private bool CanClimb(int index, Vector3 contact, Vector3 candidate, float pull, float radius, IRopeObstacles obstacles)

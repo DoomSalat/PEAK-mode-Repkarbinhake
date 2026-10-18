@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using BepInEx.Logging;
 using TMPro;
 using UnityEngine;
@@ -9,14 +10,14 @@ namespace Repkarbinhake.Plugin.Visual
     public sealed class HudPrompt
     {
         private const string KeyFallbackFormat = "[{0}]";
+        private const string SideFormat = "{0}    {1} {2}";
 
         private readonly GameObject _root;
         private readonly RectTransform _rect;
         private readonly Vector2 _home;
         private readonly TMP_Text _text;
         private readonly TMP_Text _key;
-        private string _keyPath;
-        private string _keyTag;
+        private readonly Dictionary<string, string> _keyTags = new Dictionary<string, string>();
 
         public HudPrompt(GameObject vanilla, string name, ManualLogSource log)
         {
@@ -51,15 +52,17 @@ namespace Repkarbinhake.Plugin.Visual
 
         public bool Exists => _root != null;
 
-        public void Show(string text, string keyPath, int row)
+        public void Show(HudPromptLine line, HudPromptLine side, int row)
         {
             if (_key == null || _text == null)
                 return;
 
+            TMP_SpriteAsset keyboardSprites = SingletonAsset<InputSpriteData>.Instance.keyboardSprites;
             _rect.anchoredPosition = _home + Vector2.up * _rect.rect.height * row;
-            _key.spriteAsset = SingletonAsset<InputSpriteData>.Instance.keyboardSprites;
-            _key.text = KeyTag(keyPath);
-            _text.text = text;
+            _key.spriteAsset = keyboardSprites;
+            _key.text = KeyTag(line.KeyPath);
+            _text.spriteAsset = keyboardSprites;
+            _text.text = side.Text == null ? line.Text : string.Format(SideFormat, line.Text, KeyTag(side.KeyPath), side.Text);
             _root.SetActive(true);
         }
 
@@ -70,16 +73,16 @@ namespace Repkarbinhake.Plugin.Visual
 
         private string KeyTag(string path)
         {
-            if (path == _keyPath)
-                return _keyTag;
+            if (_keyTags.TryGetValue(path, out string cached))
+                return cached;
 
-            _keyPath = path;
-            _keyTag = SingletonAsset<InputSpriteData>.Instance.GetSpriteTagFromInputPathKeyboard(path);
+            string tag = SingletonAsset<InputSpriteData>.Instance.GetSpriteTagFromInputPathKeyboard(path);
 
-            if (string.IsNullOrEmpty(_keyTag))
-                _keyTag = string.Format(KeyFallbackFormat, InputControlPath.ToHumanReadableString(path, InputControlPath.HumanReadableStringOptions.OmitDevice));
+            if (string.IsNullOrEmpty(tag))
+                tag = string.Format(KeyFallbackFormat, InputControlPath.ToHumanReadableString(path, InputControlPath.HumanReadableStringOptions.OmitDevice));
 
-            return _keyTag;
+            _keyTags[path] = tag;
+            return tag;
         }
     }
 }

@@ -29,14 +29,21 @@ namespace Repkarbinhake.Plugin.Input
             _settings = settings;
         }
 
-        public void Tick(Character local, int actor, Footing footing, Transform view)
+        public void Tick(Character local, int actor, Footing footing, Transform view, bool keyTaken)
         {
             bool placed = _board.Has(actor);
 
-            if (placed && (local.data.dead || _key.WasPressed || IsTooFar(local, actor)))
+            if (placed && (local.data.dead || (!keyTaken && _key.WasPressed) || IsTooFar(local, actor)))
             {
                 _sync.RemoveOwn();
                 _waitForRelease = true;
+                return;
+            }
+
+            if (keyTaken)
+            {
+                _waitForRelease = _key.IsPressed;
+                Cancel();
                 return;
             }
 

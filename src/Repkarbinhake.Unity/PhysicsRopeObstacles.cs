@@ -7,7 +7,9 @@ namespace Repkarbinhake.Unity
     public sealed class PhysicsRopeObstacles : IRopeObstacles
     {
         private const float MinimumTravel = 0.0001f;
-        private const int MaxOverlaps = 8;
+        private const int MaxOverlaps = 16;
+        private const float ShellProbe = 0.75f;
+        private const float ShellReachScale = 2f;
         private const int MaxHits = 16;
         private const string ProbeName = "Repkarbinhake Rope Probe";
         private const string ProbeLayer = "Ignore Raycast";
@@ -89,7 +91,7 @@ namespace Repkarbinhake.Unity
         private Vector3 Depenetrate(Vector3 point, float radius)
         {
             _probe.radius = radius;
-            int count = Physics.OverlapSphereNonAlloc(point, radius, _overlaps, _layerMask, QueryTriggerInteraction.Ignore);
+            int count = Physics.OverlapSphereNonAlloc(point, Mathf.Max(radius, ShellProbe), _overlaps, _layerMask, QueryTriggerInteraction.Ignore);
 
             for (int i = 0; i < count; i++)
             {
@@ -98,11 +100,44 @@ namespace Repkarbinhake.Unity
                 if (_filter.Ignores(other))
                     continue;
 
-                if (Physics.ComputePenetration(_probe, point, Quaternion.identity, other, other.transform.position, other.transform.rotation, out Vector3 direction, out float depth))
+                ShellShape shell = _filter.ShellOf(other);
+
+                if (shell != ShellShape.None)
+                    point = KeepOutside(point, radius, other, shell);
+                else if (Physics.ComputePenetration(_probe, point, Quaternion.identity, other, other.transform.position, other.transform.rotation, out Vector3 direction, out float depth))
                     point += direction * depth;
             }
 
             return point;
+        }
+
+        private Vector3 KeepOutside(Vector3 point, float radius, Collider shell, ShellShape shape)
+        {
+            Bounds bounds = shell.bounds;
+
+            if (shape == ShellShape.Top && point.y < bounds.min.y - radius)
+                return point;
+
+            Vector3 outward = shape == ShellShape.Top ? Vector3.up : shape == ShellShape.Slab ? SlabOutward(point, bounds) : RoundOutward(point, bounds);
+            float reach = bounds.extents.magnitude * ShellReachScale + radius;
+            bool hitBackfaces = Physics.queriesHitBackfaces;
+            Physics.queriesHitBackfaces = true;
+            bool covered = shell.Raycast(new Ray(point + outward * reach, -outward), out RaycastHit hit, reach + radius);
+            Physics.queriesHitBackfaces = hitBackfaces;
+            return covered ? hit.point + outward * radius : point;
+        }
+
+        private Vector3 RoundOutward(Vector3 point, Bounds bounds)
+        {
+            Vector3 outward = point - bounds.center;
+            return outward.sqrMagnitude < MinimumTravel ? Vector3.up : outward.normalized;
+        }
+
+        private Vector3 SlabOutward(Vector3 point, Bounds bounds)
+        {
+            Vector3 extents = bounds.extents;
+            Vector3 axis = extents.y <= extents.x && extents.y <= extents.z ? Vector3.up : extents.x <= extents.z ? Vector3.right : Vector3.forward;
+            return Vector3.Dot(point - bounds.center, axis) < 0f ? -axis : axis;
         }
     }
 }

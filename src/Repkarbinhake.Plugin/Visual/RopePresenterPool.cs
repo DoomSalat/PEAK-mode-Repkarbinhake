@@ -28,7 +28,7 @@ namespace Repkarbinhake.Plugin.Visual
 
         private readonly Transform _root;
         private readonly RepkaConfig _config;
-        private readonly RopeReel _reel;
+        private readonly LinkLengths _lengths;
         private readonly RopeSegmentation _segmentation;
         private readonly ActorStates _actors;
         private readonly LinkRegistry _registry;
@@ -40,11 +40,11 @@ namespace Repkarbinhake.Plugin.Visual
         private readonly RopeRecolor _recolor = new RopeRecolor();
         private Material _material;
 
-        public RopePresenterPool(Transform root, RepkaConfig config, RopeReel reel, RopeSegmentation segmentation, ActorStates actors, LinkRegistry registry, RopeHandPolicy policy, IRopeObstacles obstacles, VanillaRopeSpool spool)
+        public RopePresenterPool(Transform root, RepkaConfig config, LinkLengths lengths, RopeSegmentation segmentation, ActorStates actors, LinkRegistry registry, RopeHandPolicy policy, IRopeObstacles obstacles, VanillaRopeSpool spool)
         {
             _root = root;
             _config = config;
-            _reel = reel;
+            _lengths = lengths;
             _segmentation = segmentation;
             _actors = actors;
             _registry = registry;
@@ -106,7 +106,7 @@ namespace Repkarbinhake.Plugin.Visual
                     continue;
                 }
 
-                float length = _reel.EffectiveLength(link);
+                float length = _lengths.EffectiveLength(link);
                 RopeLengthState state = new RopeLengthState(length, link.First.HeldReel, link.Second.HeldReel);
                 bool detailed = presenter.IsVisible || IsNearView((start + end) * Midpoint);
                 presenter.Tick(start, end, state, _segmentation.Count(length, ropeCount), deltaTime, _config.Thickness.Value, _obstacles, detailed);

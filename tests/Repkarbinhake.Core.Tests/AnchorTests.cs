@@ -96,5 +96,23 @@ namespace Repkarbinhake.Core.Tests
             Assert.False(_codec.TryParseKey("rkb.link.1_2", out _));
             Assert.False(_codec.TryDecode("1|2|3", out _));
         }
+
+        [Fact]
+        public void Locked_RetractsTowardTheHook_NotPastClosest()
+        {
+            _length.Next(4f, true, false, MinLength, MaxLength);
+            _length.Next(6f, false, true, MinLength, MaxLength);
+
+            Assert.Equal(4f + AnchorLength.Slack - 1f, _length.Retract(1f, 1f), Precision);
+            Assert.Equal(1f, _length.Retract(10f, 1f), Precision);
+        }
+
+        [Fact]
+        public void Unlocked_RetractChangesNothing()
+        {
+            float free = _length.Next(4f, true, false, MinLength, MaxLength);
+
+            Assert.Equal(free, _length.Retract(1f, 1f), Precision);
+        }
     }
 }

@@ -7,6 +7,7 @@ namespace Repkarbinhake.Core.Physics
     public sealed class RopeReel
     {
         public const float MinReelInFactor = 0.15f;
+        public const float AirborneReelOutFactor = 0.3f;
 
         private readonly IRopeSettings _settings;
         private readonly RopeHandPolicy _policy;
@@ -76,7 +77,8 @@ namespace Repkarbinhake.Core.Physics
             if (!_policy.CanReelOut(footing))
                 return new ReelStep(current, 0f);
 
-            return new ReelStep(Math.Max(current - scrollInput * _settings.ReelSpeed * deltaTime, 0f), 0f);
+            float speed = footing == Footing.Airborne ? _settings.ReelSpeed * AirborneReelOutFactor : _settings.ReelSpeed;
+            return new ReelStep(Math.Max(current - scrollInput * speed * deltaTime, 0f), 0f);
         }
 
         private float MaxReel(RopeLink link, int actor)
