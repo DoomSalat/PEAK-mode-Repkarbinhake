@@ -38,6 +38,8 @@ namespace Repkarbinhake.Plugin.Visual
             _log = log;
         }
 
+        public GameObject Reticle => _reticle;
+
         public void Attach(GUIManager gui)
         {
             CreateReticle(gui);

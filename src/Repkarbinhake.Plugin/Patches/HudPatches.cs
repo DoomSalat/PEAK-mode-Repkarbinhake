@@ -15,6 +15,14 @@ namespace Repkarbinhake.Plugin.Patches
             RepkaHooks.Hud?.Attach(__instance);
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(GUIManager), nameof(GUIManager.SetReticle))]
+        public static void KeepCarabinerReticle(ref GameObject activeReticle)
+        {
+            if (activeReticle != null && RepkaHooks.ShowCarabinerReticle && RepkaHooks.Hud != null && RepkaHooks.Hud.Reticle != null)
+                activeReticle = RepkaHooks.Hud.Reticle;
+        }
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(GUIManager), "UpdateReticle")]
         public static void UpdateWidgets(GUIManager __instance)

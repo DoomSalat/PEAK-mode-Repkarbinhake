@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1
+
+- Fixed: the carabiner crosshair was invisible when looking at a teammate.
+
 ## 1.1.0
 
 - **Give a hand:** pull a hanging or passed-out friend close and look at them — you let go of the rope and help them up like with the right mouse button (`AutoHandUp`).
