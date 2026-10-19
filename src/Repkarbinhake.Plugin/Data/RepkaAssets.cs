@@ -1,11 +1,12 @@
 using System.IO;
+using System.Reflection;
 using UnityEngine;
 
 namespace Repkarbinhake.Plugin.Data
 {
     public sealed class RepkaAssets
     {
-        private const string AssetsFolder = "Assets";
+        private const string ResourcePrefix = "Repkarbinhake.Assets.";
         private const string ReticleFile = "carabiner_reticle.png";
         private const string HookIndicatorFile = "hook_indicator.png";
         private const string HookRetractFile = "hook_retract.png";
@@ -13,15 +14,17 @@ namespace Repkarbinhake.Plugin.Data
         private const string UnlockFile = "carabiner_unlock.wav";
         private const float CenterPivot = 0.5f;
 
-        public RepkaAssets(string pluginFolder)
+        private readonly Assembly _assembly;
+
+        public RepkaAssets(Assembly assembly)
         {
-            string folder = Path.Combine(pluginFolder, AssetsFolder);
+            _assembly = assembly;
             WavReader wav = new WavReader();
-            ReticleSprite = LoadSprite(Path.Combine(folder, ReticleFile));
-            HookIndicatorSprite = LoadSprite(Path.Combine(folder, HookIndicatorFile));
-            HookRetractSprite = LoadSprite(Path.Combine(folder, HookRetractFile));
-            LockClip = wav.Read(Path.Combine(folder, LockFile));
-            UnlockClip = wav.Read(Path.Combine(folder, UnlockFile));
+            ReticleSprite = LoadSprite(ReticleFile);
+            HookIndicatorSprite = LoadSprite(HookIndicatorFile);
+            HookRetractSprite = LoadSprite(HookRetractFile);
+            LockClip = wav.Read(ReadResource(LockFile), Path.GetFileNameWithoutExtension(LockFile));
+            UnlockClip = wav.Read(ReadResource(UnlockFile), Path.GetFileNameWithoutExtension(UnlockFile));
         }
 
         public Sprite ReticleSprite { get; }
@@ -30,11 +33,26 @@ namespace Repkarbinhake.Plugin.Data
         public AudioClip LockClip { get; }
         public AudioClip UnlockClip { get; }
 
-        private Sprite LoadSprite(string path)
+        private Sprite LoadSprite(string file)
         {
-            Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false) { name = Path.GetFileNameWithoutExtension(path) };
-            texture.LoadImage(File.ReadAllBytes(path));
+            Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false) { name = Path.GetFileNameWithoutExtension(file) };
+            texture.LoadImage(ReadResource(file));
             return Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height), new Vector2(CenterPivot, CenterPivot));
+        }
+
+        private byte[] ReadResource(string file)
+        {
+            using (Stream stream = _assembly.GetManifestResourceStream(ResourcePrefix + file))
+            {
+                if (stream == null)
+                    throw new FileNotFoundException($"{nameof(RepkaAssets)}: embedded asset is missing: {file}");
+
+                using (MemoryStream copy = new MemoryStream())
+                {
+                    stream.CopyTo(copy);
+                    return copy.ToArray();
+                }
+            }
         }
     }
 }

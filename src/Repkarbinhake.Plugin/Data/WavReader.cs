@@ -21,12 +21,10 @@ namespace Repkarbinhake.Plugin.Data
         private const int BitsOffset = 14;
         private const int BytesPerSample = 2;
 
-        public AudioClip Read(string path)
+        public AudioClip Read(byte[] bytes, string name)
         {
-            byte[] bytes = File.ReadAllBytes(path);
-
             if (Encoding.ASCII.GetString(bytes, 0, RiffTag.Length) != RiffTag)
-                throw new InvalidDataException($"{nameof(WavReader)}: not a RIFF file: {path}");
+                throw new InvalidDataException($"{nameof(WavReader)}: not a RIFF file: {name}");
 
             int channels = 0;
             int frequency = 0;
@@ -41,18 +39,18 @@ namespace Repkarbinhake.Plugin.Data
                 if (tag == FormatTag)
                 {
                     if (BitConverter.ToInt16(bytes, body) != PcmFormat || BitConverter.ToInt16(bytes, body + BitsOffset) != BitsPerSample)
-                        throw new InvalidDataException($"{nameof(WavReader)}: only 16-bit PCM is supported: {path}");
+                        throw new InvalidDataException($"{nameof(WavReader)}: only 16-bit PCM is supported: {name}");
 
                     channels = BitConverter.ToInt16(bytes, body + ChannelsOffset);
                     frequency = BitConverter.ToInt32(bytes, body + FrequencyOffset);
                 }
                 else if (tag == DataTag)
-                    return CreateClip(Path.GetFileNameWithoutExtension(path), bytes, body, size, channels, frequency);
+                    return CreateClip(name, bytes, body, size, channels, frequency);
 
                 offset = body + size + (size & 1);
             }
 
-            throw new InvalidDataException($"{nameof(WavReader)}: no data chunk: {path}");
+            throw new InvalidDataException($"{nameof(WavReader)}: no data chunk: {name}");
         }
 
         private AudioClip CreateClip(string name, byte[] bytes, int start, int size, int channels, int frequency)

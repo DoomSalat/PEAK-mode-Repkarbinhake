@@ -20,6 +20,8 @@ namespace Repkarbinhake.Plugin.Handling
         private readonly StabilityResolver _stability;
         private readonly TensionSolver _tension;
         private readonly TensionSolver _anchorTension;
+        private readonly TensionSolver _haulTension;
+        private readonly ReelInWatch _reelWatch = new ReelInWatch();
         private readonly LinkLengths _lengths;
         private readonly ActorStates _actors;
         private readonly RopePresenterPool _ropes;
@@ -29,12 +31,13 @@ namespace Repkarbinhake.Plugin.Handling
         private readonly MantleAssist _mantle;
         private readonly List<RopeLink> _snapped = new List<RopeLink>();
 
-        public RopeForces(LinkRegistry registry, StabilityResolver stability, TensionSolver tension, TensionSolver anchorTension, LinkLengths lengths, ActorStates actors, RopePresenterPool ropes, RepkaConfig config, IRopeObstacles obstacles, LedgeAssist ledge, MantleAssist mantle)
+        public RopeForces(LinkRegistry registry, StabilityResolver stability, TensionSolver tension, TensionSolver anchorTension, TensionSolver haulTension, LinkLengths lengths, ActorStates actors, RopePresenterPool ropes, RepkaConfig config, IRopeObstacles obstacles, LedgeAssist ledge, MantleAssist mantle)
         {
             _registry = registry;
             _stability = stability;
             _tension = tension;
             _anchorTension = anchorTension;
+            _haulTension = haulTension;
             _lengths = lengths;
             _actors = actors;
             _ropes = ropes;
@@ -55,9 +58,12 @@ namespace Repkarbinhake.Plugin.Handling
             Vector3 total = Vector3.zero;
             bool partnerHolds = false;
             bool hauled = false;
+            bool climbHauled = false;
+            Footing footing = _actors.FootingOf(actor);
             NumericsVector3 lip = NumericsVector3.Zero;
             NumericsVector3 beyondLip = NumericsVector3.Zero;
             _snapped.Clear();
+            _reelWatch.Begin();
 
             foreach (RopeLink link in _registry.Links)
             {
@@ -67,6 +73,7 @@ namespace Repkarbinhake.Plugin.Handling
                 int partner = link.Partner(actor);
                 bool hook = AnchorActors.IsAnchor(partner);
                 bool held = link.IsHeldBy(partner);
+                bool reeledIn = !hook && _reelWatch.IsReelingIn(link, partner, Time.fixedDeltaTime);
 
                 if (!_actors.TryGetRopePoint(partner, held, out Vector3 partnerPoint))
                     continue;
@@ -78,7 +85,7 @@ namespace Repkarbinhake.Plugin.Handling
                 }
 
                 partnerHolds |= held;
-                TensionSolver tension = hook ? _anchorTension : _tension;
+                TensionSolver tension = hook ? _anchorTension : held && reeledIn ? _haulTension : _tension;
                 RopeSpan span = _ropes.SpanFor(link, actor);
                 float length = _lengths.EffectiveLength(link);
                 total += tension.Solve(span, local.data.avarageVelocity.ToNumerics(), length, stability).ToUnity();
@@ -89,12 +96,19 @@ namespace Repkarbinhake.Plugin.Handling
 
                 if (!hauled && taut)
                     hauled = TryGetLip(link, actor, partnerPoint.ToNumerics(), hook ? 0f : HandsAboveFloor, local.Center.ToNumerics(), out lip, out beyondLip);
+
+                if (!climbHauled && footing == Footing.Climbing && taut && !hook && reeledIn && _config.ClimbHaulForce.Value > 0f)
+                {
+                    local.DragTowards(local.Center + span.Direction.ToUnity(), _config.ClimbHaulForce.Value);
+                    climbHauled = true;
+                }
             }
+
+            _reelWatch.End();
 
             foreach (RopeLink link in _snapped)
                 _registry.Untie(link);
 
-            Footing footing = _actors.FootingOf(actor);
             bool canAssist = _config.LedgePush.Value > 0f && (footing == Footing.Airborne || footing == Footing.Unconscious);
             total = _ledge.Adjust(total.ToNumerics(), local.Center.ToNumerics(), local.data.avarageVelocity.ToNumerics(), canAssist, _config.LedgePush.Value, Time.fixedDeltaTime, _obstacles).ToUnity();
             bool canMantle = (hauled || (_mantle.IsPushing && partnerHolds)) && footing != Footing.Grounded;

@@ -24,7 +24,7 @@ Your friend slipped off a ledge? The rope holds them. Stand firm and don't let g
 
 Standing on the ground while holding the rope makes you hard to drag down. Pulling a heavy friend is tiring — it costs stamina. More friends holding ropes to the same climber pull together and make it easier.
 
-Once your friend is close enough and you look at them, you let go of the rope and give them a hand — just like the right mouse button. A taut rope also pulls a friend out of a cactus, a spider web or a flytrap.
+Is your friend climbing the wall below you? Reeling in drags them up along the wall too. Once your friend is close enough and you look at them, you let go of the rope and give them a hand — just like the right mouse button. A taut rope also pulls a friend out of a cactus, a spider web or a flytrap.
 
 ### Hanging on the rope
 

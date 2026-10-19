@@ -22,12 +22,9 @@ function Pack([string]$configuration, [string]$flavor, [string]$debugKeys) {
     if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
 
     $pluginStage = Join-Path $stage 'plugin'
-    $modFolder = Join-Path $pluginStage 'BepInEx\plugins\Repkarbinhake'
-    New-Item -ItemType Directory -Force (Join-Path $modFolder 'Assets') | Out-Null
-    foreach ($dll in 'Repkarbinhake.dll', 'Repkarbinhake.Core.dll', 'Repkarbinhake.Unity.dll') {
-        Copy-Item (Join-Path $output $dll) $modFolder
-    }
-    Copy-Item (Join-Path $pluginProject 'Assets\*') (Join-Path $modFolder 'Assets')
+    $modFolder = Join-Path $pluginStage 'BepInEx\plugins\RopeCarabiner'
+    New-Item -ItemType Directory -Force $modFolder | Out-Null
+    Copy-Item (Join-Path $output 'RopeCarabiner.dll') $modFolder
 
     $install = (Get-Content (Join-Path $PSScriptRoot 'INSTALL.txt') -Raw -Encoding UTF8).Replace('{VERSION}', "$version $flavor").Replace('{DEBUG_KEYS}', $debugKeys)
     Set-Content (Join-Path $pluginStage 'RopeCarabiner-INSTALL.txt') $install -Encoding UTF8
@@ -59,11 +56,8 @@ function PackThunderstore {
     if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
 
     $plugins = Join-Path $stage 'plugins'
-    New-Item -ItemType Directory -Force (Join-Path $plugins 'Assets') | Out-Null
-    foreach ($dll in 'Repkarbinhake.dll', 'Repkarbinhake.Core.dll', 'Repkarbinhake.Unity.dll') {
-        Copy-Item (Join-Path $output $dll) $plugins
-    }
-    Copy-Item (Join-Path $pluginProject 'Assets\*') (Join-Path $plugins 'Assets')
+    New-Item -ItemType Directory -Force $plugins | Out-Null
+    Copy-Item (Join-Path $output 'RopeCarabiner.dll') $plugins
 
     $utf8 = New-Object System.Text.UTF8Encoding $false
     $manifest = (Get-Content (Join-Path $source 'manifest.json') -Raw -Encoding UTF8).Replace('{VERSION}', $version)

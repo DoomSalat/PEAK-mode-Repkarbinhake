@@ -168,7 +168,7 @@ namespace Repkarbinhake.Plugin
 
             _forces.Apply(local, _registry.LocalActor);
             _rescue.Tick(local, _forces.IsPulledByTeammate);
-            _hangRecovery.Tick(local, _actors.FootingOf(_registry.LocalActor), _forces.IsOnTautRope, _forces.IsPulledByTeammate, Time.fixedDeltaTime);
+            _hangRecovery.Tick(local, _actors.FootingOf(_registry.LocalActor), _forces.IsOnTautRope, _forces.IsPulledByTeammate);
             _forces.ApplyToDummy(_dummy);
         }
 
@@ -205,8 +205,9 @@ namespace Repkarbinhake.Plugin
             _deathRule = new DeathUntieRule(_actors);
             StabilityResolver stability = new StabilityResolver(settings, _policy, _actors);
             TensionSolver tension = new TensionSolver(settings);
-            AnchorRopeSettings anchorSettings = new AnchorRopeSettings(settings, config);
+            RopeSettingsOverride anchorSettings = new RopeSettingsOverride(settings, config.AnchorStiffness, config.AnchorDamping, config.AnchorMaxPull);
             TensionSolver anchorTension = new TensionSolver(anchorSettings);
+            TensionSolver haulTension = new TensionSolver(new RopeSettingsOverride(settings, config.HaulStiffness, null, null));
             RopeReel reel = new RopeReel(settings, _policy);
             _colliderFilter = new RopeColliderFilter();
             PhysicsRopeObstacles obstacles = new PhysicsRopeObstacles(HelperFunctions.GetMask(HelperFunctions.LayerType.TerrainMap), transform, _colliderFilter);
@@ -228,9 +229,9 @@ namespace Repkarbinhake.Plugin
             _handUp = new AutoHandUp(_registry, _characters, _actors, config.AutoHandUp);
             LedgeAssist ledge = new LedgeAssist();
             MantleAssist mantle = new MantleAssist();
-            _forces = new RopeForces(_registry, stability, tension, anchorTension, lengths, _actors, _ropes, config, obstacles, ledge, mantle);
+            _forces = new RopeForces(_registry, stability, tension, anchorTension, haulTension, lengths, _actors, _ropes, config, obstacles, ledge, mantle);
             _rescue = new RopeRescue(config.FreeWhenPulled);
-            _hangRecovery = new HangRecovery(config.HangRecoverySeconds, config.RecoverWhenHeld);
+            _hangRecovery = new HangRecovery(config.RecoverWhenHeld);
             _knockdown = new RopeKnockdown(_registry, reel, _ropes, config);
             _sync = new RoomLinkSync(transport, _registry, new UntiedKeySweeper(), new DepartedUntieRule(), settings, config);
             _versionCheck = new ModVersionCheck(RepkaPlugin.Version, log);

@@ -19,7 +19,7 @@ namespace Repkarbinhake.Plugin.Patches
                 return;
             }
 
-            if (target.IsLocal && RepkaHooks.LocalHelpless && RepkaHooks.TiedPartners.Contains(CharacterDirectory.ActorOf(helper)))
+            if (target.IsLocal && RepkaHooks.LocalNeedsHand && RepkaHooks.TiedPartners.Contains(CharacterDirectory.ActorOf(helper)))
                 __result = true;
         }
     }

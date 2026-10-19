@@ -1,16 +1,21 @@
+using BepInEx.Configuration;
 using Repkarbinhake.Core.Data;
 
 namespace Repkarbinhake.Plugin.Data
 {
-    public sealed class AnchorRopeSettings : IRopeSettings
+    public sealed class RopeSettingsOverride : IRopeSettings
     {
         private readonly IRopeSettings _rope;
-        private readonly RepkaConfig _config;
+        private readonly ConfigEntry<float> _stiffness;
+        private readonly ConfigEntry<float> _damping;
+        private readonly ConfigEntry<float> _maxPull;
 
-        public AnchorRopeSettings(IRopeSettings rope, RepkaConfig config)
+        public RopeSettingsOverride(IRopeSettings rope, ConfigEntry<float> stiffness, ConfigEntry<float> damping, ConfigEntry<float> maxPull)
         {
             _rope = rope;
-            _config = config;
+            _stiffness = stiffness;
+            _damping = damping;
+            _maxPull = maxPull;
         }
 
         public float MinLength => _rope.MinLength;
@@ -18,9 +23,9 @@ namespace Repkarbinhake.Plugin.Data
         public float ReelSpeed => _rope.ReelSpeed;
         public float ArmStrength => _rope.ArmStrength;
         public float ReelStaminaPerMeter => _rope.ReelStaminaPerMeter;
-        public float Stiffness => _config.AnchorStiffness.Value;
-        public float Damping => _config.AnchorDamping.Value;
-        public float MaxPull => _config.AnchorMaxPull.Value;
+        public float Stiffness => _stiffness == null ? _rope.Stiffness : _stiffness.Value;
+        public float Damping => _damping == null ? _rope.Damping : _damping.Value;
+        public float MaxPull => _maxPull == null ? _rope.MaxPull : _maxPull.Value;
         public float SnapDistance => _rope.SnapDistance;
         public float BraceResistance => _rope.BraceResistance;
         public float GroupBonus => _rope.GroupBonus;

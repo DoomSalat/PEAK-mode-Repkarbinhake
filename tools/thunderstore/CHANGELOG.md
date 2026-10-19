@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.3
+
+- **One file:** the whole mod is now a single `RopeCarabiner.dll` (pictures and sounds are built in). Manual install: drop it into `BepInEx/plugins/RopeCarabiner`. If you installed an older version by hand, delete the old `BepInEx/plugins/Repkarbinhake` folder first. Your settings (`repkarbinhake.cfg`) are kept.
+- **Grab the wall while being pulled:** a friend holding your taut rope brings you to with full control right away, and a rope yank no longer knocks you over while you hang or climb — only while you stand.
+- **Pulling a climber:** while you reel in, the rope drags a friend climbing the wall up toward you (`ClimbHaulForce`), and the helping hand now also catches friends who climb, not only those hanging.
+- **Firmer pull:** the rope stretches less while it's being reeled in (`HaulStiffness`).
+- Removed `HangRecoverySeconds`: without a friend holding the rope you recover the game's normal way.
+
 ## 1.1.2
 
 - **Come to faster on the rope:** knocked out of control while hanging, you recover right away if a teammate holds your rope (`RecoverWhenHeld`), otherwise within 5 seconds (`HangRecoverySeconds`) instead of the game's slow mid-air recovery. Then you can grab the wall.

@@ -29,7 +29,7 @@ namespace Repkarbinhake.Plugin.Patches
         public static PlayerConnectionLog ConnectionLog { get; set; } // Set: remembered by the connection log patch, the on-screen join/leave feed
         public static HookIndicatorState Hook { get; set; } // Set: written by RepkaBack every frame, your hook state for the indicator by the crosshair
         public static int HandUpTarget { get; set; } // Set: written by RepkaBack every frame, teammate your auto hand-up reaches for (0 = none)
-        public static bool LocalHelpless { get; set; } // Set: written by RepkaBack every frame, you hang or lie helpless and may be handed up by a tied teammate
+        public static bool LocalNeedsHand { get; set; } // Set: written by RepkaBack every frame, you hang, lie helpless or climb and may be handed up by a tied teammate
         public static HashSet<int> TiedPartners { get; } = new HashSet<int>(); // Static: refilled by RepkaBack every frame, teammates tied to you by rope
         public static bool StableCamera { get; set; } // Set: written by RepkaBack every frame, keeps the camera off the ragdoll head while tied
         public static bool CameraHanging { get; set; } // Set: written by RepkaBack every frame, you dangle on a taut rope: smooth camera position, no shake

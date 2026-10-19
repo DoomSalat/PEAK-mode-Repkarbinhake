@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <AssemblyName>Repkarbinhake</AssemblyName>
+    <AssemblyName>RopeCarabiner</AssemblyName>
     <RootNamespace>Repkarbinhake.Plugin</RootNamespace>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
@@ -14,7 +14,8 @@
     </RestoreAdditionalProjectSources>
     <GameDirectory Condition="'$(GameDirectory)' == ''">G:\SteamLibrary\steamapps\common\PEAK</GameDirectory>
     <ManagedDirectory>$(GameDirectory)\PEAK_Data\Managed</ManagedDirectory>
-    <PluginsDirectory>$(GameDirectory)\BepInEx\plugins\Repkarbinhake</PluginsDirectory>
+    <PluginsDirectory>$(GameDirectory)\BepInEx\plugins\RopeCarabiner</PluginsDirectory>
+    <OldPluginsDirectory>$(GameDirectory)\BepInEx\plugins\Repkarbinhake</OldPluginsDirectory>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Public'">
@@ -29,8 +30,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Repkarbinhake.Core\Repkarbinhake.Core.csproj" />
-    <ProjectReference Include="..\Repkarbinhake.Unity\Repkarbinhake.Unity.csproj" />
+    <Compile Include="..\Repkarbinhake.Core\**\*.cs" Exclude="..\Repkarbinhake.Core\bin\**;..\Repkarbinhake.Core\obj\**" LinkBase="Core" />
+    <Compile Include="..\Repkarbinhake.Unity\**\*.cs" Exclude="..\Repkarbinhake.Unity\bin\**;..\Repkarbinhake.Unity\obj\**" LinkBase="Unity" />
   </ItemGroup>
 
   <ItemGroup>
@@ -113,12 +114,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PluginAsset Include="Assets\*.*" />
+    <EmbeddedResource Include="Assets\*.*" LogicalName="Repkarbinhake.Assets.%(Filename)%(Extension)" />
   </ItemGroup>
 
   <Target Name="CopyToPlugins" AfterTargets="Build" Condition="Exists('$(GameDirectory)\BepInEx\plugins') And '$(Configuration)' != 'Public'">
-    <Copy SourceFiles="$(TargetPath);$(TargetDir)Repkarbinhake.Core.dll;$(TargetDir)Repkarbinhake.Unity.dll" DestinationFolder="$(PluginsDirectory)" />
-    <Copy SourceFiles="@(PluginAsset)" DestinationFolder="$(PluginsDirectory)\Assets" />
+    <RemoveDir Directories="$(OldPluginsDirectory)" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PluginsDirectory)" />
   </Target>
 
 </Project>

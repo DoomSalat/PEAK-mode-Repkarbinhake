@@ -1,4 +1,3 @@
-using System.IO;
 using BepInEx;
 using HarmonyLib;
 using Repkarbinhake.Plugin.Data;
@@ -12,14 +11,14 @@ namespace Repkarbinhake.Plugin
     {
         public const string Guid = "repkarbinhake";
         public const string Name = "Rope Carabiner";
-        public const string Version = "1.1.2";
+        public const string Version = "1.1.3";
 
         private Harmony _harmony;
 
         private void Awake()
         {
             RepkaConfig config = new RepkaConfig(Config);
-            RepkaAssets assets = new RepkaAssets(Path.GetDirectoryName(Info.Location));
+            RepkaAssets assets = new RepkaAssets(typeof(RepkaPlugin).Assembly);
 
             _harmony = new Harmony(Guid);
             _harmony.PatchAll(typeof(RepkaPlugin).Assembly);

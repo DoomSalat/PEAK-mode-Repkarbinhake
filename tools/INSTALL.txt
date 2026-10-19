@@ -11,7 +11,9 @@ Rope Carabiner {VERSION} — мод для PEAK: связывайтесь вер
 
 Вариант 2 — у тебя уже стоит BepInEx 5 (архив *-plugin.zip)
   1. Распакуй архив в папку игры, папка BepInEx должна слиться с твоей.
-     Мод окажется в BepInEx\plugins\Repkarbinhake.
+     Мод окажется в BepInEx\plugins\RopeCarabiner — это один файл RopeCarabiner.dll,
+     его же можно просто положить туда вручную.
+     Обновляешь со старой версии — сначала удали старую папку BepInEx\plugins\Repkarbinhake.
 
 У ВСЕХ игроков в лобби должна быть одна и та же версия мода.
 
@@ -42,6 +44,6 @@ Rope Carabiner {VERSION} — мод для PEAK: связывайтесь вер
 
 УДАЛЕНИЕ
 ========
-  Удали папку BepInEx\plugins\Repkarbinhake.
+  Удали папку BepInEx\plugins\RopeCarabiner (у старых версий — Repkarbinhake).
   Чтобы убрать BepInEx целиком: удали winhttp.dll, doorstop_config.ini,
   .doorstop_version и папку BepInEx.

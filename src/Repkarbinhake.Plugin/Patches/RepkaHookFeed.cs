@@ -57,7 +57,7 @@ namespace Repkarbinhake.Plugin.Patches
             RepkaHooks.Hook = _anchors.Has(actor) ? new HookIndicatorState(true, _anchorRopes.IsOwnLocked, _anchorRopes.IsOwnAtMax, _anchorRopes.IsOwnRetracting, _anchorRopes.OwnMeters) : default;
             RepkaHooks.StableCamera = _stableCamera.Value && IsTied(actor);
             RepkaHooks.HandUpTarget = _handUp.Target;
-            RepkaHooks.LocalHelpless = AutoHandUp.IsHelpless(footing);
+            RepkaHooks.LocalNeedsHand = AutoHandUp.IsHelpless(footing) || footing == Footing.Climbing;
             CollectPartners(actor);
             RepkaHooks.ShowCarabinerReticle = _linkHold.HasAction;
             RepkaHooks.LinkHoldProgress = _linkHold.Progress;
@@ -101,7 +101,7 @@ namespace Repkarbinhake.Plugin.Patches
             RepkaHooks.StableCamera = false;
             RepkaHooks.CameraHanging = false;
             RepkaHooks.HandUpTarget = 0;
-            RepkaHooks.LocalHelpless = false;
+            RepkaHooks.LocalNeedsHand = false;
             RepkaHooks.TiedPartners.Clear();
             RepkaHooks.ShowCarabinerReticle = false;
             RepkaHooks.LinkHoldProgress = 0f;

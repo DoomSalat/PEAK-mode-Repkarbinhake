@@ -29,7 +29,7 @@ namespace Repkarbinhake.Plugin.Handling
 
         public void Tick(Character local, int actor, float deltaTime)
         {
-            bool canFall = _config.EnableKnockdown.Value && local.data.fallSeconds <= 0f && !local.data.dead && !local.data.passedOut;
+            bool canFall = _config.EnableKnockdown.Value && local.data.isGrounded && local.data.fallSeconds <= 0f && !local.data.dead && !local.data.passedOut;
             Vector3 velocity = local.data.avarageVelocity;
 
             foreach (RopeLink link in _registry.Links)

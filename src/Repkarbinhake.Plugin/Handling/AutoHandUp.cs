@@ -66,7 +66,9 @@ namespace Repkarbinhake.Plugin.Handling
         {
             int partner = link.Partner(actor);
 
-            if (partner <= 0 || !IsHelpless(_actors.FootingOf(partner)) || _actors.IsDead(partner) || !_characters.TryFind(partner, out Character target))
+            Footing footing = _actors.FootingOf(partner);
+
+            if (partner <= 0 || !(IsHelpless(footing) || footing == Footing.Climbing) || _actors.IsDead(partner) || !_characters.TryFind(partner, out Character target))
                 return;
 
             if (!CanReach(local, target, StartRange))
@@ -90,7 +92,7 @@ namespace Repkarbinhake.Plugin.Handling
             }
 
             Footing footing = _actors.FootingOf(Target);
-            bool settled = footing == Footing.Grounded || footing == Footing.Climbing || (footing == Footing.Unconscious && (target.Center - local.Center).sqrMagnitude < ArriveRange * ArriveRange);
+            bool settled = footing == Footing.Grounded || (footing == Footing.Unconscious && (target.Center - local.Center).sqrMagnitude < ArriveRange * ArriveRange);
             _standingFor = settled ? _standingFor + deltaTime : 0f;
 
             if (_standingFor >= StandSeconds)
