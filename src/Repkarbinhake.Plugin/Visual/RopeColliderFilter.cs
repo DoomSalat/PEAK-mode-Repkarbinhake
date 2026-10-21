@@ -7,7 +7,7 @@ namespace Repkarbinhake.Plugin.Visual
 {
     public sealed class RopeColliderFilter : IColliderFilter
     {
-        private const string FoliageMarker = "Foliage";
+        private const string LeavesMarker = "Leaves";
         private const float SlabRatio = 1f / 3f;
 
         private static readonly string[] FloorMarkers = { "Floor", "maze" }; // Static: fixed name markers of citadel floor objects
@@ -47,16 +47,25 @@ namespace Repkarbinhake.Plugin.Visual
 
         private ShellShape Classify(Collider collider)
         {
-            if (collider.GetComponentInParent<BreakableBridge>() != null)
+            if (IsHangingBridge(collider))
                 return ShellShape.Top;
 
             if (!(collider is MeshCollider mesh) || mesh.convex)
                 return ShellShape.None;
 
-            if (IsFoliage(collider.GetComponent<Renderer>()))
+            if (IsLeafCrown(collider.GetComponent<Renderer>()))
                 return ShellShape.Round;
 
             return IsFloorName(collider.name) && IsThin(collider.bounds) ? ShellShape.Slab : ShellShape.None;
+        }
+
+        private bool IsHangingBridge(Collider collider)
+        {
+            if (collider.GetComponentInParent<BreakableBridge>() != null)
+                return true;
+
+            JungleVine vine = collider.GetComponentInParent<JungleVine>();
+            return vine != null && vine.colliderType == JungleVine.ColliderType.Box;
         }
 
         private bool IsFloorName(string name)
@@ -78,9 +87,9 @@ namespace Repkarbinhake.Plugin.Visual
             return thinnest < widest * SlabRatio;
         }
 
-        private bool IsFoliage(Renderer renderer)
+        private bool IsLeafCrown(Renderer renderer)
         {
-            return renderer != null && renderer.sharedMaterial != null && renderer.sharedMaterial.name.Contains(FoliageMarker);
+            return renderer != null && renderer.sharedMaterial != null && renderer.sharedMaterial.name.Contains(LeavesMarker);
         }
 
         private bool IsChest(Collider collider)

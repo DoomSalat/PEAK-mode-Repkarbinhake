@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.4
+
+- Fixed: in the Gloom the rope no longer jumps onto the outside of the big mangrove trees. Only leafy tree crowns keep the rope outside now; tree trunks, cacti and palm trunks are wrapped around like rock.
+- The rope stays on top of the Nadir hanging bridge and the bridges between tree platforms in the redwood forest, like on other hanging bridges, instead of tangling in them.
+
 ## 1.1.3
 
 - **One file:** the whole mod is now a single `RopeCarabiner.dll` (pictures and sounds are built in). Manual install: drop it into `BepInEx/plugins/RopeCarabiner`. If you installed an older version by hand, delete the old `BepInEx/plugins/Repkarbinhake` folder first. Your settings (`repkarbinhake.cfg`) are kept.
