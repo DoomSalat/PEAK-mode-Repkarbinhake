@@ -16,10 +16,11 @@ namespace Repkarbinhake.Plugin.Input
         private readonly VanillaRopeSpool _spool;
         private readonly KeyBinding _key;
         private readonly IRopeSettings _settings;
+        private readonly LobbyHookRule _rule;
         private AnchorPlacement? _pending;
         private bool _waitForRelease;
 
-        public AnchorInput(AnchorBoard board, AnchorSync sync, AnchorVisuals visuals, VanillaRopeSpool spool, KeyBinding key, IRopeSettings settings)
+        public AnchorInput(AnchorBoard board, AnchorSync sync, AnchorVisuals visuals, VanillaRopeSpool spool, KeyBinding key, IRopeSettings settings, LobbyHookRule rule)
         {
             _board = board;
             _sync = sync;
@@ -27,11 +28,21 @@ namespace Repkarbinhake.Plugin.Input
             _spool = spool;
             _key = key;
             _settings = settings;
+            _rule = rule;
         }
 
         public void Tick(Character local, int actor, Footing footing, Transform view, bool keyTaken)
         {
             bool placed = _board.Has(actor);
+
+            if (!_rule.Allowed)
+            {
+                if (placed)
+                    _sync.RemoveOwn();
+
+                Cancel();
+                return;
+            }
 
             if (placed && (local.data.dead || (!keyTaken && _key.WasPressed) || IsTooFar(local, actor)))
             {

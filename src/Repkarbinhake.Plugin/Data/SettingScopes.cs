@@ -44,6 +44,7 @@ namespace Repkarbinhake.Plugin.Data
             { "ReelStaminaPerMeter", WhenPulling },
             { "MinLength", OnYouWhenPulling },
             { "MaxLength", HostToAll },
+            { "AllowHooks", HostToAll },
         };
 
         public static string Of(string key)

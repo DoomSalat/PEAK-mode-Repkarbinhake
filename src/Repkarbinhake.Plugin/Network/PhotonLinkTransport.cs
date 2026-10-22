@@ -11,8 +11,11 @@ namespace Repkarbinhake.Plugin.Network
     public sealed class PhotonLinkTransport : ILinkTransport
     {
         public const string MaxLengthKey = "rkb.cfg.maxLength";
+        public const string AllowHooksKey = "rkb.cfg.allowHooks";
 
         private const string LocalOnlyMarker = "-";
+        private const string TrueValue = "1";
+        private const string FalseValue = "0";
 
         private readonly LinkPayloadCodec _codec = new LinkPayloadCodec();
 
@@ -54,6 +57,17 @@ namespace Repkarbinhake.Plugin.Network
         {
             maxLength = 0f;
             return properties[MaxLengthKey] is string text && float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out maxLength);
+        }
+
+        public void PublishAllowHooks(bool allowed)
+        {
+            Send(AllowHooksKey, allowed ? TrueValue : FalseValue, null);
+        }
+
+        public bool TryReadAllowHooks(Hashtable properties, out bool allowed)
+        {
+            allowed = properties[AllowHooksKey] is string text && text == TrueValue;
+            return properties[AllowHooksKey] is string;
         }
 
         public void Dispatch(Hashtable properties, LinkRegistry registry, UntiedKeySweeper sweeper, float now)

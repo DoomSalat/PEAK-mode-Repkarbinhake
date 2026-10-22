@@ -77,11 +77,6 @@ namespace Repkarbinhake.Plugin.Visual
             return _path.TrySpan(fromStart, out span);
         }
 
-        public bool TryPick(RopeRayPicker picker, Ray ray, float reach, float tolerance, out float distance)
-        {
-            return picker.TryPick(ray.origin.ToNumerics(), ray.direction.ToNumerics(), reach, tolerance, _loose.Positions, out distance);
-        }
-
         public void Destroy()
         {
             Object.Destroy(_view.gameObject);

@@ -4,6 +4,7 @@ using Photon.Pun;
 using Photon.Realtime;
 using Repkarbinhake.Core.Data;
 using Repkarbinhake.Core.Links;
+using Repkarbinhake.Plugin.Data;
 using Repkarbinhake.Plugin.Links;
 using UnityEngine.SceneManagement;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
@@ -14,11 +15,13 @@ namespace Repkarbinhake.Plugin.Network
     public sealed class AnchorSync : PhotonRoomCallbacks
     {
         private readonly AnchorBoard _board;
+        private readonly LobbyHookRule _rule;
         private readonly AnchorPayloadCodec _codec = new AnchorPayloadCodec();
 
-        public AnchorSync(AnchorBoard board)
+        public AnchorSync(AnchorBoard board, LobbyHookRule rule)
         {
             _board = board;
+            _rule = rule;
         }
 
         public override void Enable()
@@ -81,7 +84,7 @@ namespace Repkarbinhake.Plugin.Network
                 if (!(entry.Key is string key) || !_codec.TryParseKey(key, out int owner) || owner == local)
                     continue;
 
-                if (entry.Value is string payload && _codec.TryDecode(payload, out AnchorPlacement placement) && PhotonNetwork.CurrentRoom.GetPlayer(owner) != null)
+                if (_rule.Allowed && entry.Value is string payload && _codec.TryDecode(payload, out AnchorPlacement placement) && PhotonNetwork.CurrentRoom.GetPlayer(owner) != null)
                     _board.Set(owner, placement);
                 else
                     _board.Remove(owner);

@@ -1,5 +1,6 @@
 using BepInEx.Configuration;
 using Repkarbinhake.Core.Data;
+using Repkarbinhake.Core.Interaction;
 using Repkarbinhake.Core.Links;
 using Repkarbinhake.Plugin.Links;
 using UnityEngine;
@@ -18,15 +19,17 @@ namespace Repkarbinhake.Plugin.Handling
         private readonly LinkRegistry _registry;
         private readonly CharacterDirectory _characters;
         private readonly ActorStates _actors;
+        private readonly RopeHandPolicy _policy;
         private readonly ConfigEntry<bool> _enabled;
         private float _activeFor;
         private float _standingFor;
 
-        public AutoHandUp(LinkRegistry registry, CharacterDirectory characters, ActorStates actors, ConfigEntry<bool> enabled)
+        public AutoHandUp(LinkRegistry registry, CharacterDirectory characters, ActorStates actors, RopeHandPolicy policy, ConfigEntry<bool> enabled)
         {
             _registry = registry;
             _characters = characters;
             _actors = actors;
+            _policy = policy;
             _enabled = enabled;
         }
 
@@ -85,8 +88,15 @@ namespace Repkarbinhake.Plugin.Handling
         {
             _activeFor += deltaTime;
 
-            if (_activeFor > MaxSeconds || _actors.IsDead(Target) || !_characters.TryFind(Target, out Character target) || !CanReach(local, target, KeepRange))
+            if (_actors.IsDead(Target) || !_characters.TryFind(Target, out Character target))
             {
+                Stop();
+                return;
+            }
+
+            if (_activeFor > MaxSeconds || !CanReach(local, target, KeepRange))
+            {
+                GrabBack(local);
                 Stop();
                 return;
             }
@@ -102,6 +112,17 @@ namespace Repkarbinhake.Plugin.Handling
             }
 
             local.data.sincePressReach = 0f;
+        }
+
+        private void GrabBack(Character local)
+        {
+            int actor = _registry.LocalActor;
+
+            if (local.data.currentItem != null || _registry.TryGetHeld(actor, out _) || !_policy.CanHold(_actors.FootingOf(actor)))
+                return;
+
+            if (_registry.TryGet(actor, Target, out RopeLink link))
+                _registry.Grab(link);
         }
 
         private bool CanReach(Character local, Character target, float range)

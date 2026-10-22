@@ -1,5 +1,6 @@
 using System.IO;
 using System.Reflection;
+using System.Text;
 using UnityEngine;
 
 namespace Repkarbinhake.Plugin.Data
@@ -12,6 +13,11 @@ namespace Repkarbinhake.Plugin.Data
         private const string HookRetractFile = "hook_retract.png";
         private const string LockFile = "carabiner_lock.wav";
         private const string UnlockFile = "carabiner_unlock.wav";
+        private const string CarabinerFile = "carabiner.obj";
+        private const string BodyMaterial = "Carabiner_Metal";
+        private const string GateMaterial = "Carabiner_Gate";
+        private const string SleeveMaterial = "Carabiner_Sleeve";
+        private const string BoltMaterial = "Carabiner_Bolt";
         private const float CenterPivot = 0.5f;
 
         private readonly Assembly _assembly;
@@ -25,6 +31,9 @@ namespace Repkarbinhake.Plugin.Data
             HookRetractSprite = LoadSprite(HookRetractFile);
             LockClip = wav.Read(ReadResource(LockFile), Path.GetFileNameWithoutExtension(LockFile));
             UnlockClip = wav.Read(ReadResource(UnlockFile), Path.GetFileNameWithoutExtension(UnlockFile));
+            string carabiner = Encoding.UTF8.GetString(ReadResource(CarabinerFile));
+            string[][] submeshes = { new[] { BodyMaterial }, new[] { GateMaterial, SleeveMaterial }, new[] { BoltMaterial } };
+            Carabiner = new CarabinerModel(new ObjMeshReader().Read(carabiner, Path.GetFileNameWithoutExtension(CarabinerFile), submeshes));
         }
 
         public Sprite ReticleSprite { get; }
@@ -32,6 +41,7 @@ namespace Repkarbinhake.Plugin.Data
         public Sprite HookRetractSprite { get; }
         public AudioClip LockClip { get; }
         public AudioClip UnlockClip { get; }
+        public CarabinerModel Carabiner { get; }
 
         private Sprite LoadSprite(string file)
         {

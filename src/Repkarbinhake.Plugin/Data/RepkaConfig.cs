@@ -83,6 +83,7 @@ namespace Repkarbinhake.Plugin.Data
             RecoverWhenHeld = file.Bind(HangingSection, "RecoverWhenHeld", true, "Knocked out of control (ragdoll) and hanging on a taut rope that a teammate holds: you come to right away with full control, so you can grab the wall and your camera steadies. Otherwise you stay limp until the game lets you up.");
             BelaySlideCap = file.Bind(HangingSection, "BelaySlideCap", 2f, "Belay: while a partner holds your rope, out-of-stamina wall slide time is capped to this (seconds, 0 = no slide build-up).");
 
+            AllowHooks = file.Bind(HookSection, "AllowHooks", true, "Allow wall hooks (T) in the lobby. Host value is used for everyone: when the host turns it off, nobody can set a hook and hooks already set are taken back.");
             HookLength = file.Bind(HookSection, "HookLength", 14f, "Wall hook rope (T): longest rope from your hook to you (meters). Your own value, not synced with the host. Climbing farther than this, the hook rope holds you back.");
             AnchorStiffness = file.Bind(HookSection, "AnchorStiffness", 300f, "Wall hook rope (T): pull per meter of overstretch. Much stiffer than a rope between players, so a fall on the hook barely stretches it.");
             AnchorDamping = file.Bind(HookSection, "AnchorDamping", 20f, "Wall hook rope: damping of the speed moving away from the hook, stops bouncing after a fall.");
@@ -97,6 +98,7 @@ namespace Repkarbinhake.Plugin.Data
             UseVanillaRopeMaterial = file.Bind(VisualSection, "UseVanillaRopeMaterial", true, "Use the game rope material. Turn off if the rope renders wrong.");
             RopeColor = file.Bind(VisualSection, "RopeColor", 0.85f, new ConfigDescription("How much the rope takes the hue of its color from the ESC player list (0 = plain brown rope, 1 = full color). Applies to ropes tied after the change.", new AcceptableValueRange<float>(0f, 1f)));
             SoundVolume = file.Bind(VisualSection, "SoundVolume", 0.6f, new ConfigDescription("Carabiner sound volume.", new AcceptableValueRange<float>(0f, 1f)));
+            BeltCarabiners = file.Bind(VisualSection, "BeltCarabiners", true, "Show a carabiner on the belt for every rope a player is tied with, in the rope color; the rope leaves from it.");
             StableCamera = file.Bind(VisualSection, "StableCamera", false, "Motion sickness guard: while you are tied to a rope, the camera keeps looking where you aim instead of spinning with your head when you fall and dangle.");
 
             _segmentMode = file.Bind(PerformanceSection, "SegmentMode", SegmentMode.Auto, "Auto: bone budget is shared between all ropes, fewer ropes look smoother. Fixed: every rope gets at most FixedSegments bones.");
@@ -133,6 +135,7 @@ namespace Repkarbinhake.Plugin.Data
         public ConfigEntry<bool> FreeWhenPulled { get; }
         public ConfigEntry<bool> RecoverWhenHeld { get; }
         public ConfigEntry<float> HaulStiffness { get; }
+        public ConfigEntry<bool> AllowHooks { get; }
         public ConfigEntry<float> HookLength { get; }
         public ConfigEntry<float> AnchorStiffness { get; }
         public ConfigEntry<float> AnchorDamping { get; }
@@ -146,6 +149,7 @@ namespace Repkarbinhake.Plugin.Data
         public ConfigEntry<bool> UseVanillaRopeMaterial { get; }
         public ConfigEntry<float> RopeColor { get; }
         public ConfigEntry<float> SoundVolume { get; }
+        public ConfigEntry<bool> BeltCarabiners { get; }
         public ConfigEntry<bool> StableCamera { get; }
         public ConfigFile File { get; }
         public ConfigEntry<bool> ShowDebugOverlay { get; }

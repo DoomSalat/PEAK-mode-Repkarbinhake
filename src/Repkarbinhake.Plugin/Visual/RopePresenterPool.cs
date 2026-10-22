@@ -35,13 +35,16 @@ namespace Repkarbinhake.Plugin.Visual
         private readonly RopeHandPolicy _policy;
         private readonly IRopeObstacles _obstacles;
         private readonly VanillaRopeSpool _spool;
+        private readonly BeltCarabiners _belts;
         private readonly RopeRayPicker _picker = new RopeRayPicker();
+        private readonly OwnRopeAim _aim = new OwnRopeAim();
         private readonly Dictionary<string, RopePresenter> _presenters = new Dictionary<string, RopePresenter>();
         private readonly RopeRecolor _recolor = new RopeRecolor();
         private Material _material;
 
-        public RopePresenterPool(Transform root, RepkaConfig config, LinkLengths lengths, RopeSegmentation segmentation, ActorStates actors, LinkRegistry registry, RopeHandPolicy policy, IRopeObstacles obstacles, VanillaRopeSpool spool)
+        public RopePresenterPool(Transform root, RepkaConfig config, LinkLengths lengths, RopeSegmentation segmentation, ActorStates actors, LinkRegistry registry, RopeHandPolicy policy, IRopeObstacles obstacles, VanillaRopeSpool spool, BeltCarabiners belts)
         {
+            _belts = belts;
             _root = root;
             _config = config;
             _lengths = lengths;
@@ -97,8 +100,8 @@ namespace Repkarbinhake.Plugin.Visual
             foreach (RopePresenter presenter in _presenters.Values)
             {
                 RopeLink link = presenter.Link;
-                bool hasStart = _actors.TryGetRopePoint(link.FirstActor, link.First.IsHeld, out Vector3 start);
-                bool hasEnd = _actors.TryGetRopePoint(link.SecondActor, link.Second.IsHeld, out Vector3 end);
+                bool hasStart = TryGetEnd(link, link.FirstActor, link.First.IsHeld, out Vector3 start);
+                bool hasEnd = TryGetEnd(link, link.SecondActor, link.Second.IsHeld, out Vector3 end);
 
                 if (!hasStart || !hasEnd)
                 {
@@ -129,15 +132,26 @@ namespace Repkarbinhake.Plugin.Visual
         {
             aimed = null;
             distance = float.MaxValue;
+            float bestAlignment = float.MinValue;
+            System.Numerics.Vector3 origin = ray.origin.ToNumerics();
+            System.Numerics.Vector3 direction = ray.direction.ToNumerics();
 
             foreach (RopePresenter presenter in _presenters.Values)
             {
                 if (!presenter.Link.Contains(localActor) || AnchorActors.IsAnchor(presenter.Link.FirstActor))
                     continue;
 
-                if (!presenter.TryPick(_picker, ray, _config.RopeAimReach.Value, _config.RopeAimTolerance.Value, out float hit) || hit >= distance)
+                IReadOnlyList<System.Numerics.Vector3> trimmed = _aim.Trim(presenter.Points, presenter.Link.FirstActor == localActor);
+
+                if (trimmed.Count < 2 || !_picker.TryPick(origin, direction, _config.RopeAimReach.Value, _config.RopeAimTolerance.Value, trimmed, out float hit))
                     continue;
 
+                float alignment = System.Numerics.Vector3.Dot(System.Numerics.Vector3.Normalize(_aim.HeadingPoint() - origin), direction);
+
+                if (alignment <= bestAlignment)
+                    continue;
+
+                bestAlignment = alignment;
                 distance = hit;
                 aimed = presenter.Interactible;
             }
@@ -202,6 +216,14 @@ namespace Repkarbinhake.Plugin.Visual
         private void OnInteracted(RopeLink link)
         {
             RopeInteracted?.Invoke(link);
+        }
+
+        private bool TryGetEnd(RopeLink link, int actor, bool held, out Vector3 point)
+        {
+            if (!held && _belts.TryGetRopePoint(link, actor, out point))
+                return true;
+
+            return _actors.TryGetRopePoint(actor, held, out point);
         }
 
         private Material RopeMaterial()
