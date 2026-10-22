@@ -18,6 +18,7 @@ namespace Repkarbinhake.Plugin.Data
         private const string GateMaterial = "Carabiner_Gate";
         private const string SleeveMaterial = "Carabiner_Sleeve";
         private const string BoltMaterial = "Carabiner_Bolt";
+        private const string KnurlFile = "carabiner_knurl.png";
         private const float CenterPivot = 0.5f;
 
         private readonly Assembly _assembly;
@@ -32,7 +33,12 @@ namespace Repkarbinhake.Plugin.Data
             LockClip = wav.Read(ReadResource(LockFile), Path.GetFileNameWithoutExtension(LockFile));
             UnlockClip = wav.Read(ReadResource(UnlockFile), Path.GetFileNameWithoutExtension(UnlockFile));
             string carabiner = Encoding.UTF8.GetString(ReadResource(CarabinerFile));
-            string[][] submeshes = { new[] { BodyMaterial }, new[] { GateMaterial, SleeveMaterial }, new[] { BoltMaterial } };
+            string[][] submeshes = new string[CarabinerModel.SubmeshCount][];
+            submeshes[CarabinerModel.BodySubmesh] = new[] { BodyMaterial };
+            submeshes[CarabinerModel.GateSubmesh] = new[] { GateMaterial };
+            submeshes[CarabinerModel.SleeveSubmesh] = new[] { SleeveMaterial };
+            submeshes[CarabinerModel.BoltSubmesh] = new[] { BoltMaterial };
+            KnurlTexture = LoadTexture(KnurlFile, true);
             Carabiner = new CarabinerModel(new ObjMeshReader().Read(carabiner, Path.GetFileNameWithoutExtension(CarabinerFile), submeshes));
         }
 
@@ -42,12 +48,19 @@ namespace Repkarbinhake.Plugin.Data
         public AudioClip LockClip { get; }
         public AudioClip UnlockClip { get; }
         public CarabinerModel Carabiner { get; }
+        public Texture2D KnurlTexture { get; }
 
         private Sprite LoadSprite(string file)
         {
-            Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false) { name = Path.GetFileNameWithoutExtension(file) };
-            texture.LoadImage(ReadResource(file));
+            Texture2D texture = LoadTexture(file, false);
             return Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height), new Vector2(CenterPivot, CenterPivot));
+        }
+
+        private Texture2D LoadTexture(string file, bool mipmaps)
+        {
+            Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, mipmaps) { name = Path.GetFileNameWithoutExtension(file) };
+            texture.LoadImage(ReadResource(file));
+            return texture;
         }
 
         private byte[] ReadResource(string file)

@@ -21,7 +21,7 @@ namespace Repkarbinhake.Plugin.Network
         private readonly UntiedKeySweeper _sweeper;
         private readonly DepartedUntieRule _departedRule;
         private readonly LobbyRopeSettings _settings;
-        private readonly LobbyHookRule _hookRule;
+        private readonly IReadOnlyList<HostFlag> _flags;
         private readonly RepkaConfig _config;
         private readonly HashSet<int> _present = new HashSet<int>();
         private readonly List<RopeLink> _departed = new List<RopeLink>();
@@ -29,14 +29,14 @@ namespace Repkarbinhake.Plugin.Network
         private float _hostTimer;
         private float _now;
 
-        public RoomLinkSync(PhotonLinkTransport transport, LinkRegistry registry, UntiedKeySweeper sweeper, DepartedUntieRule departedRule, LobbyRopeSettings settings, LobbyHookRule hookRule, RepkaConfig config)
+        public RoomLinkSync(PhotonLinkTransport transport, LinkRegistry registry, UntiedKeySweeper sweeper, DepartedUntieRule departedRule, LobbyRopeSettings settings, IReadOnlyList<HostFlag> flags, RepkaConfig config)
         {
             _transport = transport;
             _registry = registry;
             _sweeper = sweeper;
             _departedRule = departedRule;
             _settings = settings;
-            _hookRule = hookRule;
+            _flags = flags;
             _config = config;
         }
 
@@ -46,7 +46,10 @@ namespace Repkarbinhake.Plugin.Network
         public override void Enable()
         {
             _config.MaxLengthEntry.SettingChanged += OnMaxLengthChanged;
-            _config.AllowHooks.SettingChanged += OnAllowHooksChanged;
+
+            foreach (HostFlag flag in _flags)
+                flag.Local.SettingChanged += OnFlagChanged;
+
             base.Enable();
         }
 
@@ -57,8 +60,11 @@ namespace Repkarbinhake.Plugin.Network
             if (_config.MaxLengthEntry != null)
                 _config.MaxLengthEntry.SettingChanged -= OnMaxLengthChanged;
 
-            if (_config.AllowHooks != null)
-                _config.AllowHooks.SettingChanged -= OnAllowHooksChanged;
+            foreach (HostFlag flag in _flags)
+            {
+                if (flag.Local != null)
+                    flag.Local.SettingChanged -= OnFlagChanged;
+            }
         }
 
         public void Tick(float deltaTime, float now)
@@ -83,7 +89,7 @@ namespace Repkarbinhake.Plugin.Network
             _registry.Clear();
             _sweeper.Clear();
             _settings.ForgetHost();
-            _hookRule.ForgetHost();
+            ForgetFlags();
             _registry.Bind(PhotonNetwork.LocalPlayer.ActorNumber);
             IsReadingSnapshot = true;
             ReadProperties(PhotonNetwork.CurrentRoom.CustomProperties);
@@ -98,7 +104,7 @@ namespace Repkarbinhake.Plugin.Network
             _registry.Clear();
             _sweeper.Clear();
             _settings.ForgetHost();
-            _hookRule.ForgetHost();
+            ForgetFlags();
         }
 
         public override void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
@@ -125,14 +131,20 @@ namespace Repkarbinhake.Plugin.Network
             if (_transport.TryReadMaxLength(properties, out float maxLength))
                 _settings.ApplyHostMaxLength(maxLength);
 
-            if (_transport.TryReadAllowHooks(properties, out bool allowHooks))
-                _hookRule.ApplyHost(allowHooks);
+            foreach (HostFlag flag in _flags)
+            {
+                if (_transport.TryReadFlag(properties, flag.Key, out bool value))
+                    flag.ApplyHost(value);
+            }
         }
 
         private void TakeHostDuties()
         {
             _transport.PublishMaxLength(_config.MaxLength);
-            _transport.PublishAllowHooks(_config.AllowHooks.Value);
+
+            foreach (HostFlag flag in _flags)
+                _transport.PublishFlag(flag.Key, flag.Local.Value);
+
             UntieDeparted();
         }
 
@@ -142,10 +154,24 @@ namespace Repkarbinhake.Plugin.Network
                 _transport.PublishMaxLength(_config.MaxLength);
         }
 
-        private void OnAllowHooksChanged(object sender, EventArgs arguments)
+        private void OnFlagChanged(object sender, EventArgs arguments)
         {
-            if (PhotonNetwork.InRoom && IsHost)
-                _transport.PublishAllowHooks(_config.AllowHooks.Value);
+            foreach (HostFlag flag in _flags)
+            {
+                if (flag.Local != sender)
+                    continue;
+
+                flag.ApplyLocal();
+
+                if (PhotonNetwork.InRoom && IsHost)
+                    _transport.PublishFlag(flag.Key, flag.Local.Value);
+            }
+        }
+
+        private void ForgetFlags()
+        {
+            foreach (HostFlag flag in _flags)
+                flag.ForgetHost();
         }
 
         private void UntieDeparted()

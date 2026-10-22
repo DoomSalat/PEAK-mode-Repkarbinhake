@@ -9,14 +9,14 @@ namespace Repkarbinhake.Plugin.Links
         private readonly CharacterDirectory _characters;
         private readonly AnchorBoard _anchors;
         private readonly SpoolProps _spools;
-        private readonly TestDummy _dummy;
+        private readonly TestDummies _dummies;
 
-        public ActorStates(CharacterDirectory characters, AnchorBoard anchors, SpoolProps spools, TestDummy dummy)
+        public ActorStates(CharacterDirectory characters, AnchorBoard anchors, SpoolProps spools, TestDummies dummies)
         {
             _characters = characters;
             _anchors = anchors;
             _spools = spools;
-            _dummy = dummy;
+            _dummies = dummies;
         }
 
         public Footing FootingOf(int actor)
@@ -24,8 +24,8 @@ namespace Repkarbinhake.Plugin.Links
             if (AnchorActors.IsAnchor(actor))
                 return Footing.Grounded;
 
-            if (actor == TestDummy.Actor)
-                return _dummy.IsGrounded ? Footing.Grounded : Footing.Airborne;
+            if (_dummies.IsDummy(actor))
+                return _dummies.TryGet(actor, out TestDummy dummy) && dummy.IsGrounded ? Footing.Grounded : Footing.Airborne;
 
             if (!_characters.TryFind(actor, out Character character))
                 return Footing.Airborne;
@@ -51,10 +51,11 @@ namespace Repkarbinhake.Plugin.Links
             if (AnchorActors.IsAnchor(actor))
                 return _anchors.TryGetRopePoint(actor, out point);
 
-            if (actor == TestDummy.Actor)
+            if (_dummies.IsDummy(actor))
             {
-                point = _dummy.IsPlaced ? _dummy.RopePoint : Vector3.zero;
-                return _dummy.IsPlaced;
+                bool placed = _dummies.TryGet(actor, out TestDummy dummy);
+                point = placed ? dummy.RopePoint : Vector3.zero;
+                return placed;
             }
 
             if (!_characters.TryFind(actor, out Character character))

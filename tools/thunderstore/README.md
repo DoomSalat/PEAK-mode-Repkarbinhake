@@ -69,6 +69,7 @@ You can change keys and rope strength in `BepInEx/config/repkarbinhake.cfg` (or 
 - **Rope too short?** The host sets the rope length with **`MaxLength`**. Your own hook rope length is **`HookLength`**.
 - **Dizzy when dangling?** Turn on **`StableCamera`** to keep the camera steady and smooth while you hang on a rope.
 - **Want to tweak things in game?** Set a key for **`ConfigEditorKey`** (for example `<Keyboard>/f7`) to open a settings window while playing.
+- **All settings apply live:** change them during a session, no need to rejoin. For a comfortable settings menu, install [ModConfig](https://thunderstore.io/c/peak/p/PEAKModding/ModConfig/) (recommended, not required).
 
 ## Links
 

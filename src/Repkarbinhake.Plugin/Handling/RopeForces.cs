@@ -123,18 +123,21 @@ namespace Repkarbinhake.Plugin.Handling
                 Belay(local);
         }
 
-        public void ApplyToDummy(TestDummy dummy)
+        public void ApplyToDummies(TestDummies dummies)
         {
-            if (!dummy.IsPlaced)
-                return;
+            foreach (TestDummy dummy in dummies.Placed)
+                ApplyToDummy(dummy);
+        }
 
-            float stability = _stability.Resolve(TestDummy.Actor, _registry.Links);
+        private void ApplyToDummy(TestDummy dummy)
+        {
+            float stability = _stability.Resolve(dummy.Actor, _registry.Links);
             Vector3 total = Vector3.zero;
 
             foreach (RopeLink link in _registry.Links)
             {
-                if (link.Contains(TestDummy.Actor))
-                    total += _tension.Solve(_ropes.SpanFor(link, TestDummy.Actor), dummy.Velocity.ToNumerics(), _lengths.EffectiveLength(link), stability).ToUnity();
+                if (link.Contains(dummy.Actor))
+                    total += _tension.Solve(_ropes.SpanFor(link, dummy.Actor), dummy.Velocity.ToNumerics(), _lengths.EffectiveLength(link), stability).ToUnity();
             }
 
             if (total.sqrMagnitude > 0f)

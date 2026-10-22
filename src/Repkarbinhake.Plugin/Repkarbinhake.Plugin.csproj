@@ -16,6 +16,7 @@
     <ManagedDirectory>$(GameDirectory)\PEAK_Data\Managed</ManagedDirectory>
     <PluginsDirectory>$(GameDirectory)\BepInEx\plugins\RopeCarabiner</PluginsDirectory>
     <OldPluginsDirectory>$(GameDirectory)\BepInEx\plugins\Repkarbinhake</OldPluginsDirectory>
+    <ProfilePluginsDirectory Condition="'$(ProfilePluginsDirectory)' == ''">$(APPDATA)\Thunderstore Mod Manager\DataFolder\PEAK\profiles\Default\BepInEx\plugins\Unknown-RopeCarabiner</ProfilePluginsDirectory>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Public'">
@@ -120,6 +121,10 @@
   <Target Name="CopyToPlugins" AfterTargets="Build" Condition="Exists('$(GameDirectory)\BepInEx\plugins') And '$(Configuration)' != 'Public'">
     <RemoveDir Directories="$(OldPluginsDirectory)" />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PluginsDirectory)" />
+  </Target>
+
+  <Target Name="CopyToProfile" AfterTargets="Build" Condition="Exists('$(ProfilePluginsDirectory)') And '$(Configuration)' != 'Public'">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ProfilePluginsDirectory)" />
   </Target>
 
 </Project>

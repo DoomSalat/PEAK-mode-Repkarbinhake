@@ -107,7 +107,7 @@ namespace Repkarbinhake.Plugin.Visual
             if (AnchorActors.IsAnchor(actor))
                 return AnchorName;
 
-            if (actor == TestDummy.Actor)
+            if (actor <= TestDummies.FirstActor)
                 return DummyName;
 
             Photon.Realtime.Player player = PhotonNetwork.CurrentRoom?.GetPlayer(actor);

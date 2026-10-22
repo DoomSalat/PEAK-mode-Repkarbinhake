@@ -16,11 +16,11 @@ namespace Repkarbinhake.Plugin.Input
         private readonly VanillaRopeSpool _spool;
         private readonly KeyBinding _key;
         private readonly IRopeSettings _settings;
-        private readonly LobbyHookRule _rule;
+        private readonly HostFlag _rule;
         private AnchorPlacement? _pending;
         private bool _waitForRelease;
 
-        public AnchorInput(AnchorBoard board, AnchorSync sync, AnchorVisuals visuals, VanillaRopeSpool spool, KeyBinding key, IRopeSettings settings, LobbyHookRule rule)
+        public AnchorInput(AnchorBoard board, AnchorSync sync, AnchorVisuals visuals, VanillaRopeSpool spool, KeyBinding key, IRopeSettings settings, HostFlag rule)
         {
             _board = board;
             _sync = sync;
@@ -35,7 +35,7 @@ namespace Repkarbinhake.Plugin.Input
         {
             bool placed = _board.Has(actor);
 
-            if (!_rule.Allowed)
+            if (!_rule.Value)
             {
                 if (placed)
                     _sync.RemoveOwn();

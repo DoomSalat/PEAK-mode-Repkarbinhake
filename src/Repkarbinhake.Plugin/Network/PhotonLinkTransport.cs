@@ -12,12 +12,15 @@ namespace Repkarbinhake.Plugin.Network
     {
         public const string MaxLengthKey = "rkb.cfg.maxLength";
         public const string AllowHooksKey = "rkb.cfg.allowHooks";
+        public const string LockLinksKey = "rkb.cfg.lockLinks";
 
         private const string LocalOnlyMarker = "-";
         private const string TrueValue = "1";
         private const string FalseValue = "0";
 
         private readonly LinkPayloadCodec _codec = new LinkPayloadCodec();
+
+        public int DispatchingWriter { get; private set; }
 
         public bool EchoesOwnUpdates => PhotonNetwork.InRoom && !PhotonNetwork.OfflineMode && PhotonNetwork.CurrentRoom.BroadcastPropertiesChangeToAll;
 
@@ -59,15 +62,15 @@ namespace Repkarbinhake.Plugin.Network
             return properties[MaxLengthKey] is string text && float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out maxLength);
         }
 
-        public void PublishAllowHooks(bool allowed)
+        public void PublishFlag(string key, bool value)
         {
-            Send(AllowHooksKey, allowed ? TrueValue : FalseValue, null);
+            Send(key, value ? TrueValue : FalseValue, null);
         }
 
-        public bool TryReadAllowHooks(Hashtable properties, out bool allowed)
+        public bool TryReadFlag(Hashtable properties, string key, out bool value)
         {
-            allowed = properties[AllowHooksKey] is string text && text == TrueValue;
-            return properties[AllowHooksKey] is string;
+            value = properties[key] is string text && text == TrueValue;
+            return properties[key] is string;
         }
 
         public void Dispatch(Hashtable properties, LinkRegistry registry, UntiedKeySweeper sweeper, float now)
@@ -98,7 +101,9 @@ namespace Repkarbinhake.Plugin.Network
                 return;
 
             sweeper.Observe(update, now);
+            DispatchingWriter = update.WriterActor;
             registry.Receive(update);
+            DispatchingWriter = 0;
         }
 
         private void DeleteEndIfUnchanged(string endKey)

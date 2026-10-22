@@ -4,8 +4,6 @@ namespace Repkarbinhake.Plugin.Links
 {
     public sealed class TestDummy
     {
-        public const int Actor = -1000000;
-
         private const string ObjectName = "Repkarbinhake Test Dummy";
         private const string BodyShader = "Universal Render Pipeline/Lit";
         private const float HalfHeight = 0.8f;
@@ -19,6 +17,13 @@ namespace Repkarbinhake.Plugin.Links
 
         private Rigidbody _body;
         private Collider _collider;
+
+        public TestDummy(int actor)
+        {
+            Actor = actor;
+        }
+
+        public int Actor { get; }
 
         public bool IsPlaced => _body != null;
         public Vector3 Center => _body.position;

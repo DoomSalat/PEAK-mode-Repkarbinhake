@@ -7,12 +7,12 @@ namespace Repkarbinhake.Plugin.Input
     public sealed class LinkTargetPicker
     {
         private readonly RepkaConfig _config;
-        private readonly TestDummy _dummy;
+        private readonly TestDummies _dummies;
 
-        public LinkTargetPicker(RepkaConfig config, TestDummy dummy)
+        public LinkTargetPicker(RepkaConfig config, TestDummies dummies)
         {
             _config = config;
-            _dummy = dummy;
+            _dummies = dummies;
         }
 
         public bool TryPick(Character self, Transform view, out int target)
@@ -29,16 +29,19 @@ namespace Repkarbinhake.Plugin.Input
                     target = CharacterDirectory.ActorOf(candidate);
             }
 
-            if (_dummy.IsPlaced && IsDummyAimed(view, ref bestAngle))
-                target = TestDummy.Actor;
+            foreach (TestDummy dummy in _dummies.Placed)
+            {
+                if (IsDummyAimed(dummy, view, ref bestAngle))
+                    target = dummy.Actor;
+            }
 
             return target != 0;
         }
 
-        private bool IsDummyAimed(Transform view, ref float bestAngle)
+        private bool IsDummyAimed(TestDummy dummy, Transform view, ref float bestAngle)
         {
-            if (!_dummy.IsHitBy(new Ray(view.position, view.forward), global::Interaction.instance.distance))
-                return IsBetter(view, _dummy.Center, ref bestAngle);
+            if (!dummy.IsHitBy(new Ray(view.position, view.forward), global::Interaction.instance.distance))
+                return IsBetter(view, dummy.Center, ref bestAngle);
 
             bestAngle = 0f;
             return true;

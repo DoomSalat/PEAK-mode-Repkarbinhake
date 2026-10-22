@@ -13,7 +13,7 @@ namespace Repkarbinhake.Plugin.Visual
         private readonly ManualLogSource _log;
         private readonly Dictionary<AudioLevelSlider, LinkBadgeRow> _rows = new Dictionary<AudioLevelSlider, LinkBadgeRow>();
         private readonly HashSet<AudioLevelSlider> _warned = new HashSet<AudioLevelSlider>();
-        private readonly List<Color> _buffer = new List<Color>();
+        private readonly List<LinkBadge> _buffer = new List<LinkBadge>();
 
         public PlayerListBadges(LinkColors colors, Sprite sprite, ManualLogSource log)
         {
@@ -48,7 +48,7 @@ namespace Repkarbinhake.Plugin.Visual
             {
                 KickButton kick = slider.GetComponentInChildren<KickButton>(true);
                 RectTransform kickRect = kick == null ? null : (RectTransform)kick.transform;
-                row = new LinkBadgeRow((RectTransform)slider.m_PlayerUI.playerAvatar.transform, slider.icon.rectTransform, kickRect, _sprite, material);
+                row = new LinkBadgeRow((RectTransform)slider.m_PlayerUI.playerAvatar.transform, slider.icon.rectTransform, kickRect, _sprite, material, slider.percent);
                 _rows.Add(slider, row);
             }
 

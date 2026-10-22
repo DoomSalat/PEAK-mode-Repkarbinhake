@@ -15,10 +15,10 @@ namespace Repkarbinhake.Plugin.Network
     public sealed class AnchorSync : PhotonRoomCallbacks
     {
         private readonly AnchorBoard _board;
-        private readonly LobbyHookRule _rule;
+        private readonly HostFlag _rule;
         private readonly AnchorPayloadCodec _codec = new AnchorPayloadCodec();
 
-        public AnchorSync(AnchorBoard board, LobbyHookRule rule)
+        public AnchorSync(AnchorBoard board, HostFlag rule)
         {
             _board = board;
             _rule = rule;
@@ -84,7 +84,7 @@ namespace Repkarbinhake.Plugin.Network
                 if (!(entry.Key is string key) || !_codec.TryParseKey(key, out int owner) || owner == local)
                     continue;
 
-                if (_rule.Allowed && entry.Value is string payload && _codec.TryDecode(payload, out AnchorPlacement placement) && PhotonNetwork.CurrentRoom.GetPlayer(owner) != null)
+                if (_rule.Value && entry.Value is string payload && _codec.TryDecode(payload, out AnchorPlacement placement) && PhotonNetwork.CurrentRoom.GetPlayer(owner) != null)
                     _board.Set(owner, placement);
                 else
                     _board.Remove(owner);

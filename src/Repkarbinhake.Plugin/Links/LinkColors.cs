@@ -19,6 +19,9 @@ namespace Repkarbinhake.Plugin.Links
 
         public void Assign(RopeLink link)
         {
+            if (AnchorActors.IsAnchor(link.FirstActor))
+                return;
+
             _used.Clear();
 
             foreach (RopeLink other in _registry.Links)
@@ -29,10 +32,10 @@ namespace Repkarbinhake.Plugin.Links
 
             int free = 0;
 
-            while (free < RepkaColors.LinkPalette.Length && _used.Contains(free))
+            while (_used.Contains(free))
                 free++;
 
-            _slots[link.Key] = free < RepkaColors.LinkPalette.Length ? free : _used.Count % RepkaColors.LinkPalette.Length;
+            _slots[link.Key] = free;
         }
 
         public void Release(RopeLink link)
@@ -47,19 +50,24 @@ namespace Repkarbinhake.Plugin.Links
             if (AnchorActors.IsAnchor(link.FirstActor) || !_slots.TryGetValue(link.Key, out int slot))
                 return false;
 
-            color = RepkaColors.LinkPalette[slot];
+            color = ColorOf(slot);
             return true;
         }
 
-        public void CollectFor(int actor, List<Color> colors)
+        public void CollectFor(int actor, List<LinkBadge> badges)
         {
-            colors.Clear();
+            badges.Clear();
 
             foreach (RopeLink link in _registry.Links)
             {
                 if (link.Contains(actor) && !AnchorActors.IsAnchor(link.FirstActor) && _slots.TryGetValue(link.Key, out int slot))
-                    colors.Add(RepkaColors.LinkPalette[slot]);
+                    badges.Add(new LinkBadge(ColorOf(slot), slot + 1));
             }
+        }
+
+        private Color ColorOf(int slot)
+        {
+            return RepkaColors.LinkPalette[slot % RepkaColors.LinkPalette.Length];
         }
     }
 }

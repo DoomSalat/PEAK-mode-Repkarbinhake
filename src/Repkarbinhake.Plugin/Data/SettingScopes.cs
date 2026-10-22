@@ -45,6 +45,9 @@ namespace Repkarbinhake.Plugin.Data
             { "MinLength", OnYouWhenPulling },
             { "MaxLength", HostToAll },
             { "AllowHooks", HostToAll },
+            { "LockLinks", HostToAll },
+            { "AllowHooksKey", HostToAll },
+            { "LockLinksKey", HostToAll },
         };
 
         public static string Of(string key)

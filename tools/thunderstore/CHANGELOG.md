@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.0
+
+- **Carabiners on the belt:** every player wears a big carabiner for each rope they are tied with, in the rope's color, and the rope leaves from it. They swing as you move and rest on the body instead of going through it. Up to 13 hang in two staggered rows from the front of the thighs to the sides, and neighbors never share a color while there are colors left. Your own wall hook rope gets a plain steel carabiner right in the middle of the back. You don't see your own carabiners (your ropes start inside your hips); turn on `ShowOwnCarabiners` to see them. Turn them off for everyone you see with `BeltCarabiners`.
+- **Host controls:** the host can turn wall hooks off for the whole lobby (`AllowHooks`) and lock tying and untying so everyone stays tied as they are (`LockLinks`). Both can be switched during the game in the settings window or with optional host keys (`AllowHooksKey`, `LockLinksKey`). Everyone sees the change in the join/leave feed.
+- **Untie messages:** when someone unties, the join/leave feed shows who untied from whom, in your game language.
+- **Player list:** each colored carabiner under a player's picture now shows its link number. Numbers keep counting past 10, and wall hook ropes no longer take a color or a number.
+- **Easier to grab your own rope:** looking down picks the rope that leaves from you, not a neighbor's.
+- Fixed: tinted ropes no longer all look red.
+- The helping hand grabs the rope back if it slips off your friend.
+
 ## 1.1.4
 
 - Fixed: in the Gloom the rope no longer jumps onto the outside of the big mangrove trees. Only leafy tree crowns keep the rope outside now; tree trunks, cacti and palm trunks are wrapped around like rock.

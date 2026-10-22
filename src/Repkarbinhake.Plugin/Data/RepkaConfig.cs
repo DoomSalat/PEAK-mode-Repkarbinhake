@@ -21,6 +21,7 @@ namespace Repkarbinhake.Plugin.Data
         private const int BudgetLimit = 1024;
         private const string OrphanedEntriesProperty = "OrphanedEntries";
         private const string DebugWindowKey = "<Keyboard>/f7";
+        private const int MaxTestDummies = 16;
 
         private readonly ConfigEntry<float> _minLength;
         private readonly ConfigEntry<float> _maxLength;
@@ -56,6 +57,8 @@ namespace Repkarbinhake.Plugin.Data
             _tieHoldSeconds = file.Bind(InputSection, "TieHoldSeconds", 0.8f, "How long to hold LinkKey while looking at a player to tie.");
             _untieHoldSeconds = file.Bind(InputSection, "UntieHoldSeconds", 1.2f, "How long to hold LinkKey while looking at a tied player to untie.");
 
+            LockLinks = file.Bind(RopeSection, "LockLinks", false, "Lock ties: nobody can tie or untie with the link key (G), everyone stays tied as they are. Host value is used for everyone and can be switched during the game. Deaths, players leaving and SnapDistance still untie.");
+            LockLinksKey = file.Bind(RopeSection, "LockLinksKey", "", "Host only: press to switch LockLinks during the game. Empty = no key. Example: <Keyboard>/f9.");
             _minLength = file.Bind(RopeSection, "MinLength", 0.1f, "Shortest rope length after reeling in (meters).");
             _maxLength = file.Bind(RopeSection, "MaxLength", 14f, "Full rope length for everyone in the lobby (meters). A loose rope is always this long, reeling shortens it only while held. Host value is used.");
             _reelSpeed = file.Bind(RopeSection, "ReelSpeed", 10f, "Reel speed in meters per second at full wheel speed (wheel speed is smoothed like the vanilla rope spool).");
@@ -84,6 +87,7 @@ namespace Repkarbinhake.Plugin.Data
             BelaySlideCap = file.Bind(HangingSection, "BelaySlideCap", 2f, "Belay: while a partner holds your rope, out-of-stamina wall slide time is capped to this (seconds, 0 = no slide build-up).");
 
             AllowHooks = file.Bind(HookSection, "AllowHooks", true, "Allow wall hooks (T) in the lobby. Host value is used for everyone: when the host turns it off, nobody can set a hook and hooks already set are taken back.");
+            AllowHooksKey = file.Bind(HookSection, "AllowHooksKey", "", "Host only: press to switch AllowHooks during the game. Empty = no key. Example: <Keyboard>/f10.");
             HookLength = file.Bind(HookSection, "HookLength", 14f, "Wall hook rope (T): longest rope from your hook to you (meters). Your own value, not synced with the host. Climbing farther than this, the hook rope holds you back.");
             AnchorStiffness = file.Bind(HookSection, "AnchorStiffness", 300f, "Wall hook rope (T): pull per meter of overstretch. Much stiffer than a rope between players, so a fall on the hook barely stretches it.");
             AnchorDamping = file.Bind(HookSection, "AnchorDamping", 20f, "Wall hook rope: damping of the speed moving away from the hook, stops bouncing after a fall.");
@@ -99,6 +103,7 @@ namespace Repkarbinhake.Plugin.Data
             RopeColor = file.Bind(VisualSection, "RopeColor", 0.85f, new ConfigDescription("How much the rope takes the hue of its color from the ESC player list (0 = plain brown rope, 1 = full color). Applies to ropes tied after the change.", new AcceptableValueRange<float>(0f, 1f)));
             SoundVolume = file.Bind(VisualSection, "SoundVolume", 0.6f, new ConfigDescription("Carabiner sound volume.", new AcceptableValueRange<float>(0f, 1f)));
             BeltCarabiners = file.Bind(VisualSection, "BeltCarabiners", true, "Show a carabiner on the belt for every rope a player is tied with, in the rope color; the rope leaves from it.");
+            ShowOwnCarabiners = file.Bind(VisualSection, "ShowOwnCarabiners", false, "Show the belt carabiners on yourself too (normally only others see them). Your loose ropes then leave from them instead of from inside your hips.");
             StableCamera = file.Bind(VisualSection, "StableCamera", false, "Motion sickness guard: while you are tied to a rope, the camera keeps looking where you aim instead of spinning with your head when you fall and dangle.");
 
             _segmentMode = file.Bind(PerformanceSection, "SegmentMode", SegmentMode.Auto, "Auto: bone budget is shared between all ropes, fewer ropes look smoother. Fixed: every rope gets at most FixedSegments bones.");
@@ -110,7 +115,8 @@ namespace Repkarbinhake.Plugin.Data
             if (BuildFlavor.HasDebugTools)
             {
                 ShowDebugOverlay = file.Bind(DebugSection, "ShowDebugOverlay", false, "Show rope numbers on screen.");
-                TestDummyKey = file.Bind(DebugSection, "TestDummyKey", "<Keyboard>/f9", "Press to place a local test capsule where you look, then tie to it with the link key and pull it; press again to remove it.");
+                TestDummyKey = file.Bind(DebugSection, "TestDummyKey", "<Keyboard>/f9", "Press to place TestDummyCount local test capsules in a ring where you look, then tie to them with the link key and pull them; press again to remove them all.");
+                TestDummyCount = file.Bind(DebugSection, "TestDummyCount", 8, new ConfigDescription("How many test capsules TestDummyKey places at once.", new AcceptableValueRange<int>(1, MaxTestDummies)));
             }
 
             ConfigEditorKey = file.Bind(DebugSection, "ConfigEditorKey", BuildFlavor.HasDebugTools ? DebugWindowKey : string.Empty, "Key that opens the in-game settings window to edit and apply these settings while playing. Empty = no key; set it yourself, e.g. <Keyboard>/f7.");
@@ -136,6 +142,9 @@ namespace Repkarbinhake.Plugin.Data
         public ConfigEntry<bool> RecoverWhenHeld { get; }
         public ConfigEntry<float> HaulStiffness { get; }
         public ConfigEntry<bool> AllowHooks { get; }
+        public ConfigEntry<bool> LockLinks { get; }
+        public ConfigEntry<string> AllowHooksKey { get; }
+        public ConfigEntry<string> LockLinksKey { get; }
         public ConfigEntry<float> HookLength { get; }
         public ConfigEntry<float> AnchorStiffness { get; }
         public ConfigEntry<float> AnchorDamping { get; }
@@ -155,6 +164,8 @@ namespace Repkarbinhake.Plugin.Data
         public ConfigEntry<bool> ShowDebugOverlay { get; }
         public ConfigEntry<string> ConfigEditorKey { get; }
         public ConfigEntry<string> TestDummyKey { get; }
+        public ConfigEntry<int> TestDummyCount { get; }
+        public ConfigEntry<bool> ShowOwnCarabiners { get; }
         public ConfigEntry<float> MaxLengthEntry => _maxLength;
         public float MinLength => _minLength.Value;
         public float MaxLength => _maxLength.Value;

@@ -5,8 +5,10 @@ namespace Repkarbinhake.Plugin.Data
     public sealed class CarabinerModel
     {
         public const int BodySubmesh = 0;
-        public const int MetalSubmesh = 1;
-        public const int BoltSubmesh = 2;
+        public const int GateSubmesh = 1;
+        public const int SleeveSubmesh = 2;
+        public const int BoltSubmesh = 3;
+        public const int SubmeshCount = 4;
 
         private const float TubeRadius = 0.0092f;
 

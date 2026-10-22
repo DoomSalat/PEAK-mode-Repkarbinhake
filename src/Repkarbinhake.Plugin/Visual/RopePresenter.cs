@@ -18,10 +18,12 @@ namespace Repkarbinhake.Plugin.Visual
         private readonly List<float> _spacings = new List<float>();
         private readonly List<System.Numerics.Vector3> _renderPoints = new List<System.Numerics.Vector3>();
         private readonly RopeTubeView _view;
+        private readonly RopeEndMask _mask;
         private readonly MeshRenderer _renderer;
 
-        public RopePresenter(RopeLink link, RopeTubeView view, MeshRenderer renderer, RopeInteractible interactible)
+        public RopePresenter(RopeLink link, RopeTubeView view, MeshRenderer renderer, RopeInteractible interactible, RopeEndMask mask)
         {
+            _mask = mask;
             Link = link;
             _view = view;
             _renderer = renderer;
@@ -50,7 +52,7 @@ namespace Repkarbinhake.Plugin.Visual
             _loose.Step(_targets, _freedoms, _spacings, Physics.gravity.ToNumerics(), deltaTime, radius, shapeObstacles);
         }
 
-        public void Render(Vector3? startLead, Vector3? endLead)
+        public void Render(Vector3? startLead, Vector3? endLead, Vector3? startMask, Vector3? endMask)
         {
             _renderPoints.Clear();
 
@@ -62,6 +64,7 @@ namespace Repkarbinhake.Plugin.Visual
             if (endLead.HasValue)
                 _renderPoints.Add(endLead.Value.ToNumerics());
 
+            _mask.Apply(_renderPoints, startMask?.ToNumerics(), endMask?.ToNumerics());
             _view.Render(_renderPoints);
         }
 

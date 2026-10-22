@@ -6,7 +6,7 @@ namespace Repkarbinhake.Plugin.Visual
     public sealed class RopeRecolor
     {
         private static readonly int BaseColorProperty = Shader.PropertyToID("_BaseColor"); // Static: shader property id is global
-        private static readonly int[] AccentProperties = { Shader.PropertyToID("_Color1"), Shader.PropertyToID("_Color2") }; // Static: shader property ids are global
+        private static readonly int[] AccentProperties = { Shader.PropertyToID("_Color1"), Shader.PropertyToID("_Color21"), Shader.PropertyToID("_Color3") }; // Static: shader property ids are global
 
         private readonly Dictionary<Color, Material> _materials = new Dictionary<Color, Material>();
 

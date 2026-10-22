@@ -40,6 +40,7 @@ namespace Repkarbinhake.Plugin.Visual
         private readonly OwnRopeAim _aim = new OwnRopeAim();
         private readonly Dictionary<string, RopePresenter> _presenters = new Dictionary<string, RopePresenter>();
         private readonly RopeRecolor _recolor = new RopeRecolor();
+        private readonly RopeEndMask _mask = new RopeEndMask();
         private Material _material;
 
         public RopePresenterPool(Transform root, RepkaConfig config, LinkLengths lengths, RopeSegmentation segmentation, ActorStates actors, LinkRegistry registry, RopeHandPolicy policy, IRopeObstacles obstacles, VanillaRopeSpool spool, BeltCarabiners belts)
@@ -69,7 +70,7 @@ namespace Repkarbinhake.Plugin.Visual
             view.Initialize(filter, meshRenderer, RopeMaterial(), _config.Thickness.Value, HighlightEmission);
             interactible.Initialize(link, view, CanInteract, IsHeldLocally, PartnerNameOf);
             interactible.Interacted += OnInteracted;
-            _presenters.Add(link.Key, new RopePresenter(link, view, meshRenderer, interactible));
+            _presenters.Add(link.Key, new RopePresenter(link, view, meshRenderer, interactible, _mask));
         }
 
         public void Tint(RopeLink link, Color color)
@@ -113,7 +114,7 @@ namespace Repkarbinhake.Plugin.Visual
                 RopeLengthState state = new RopeLengthState(length, link.First.HeldReel, link.Second.HeldReel);
                 bool detailed = presenter.IsVisible || IsNearView((start + end) * Midpoint);
                 presenter.Tick(start, end, state, _segmentation.Count(length, ropeCount), deltaTime, _config.Thickness.Value, _obstacles, detailed);
-                presenter.Render(LeadOf(link.First), LeadOf(link.Second));
+                presenter.Render(LeadOf(link.First), LeadOf(link.Second), MaskOf(link, link.First, start), MaskOf(link, link.Second, end));
             }
         }
 
@@ -194,6 +195,12 @@ namespace Repkarbinhake.Plugin.Visual
         private Vector3? LeadOf(RopeEnd end)
         {
             return end.IsHeld && _actors.TryGetRopeLead(end.Actor, out Vector3 lead) ? lead : (Vector3?)null;
+        }
+
+        private Vector3? MaskOf(RopeLink link, RopeEnd end, Vector3 point)
+        {
+            bool loose = end.Actor == _registry.LocalActor && !end.IsHeld;
+            return loose && !_belts.TryGetRopePoint(link, end.Actor, out _) ? point : (Vector3?)null;
         }
 
         private bool CanInteract(RopeLink link)
