@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1
+
+- The in-game settings window (`ConfigEditorKey`) now follows your game language: title, buttons, the hint line and the "on you / host → all" labels.
+
 ## 1.2.0
 
 - **Carabiners on the belt:** every player wears a big carabiner for each rope they are tied with, in the rope's color, and the rope leaves from it. They swing as you move and rest on the body instead of going through it. Up to 13 hang in two staggered rows from the front of the thighs to the sides, and neighbors never share a color while there are colors left. Your own wall hook rope gets a plain steel carabiner right in the middle of the back. You don't see your own carabiners (your ropes start inside your hips); turn on `ShowOwnCarabiners` to see them. Turn them off for everyone you see with `BeltCarabiners`.

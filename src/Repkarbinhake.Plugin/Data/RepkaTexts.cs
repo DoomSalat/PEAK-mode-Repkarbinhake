@@ -20,6 +20,17 @@ namespace Repkarbinhake.Plugin.Data
         private static readonly string[] HooksAlloweds = { "The host allowed safety hooks (T)", "L'hôte a autorisé les crochets d'assurage (T)", "L'host ha consentito i ganci di sicura (T)", "Der Host hat Sicherungshaken (T) erlaubt", "El anfitrión permitió los ganchos de seguro (T)", "El anfitrión permitió los ganchos de seguro (T)", "O anfitrião permitiu os ganchos de segurança (T)", "Хост разрешил ставить страховку (T)", "Хост дозволив ставити страховку (T)", "房主允许放置保护钩 (T)", "房主允許放置保護鉤 (T)", "ホストが確保フック(T)を許可した", "호스트가 확보 갈고리(T)를 허용했습니다", "Host zezwolił na haki asekuracyjne (T)", "Ev sahibi emniyet kancalarına (T) izin verdi" }; // Static: fixed translation table
         private static readonly string[] HooksForbiddens = { "The host disabled safety hooks (T)", "L'hôte a interdit les crochets d'assurage (T)", "L'host ha vietato i ganci di sicura (T)", "Der Host hat Sicherungshaken (T) verboten", "El anfitrión prohibió los ganchos de seguro (T)", "El anfitrión prohibió los ganchos de seguro (T)", "O anfitrião proibiu os ganchos de segurança (T)", "Хост запретил ставить страховку (T)", "Хост заборонив ставити страховку (T)", "房主禁止放置保护钩 (T)", "房主禁止放置保護鉤 (T)", "ホストが確保フック(T)を禁止した", "호스트가 확보 갈고리(T)를 금지했습니다", "Host zabronił haków asekuracyjnych (T)", "Ev sahibi emniyet kancalarını (T) yasakladı" }; // Static: fixed translation table
 
+        private static readonly string[] SettingsTitles = { "settings", "paramètres", "impostazioni", "Einstellungen", "ajustes", "ajustes", "configurações", "настройки", "налаштування", "设置", "設定", "設定", "설정", "ustawienia", "ayarlar" }; // Static: fixed translation table
+        private static readonly string[] Applies = { "Apply", "Appliquer", "Applica", "Übernehmen", "Aplicar", "Aplicar", "Aplicar", "Применить", "Застосувати", "应用", "套用", "適用", "적용", "Zastosuj", "Uygula" }; // Static: fixed translation table
+        private static readonly string[] Resets = { "Reset", "Réinitialiser", "Ripristina", "Zurücksetzen", "Restablecer", "Restablecer", "Redefinir", "Сбросить", "Скинути", "重置", "重設", "リセット", "초기화", "Resetuj", "Sıfırla" }; // Static: fixed translation table
+        private static readonly string[] Closes = { "Close", "Fermer", "Chiudi", "Schließen", "Cerrar", "Cerrar", "Fechar", "Закрыть", "Закрити", "关闭", "關閉", "閉じる", "닫기", "Zamknij", "Kapat" }; // Static: fixed translation table
+        private static readonly string[] SettingsNotes = { "Thickness and color apply to new ropes. \"{0}\": your game computes these forces for your character. Hover a name for a hint.", "L'épaisseur et la couleur s'appliquent aux nouvelles cordes. « {0} » : ton jeu calcule ces forces pour ton personnage. Survole un nom pour une aide.", "Spessore e colore valgono per le nuove corde. «{0}»: il tuo gioco calcola queste forze per il tuo personaggio. Passa sul nome per un suggerimento.", "Dicke und Farbe gelten für neue Seile. „{0}“: dein Spiel berechnet diese Kräfte für deine Figur. Fahre über einen Namen für einen Hinweis.", "El grosor y el color se aplican a cuerdas nuevas. «{0}»: tu juego calcula estas fuerzas para tu personaje. Pasa el cursor por un nombre para ver una pista.", "El grosor y el color se aplican a cuerdas nuevas. «{0}»: tu juego calcula estas fuerzas para tu personaje. Pasa el cursor sobre un nombre para ver una pista.", "Espessura e cor valem para cordas novas. \"{0}\": seu jogo calcula essas forças para o seu personagem. Passe o mouse sobre um nome para ver uma dica.", "Толщина и цвет — для новых верёвок. «{0}» — силы считает твоя игра для твоего персонажа. Наведи на имя — подсказка.", "Товщина й колір — для нових мотузок. «{0}» — сили рахує твоя гра для твого персонажа. Наведи на назву — підказка.", "粗细和颜色只对新绳子生效。“{0}”：这些力由你的游戏为你的角色计算。悬停在名称上查看提示。", "粗細和顏色只對新繩子生效。「{0}」：這些力由你的遊戲為你的角色計算。滑鼠移到名稱上查看提示。", "太さと色は新しいロープに適用されます。「{0}」：これらの力はあなたのゲームが自分のキャラクター用に計算します。名前にカーソルを合わせるとヒントが出ます。", "두께와 색은 새 밧줄에 적용됩니다. \"{0}\": 이 힘은 당신의 게임이 당신 캐릭터에 대해 계산합니다. 이름에 마우스를 올리면 도움말이 나옵니다.", "Grubość i kolor dotyczą nowych lin. „{0}”: te siły liczy twoja gra dla twojej postaci. Najedź na nazwę, aby zobaczyć podpowiedź.", "Kalınlık ve renk yeni halatlara uygulanır. \"{0}\": bu kuvvetleri senin oyunun kendi karakterin için hesaplar. İpucu için bir adın üzerine gel." }; // Static: fixed translation table
+        private static readonly string[] ScopeOnYous = { "on you", "sur toi", "su di te", "auf dich", "sobre ti", "sobre ti", "em você", "на тебя", "на тебе", "作用于你", "作用於你", "自分に", "나에게", "na ciebie", "sana" }; // Static: fixed translation table
+        private static readonly string[] ScopeWhenPullings = { "when pulling", "quand tu tires", "quando tiri", "beim Ziehen", "al tirar", "al jalar", "ao puxar", "когда тянешь", "коли тягнеш", "拉绳时", "拉繩時", "引くとき", "당길 때", "gdy ciągniesz", "çekerken" }; // Static: fixed translation table
+        private static readonly string[] ScopeOnYouWhenPullings = { "on you, when pulling", "sur toi, quand tu tires", "su di te, quando tiri", "auf dich, beim Ziehen", "sobre ti, al tirar", "sobre ti, al jalar", "em você, ao puxar", "на тебя и когда тянешь", "на тебе й коли тягнеш", "作用于你和拉绳时", "作用於你和拉繩時", "自分に・引くとき", "나에게, 당길 때", "na ciebie i gdy ciągniesz", "sana ve çekerken" }; // Static: fixed translation table
+        private static readonly string[] ScopeHostToAlls = { "host → all", "hôte → tous", "host → tutti", "Host → alle", "anfitrión → todos", "anfitrión → todos", "anfitrião → todos", "хост → всем", "хост → усім", "房主 → 所有人", "房主 → 所有人", "ホスト → 全員", "호스트 → 모두", "host → wszyscy", "ev sahibi → herkes" }; // Static: fixed translation table
+        private static readonly string[] ScopeLocalOnlys = { "only you", "seulement toi", "solo tu", "nur du", "solo tú", "solo tú", "só você", "только у тебя", "лише в тебе", "仅你", "僅你", "自分のみ", "나만", "tylko ty", "sadece sen" }; // Static: fixed translation table
+
         public static string RopeName => Pick(RopeNames);
         public static string Pull => Pick(Pulls);
         public static string Unwind => Pick(Unwinds);
@@ -31,6 +42,32 @@ namespace Repkarbinhake.Plugin.Data
         public static string TiesForbidden => Pick(TiesForbiddens);
         public static string HooksAllowed => Pick(HooksAlloweds);
         public static string HooksForbidden => Pick(HooksForbiddens);
+        public static string SettingsTitle => Pick(SettingsTitles);
+        public static string Apply => Pick(Applies);
+        public static string Reset => Pick(Resets);
+        public static string Close => Pick(Closes);
+        public static string SettingsNote => string.Format(Pick(SettingsNotes), ScopeName(SettingScope.OnYou));
+
+        public static string ScopeName(SettingScope scope) // Static: reads the game's current language
+        {
+            switch (scope)
+            {
+                case SettingScope.OnYou:
+                    return Pick(ScopeOnYous);
+
+                case SettingScope.WhenPulling:
+                    return Pick(ScopeWhenPullings);
+
+                case SettingScope.OnYouWhenPulling:
+                    return Pick(ScopeOnYouWhenPullings);
+
+                case SettingScope.HostToAll:
+                    return Pick(ScopeHostToAlls);
+
+                default:
+                    return Pick(ScopeLocalOnlys);
+            }
+        }
 
         public static string UntiedFrom(int partners) // Static: reads the game's current language
         {

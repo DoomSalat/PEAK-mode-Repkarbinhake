@@ -15,11 +15,7 @@ namespace Repkarbinhake.Plugin.Visual
         private const float NameWidth = 200f;
         private const float ScopeWidth = 150f;
         private const float HintHeight = 54f;
-        private const string Title = RepkaPlugin.Name + " — настройки";
-        private const string ApplyText = "Применить";
-        private const string ResetText = "Сбросить";
-        private const string CloseText = "Закрыть";
-        private const string Note = "Толщина и цвет — для новых верёвок. «на тебя» — силы считает твоя игра для твоего персонажа. Наведи на имя — подсказка.";
+        private const string TitleSeparator = " — ";
         private const string TrueText = "true";
 
         private readonly List<ConfigRow> _rows = new List<ConfigRow>();
@@ -34,7 +30,7 @@ namespace Repkarbinhake.Plugin.Visual
             if (!IsOpen)
                 return;
 
-            _window = GUI.Window(WindowId, _window, DrawWindow, Title);
+            _window = GUI.Window(WindowId, _window, DrawWindow, RepkaPlugin.Name + TitleSeparator + RepkaTexts.SettingsTitle);
         }
 
         public void Initialize(ConfigFile file)
@@ -83,16 +79,16 @@ namespace Repkarbinhake.Plugin.Visual
             }
 
             GUILayout.EndScrollView();
-            GUILayout.Label(string.IsNullOrEmpty(GUI.tooltip) ? Note : GUI.tooltip, GUILayout.Height(HintHeight));
+            GUILayout.Label(string.IsNullOrEmpty(GUI.tooltip) ? RepkaTexts.SettingsNote : GUI.tooltip, GUILayout.Height(HintHeight));
             GUILayout.BeginHorizontal();
 
-            if (GUILayout.Button(ApplyText))
+            if (GUILayout.Button(RepkaTexts.Apply))
                 Apply();
 
-            if (GUILayout.Button(ResetText))
+            if (GUILayout.Button(RepkaTexts.Reset))
                 Revert();
 
-            if (GUILayout.Button(CloseText))
+            if (GUILayout.Button(RepkaTexts.Close))
                 Close();
 
             GUILayout.EndHorizontal();

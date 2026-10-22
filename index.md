@@ -52,7 +52,7 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой одним файлом R
 ├── RepkaPlugin              — точка входа: конфиг, ассеты, Harmony, создаёт RepkaBack (DontDestroyOnLoad)
 ├── RepkaBack                — Back (~220 строк): собирает инструменты, порядок кадра, хуки для патчей, смерть
 ├── Data
-│   ├── SettingScopes        — static-таблица: ключ конфига → на кого действует (для окна F7; неизвестные — «только у тебя»)
+│   ├── SettingScopes        — static-таблица: ключ конфига → на кого действует (для окна F7; неизвестные — «только у тебя»); метки — SettingScope, текст на языке игры через RepkaTexts.ScopeName
 │   ├── RopeSettingsOverride — IRopeSettings поверх обычной верёвки с заменой Stiffness / Damping / MaxPull (null — как у обычной): верёвка крюка (AnchorStiffness 300, AnchorDamping 20, AnchorMaxPull 250) и подтягивание (HaulStiffness 180); RopeForces и отладка берут под них свои TensionSolver
 │   ├── ReelInWatch          — у тянущегося: сматывает ли держащий партнёр верёвку (его HeldReel вырос за кадр — держится 0,5 с, конец публикуется ~10 Гц); RopeForces на это время берёт для связки TensionSolver с HaulStiffness — меньше растяжения при подтягивании
 │   ├── RepkaConfig          — ConfigEntry (ModConfig) → IRopeSettings / ISegmentSettings; при запуске удаляет из .cfg записи, которых мод больше не читает (OrphanedEntries через AccessTools)
@@ -122,7 +122,7 @@ Repkarbinhake.Plugin (BepInEx 5, Harmony; деплой одним файлом R
 │   ├── RopeDebugReport      — строки отладки
 │   ├── IDebugTools / DebugTools / NoDebugTools — вся отладка за одним инструментом: окно отладки, капсула F9; RepkaBack берёт DebugTools, если BuildFlavor.HasDebugTools, иначе пустой NoDebugTools (релизная конфигурация Public, символ REPKA_PUBLIC; ключи ShowDebugOverlay и TestDummyKey тогда не создаются)
 │   ├── ConfigWindowInput    — клавиша окна настроек (ConfigEditorKey) во всех сборках: debug — F7, релиз — по умолчанию пусто (KeyBinding с пустым путём не срабатывает); пока окно открыто, RepkaBack не тикает G/T
-│   ├── ConfigEditorWindow   — View (IMGUI): ConfigEditorKey — окно всех записей конфига: bool — галочка, enum — кнопка-перебор, остальное — текст; рядом метка, на кого действует (SettingScopes: на тебя / когда тянешь / хост → всем / только у тебя); «Применить» пишет SetSerializedValue и сохраняет .cfg, «Сбросить» возвращает текущие; пока открыто — курсор свободен, ввод игры и G/T заблокированы
+│   ├── ConfigEditorWindow   — View (IMGUI): ConfigEditorKey — окно всех записей конфига: bool — галочка, enum — кнопка-перебор, остальное — текст; рядом метка, на кого действует (SettingScopes: на тебя / когда тянешь / хост → всем / только у тебя); «Применить» пишет SetSerializedValue и сохраняет .cfg, «Сбросить» возвращает текущие; пока открыто — курсор свободен, ввод игры и G/T заблокированы; заголовок, кнопки и подсказка внизу — на языке игры (RepkaTexts)
 │   └── RopeDebugOverlay     — View: текст отладки (ShowDebugOverlay; содержимое строит RopeDebugReport — ты, лобби, по каждой своей верёвке: растяжение, нагрузка/потолок MaxPull, тяга на тебя, оценка на партнёра, сматывание с помощниками; описание в DEBUG.md)
 └── Patches
     ├── RepkaHooks           — статический мост Back → патчи
