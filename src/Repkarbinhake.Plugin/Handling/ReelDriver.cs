@@ -78,10 +78,10 @@ namespace Repkarbinhake.Plugin.Handling
                     continue;
 
                 float load = _team.SharedLoad(link, actor, _registry.Links, _tension.Load(_ropes.SpanFor(link, actor), _reel.EffectiveLength(link)));
-                ReelStep step = _reel.StepReel(link, actor, velocity, deltaTime, load, footing, local.GetTotalStamina());
+                ReelStep step = _reel.StepReel(link, actor, velocity, deltaTime, load, footing, local.data.currentStamina);
 
                 if (step.StaminaCost > 0f)
-                    local.UseStamina(step.StaminaCost);
+                    local.UseStamina(step.StaminaCost, useBonusStamina: false);
 
                 _registry.ReelLocally(link, step.Reel);
                 _changed = true;

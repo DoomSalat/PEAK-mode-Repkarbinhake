@@ -76,6 +76,10 @@ You can change keys and rope strength in `BepInEx/config/repkarbinhake.cfg` (or 
 - Source code: https://github.com/DoomSalat/PEAK-mode-Repkarbinhake
 - Found a bug or have an idea? Open an issue: https://github.com/DoomSalat/PEAK-mode-Repkarbinhake/issues
 
+## Special thanks
+
+- **fwend**
+
 ---
 
 ![The whole team tied together](https://raw.githubusercontent.com/DoomSalat/PEAK-mode-Repkarbinhake/main/tools/thunderstore/images/team.jpg)
