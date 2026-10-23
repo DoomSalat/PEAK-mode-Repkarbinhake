@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.2
+
+- Reeling in now spends only your main stamina and never touches the extra (yellow) stamina. When the main bar is empty you can't reel in a loaded rope until it recovers.
+
 ## 1.2.1
 
 - The in-game settings window (`ConfigEditorKey`) now follows your game language: title, buttons, the hint line and the "on you / host → all" labels.
